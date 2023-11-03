@@ -9,7 +9,7 @@ This is a consolidated automation repo for different verified designs customer u
 ## Prerequisites
 
 * [AWS Account](https://aws.amazon.com) - Due to the assets being created, free tier will not work.
-  * The F5 Nginx App Protect AMI being used from the [AWS Marketplace](https://aws.amazon.com/marketplace) should be subsribed to your account
+  * The F5 NGINX App Protect AMI being used from the [AWS Marketplace](https://aws.amazon.com/marketplace) should be subsribed to your account
   * Please make sure resources like VPC and Elastic IP's are below the threshold limit in that aws region
 * [GitHub Account](https://github.com)
 
