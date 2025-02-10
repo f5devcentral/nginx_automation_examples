@@ -67,13 +67,6 @@ variable "nap" {
 variable "nic" {
   type = bool
 }
-variable "bigip" {
-  type = bool
-}
-variable "bigip-cis" {
-  type = bool
-}
-
 variable "aks-cluster" {
   type = bool
 }
