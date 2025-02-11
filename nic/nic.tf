@@ -1,5 +1,5 @@
 resource "helm_release" "nginx-plus-ingress" {
-  count = local.bigip_cis ? 0 : 1
+   count = 1
     name = format("%s-nic-%s", local.project_prefix, local.build_suffix)
     repository = "https://helm.nginx.com/stable"
     chart = "nginx-ingress"
