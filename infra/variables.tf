@@ -16,8 +16,8 @@ variable "resource_owner" {
   default     = "myName"
 }
 variable "tf_cloud_organization" {
-  type = string
-  description = "TF cloud org (Value set in TF cloud)"
+  type        = string
+  description = "Terraform Cloud Organization (set in GitHub secrets)"
 }
 variable "ssh_key" {
   type        = string
