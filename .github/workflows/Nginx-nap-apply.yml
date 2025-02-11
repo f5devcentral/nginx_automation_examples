@@ -3,8 +3,10 @@ name: "F5XC + NAP Apply"
 on:
   push:
     branches:
-      - deploy-xc-nap
+      - main
   pull_request:
+    branches:
+      - main 
 
 jobs:
   terraform_infra:
