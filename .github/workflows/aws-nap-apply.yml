@@ -12,7 +12,7 @@ on:
 jobs:
   terraform_infra:
     name: "AWS Infra" 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest   
     defaults:
       run:
         working-directory: ./infra
@@ -47,8 +47,7 @@ jobs:
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: |
-          export TF_LOG=DEBUG
-          terraform plan -no-color -input=false | tee plan.txt
+          terraform plan -no-color -input=false > plan.txt
           cat plan.txt
         continue-on-error: true
 
@@ -64,6 +63,7 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
+
 
   terraform_eks:
     name: "AWS EKS"
