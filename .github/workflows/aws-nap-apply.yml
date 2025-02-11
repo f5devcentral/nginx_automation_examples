@@ -47,9 +47,9 @@ jobs:
       - name: Terraform Plan
         if: github.event_name == 'pull_request'
         run: |
+          export TF_LOG=DEBUG
           terraform plan -no-color -input=false > plan.txt
           cat plan.txt
-        continue-on-error: true
 
       - name: Terraform Plan Status
         run: |
