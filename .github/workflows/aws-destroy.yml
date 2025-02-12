@@ -1,5 +1,4 @@
 name: "F5XC + NAP Destroy"
-
 on:
   push:
     branches:
