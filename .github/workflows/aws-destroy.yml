@@ -10,7 +10,6 @@ jobs:
 
   terraform_eks:
     name: "AWS EKS"
-    needs: terraform_infra
     runs-on: ubuntu-latest
     defaults:
       run:
