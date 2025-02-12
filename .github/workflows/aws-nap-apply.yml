@@ -3,7 +3,7 @@ name: "F5XC + NAP Apply"
 on:
   push:
     branches:
-      - aws-apply
+      - apply-nap
   pull_request:
 
 jobs:
@@ -58,7 +58,7 @@ jobs:
           fi
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
 
 
@@ -115,7 +115,7 @@ jobs:
           fi
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
 
   terraform_nap:
@@ -171,7 +171,7 @@ jobs:
           fi
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
 
   terraform_arcadia:
@@ -227,6 +227,6 @@ jobs:
           fi
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
 
