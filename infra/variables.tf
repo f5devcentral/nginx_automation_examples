@@ -8,7 +8,7 @@ variable "project_prefix" {
 variable "aws_region" {
   description = "aws region"
   type        = string
-#  default     = "us-west-2"
+  default     = "us-west-2"
 }
 variable "resource_owner" {
   type        = string
@@ -34,8 +34,7 @@ variable cidr {
 }
 variable "azs" {
   description = "Availability Zones"
-  type        = list(string)
-  default     = slice(data.aws_availability_zones.available.names, 0, 2)
+  type        = list
 }
 variable "create_nat_gateway" {
   type        = bool
