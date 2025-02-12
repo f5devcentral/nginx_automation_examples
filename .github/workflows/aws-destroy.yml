@@ -3,7 +3,7 @@ name: "NAP Destroy"
 on:
   push:
     branches:
-      - main
+      - destroy-nap
   workflow_dispatch:
 
 jobs:
@@ -79,7 +79,7 @@ jobs:
         run: exit 1
 
       - name: Terraform Destroy
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/destroy-nap' && github.event_name == 'push'
         run: terraform destroy -auto-approve -input=false
 
   terraform_infra:
@@ -152,7 +152,6 @@ jobs:
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
-
       - name: Terraform Destroy
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/destroy-nap' && github.event_name == 'push'
         run: terraform destroy -auto-approve -input=false
