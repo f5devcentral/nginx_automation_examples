@@ -34,7 +34,8 @@ variable cidr {
 }
 variable "azs" {
   description = "Availability Zones"
-  type        = list
+  type        = list(string)
+  default     = slice(data.aws_availability_zones.available.names, 0, 2)
 }
 variable "create_nat_gateway" {
   type        = bool
