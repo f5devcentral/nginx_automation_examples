@@ -3,11 +3,8 @@ name: "F5XC + NAP Apply"
 on:
   push:
     branches:
-      - main
+      - aws-apply
   pull_request:
-    branches:
-      - main  
-  workflow_dispatch:
 
 jobs:
   terraform_infra:
