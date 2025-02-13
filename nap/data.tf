@@ -11,7 +11,8 @@ data "aws_eks_cluster_auth" "auth" {
 }
 data "kubernetes_service_v1" "nginx-service" {
   metadata {
-    name = try(format("%s-%s-controller", helm_release.nginx-plus-ingress.0.name, helm_release.nginx-plus-ingress.0.chart))
-    namespace = try(helm_release.nginx-plus-ingress[0].namespace)
+    name = try(format("%s-%s-controller", helm_release.nginx-plus-ingress.name, helm_release.nginx-plus-ingress.chart))
+    namespace = try(helm_release.nginx-plus-ingress.namespace)
   }
 }
+
