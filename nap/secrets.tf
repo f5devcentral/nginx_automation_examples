@@ -1,7 +1,7 @@
 resource "kubernetes_secret" "docker-registry" {
     metadata {
         name      = "regcred"
-        namespace = kubernetes_namespace.nginx-ingress.metadata.name[0]
+        namespace = kubernetes_namespace.nginx-ingress.metadata[0].name
     }
 
     type = "kubernetes.io/dockerconfigjson"
