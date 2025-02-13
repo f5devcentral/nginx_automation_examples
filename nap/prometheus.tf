@@ -4,4 +4,5 @@ resource "helm_release" "prometheus" {
   chart = "prometheus"
   namespace = kubernetes_namespace.monitoring.metadata[0].name
   values = [file("./charts/prometheus/values.yaml")]
+  timeout    = 600  # 10 minutes timeout
 }
