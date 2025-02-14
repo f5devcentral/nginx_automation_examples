@@ -2,4 +2,18 @@
 prometheus:
   pushgateway:
     enabled: false
-  storageClass: "ebs-sc"
+  server:
+    persistentVolume:
+      enabled: true
+      storageClass: "ebs-sc"
+      accessModes:
+        - ReadWriteOnce
+      size: 50Gi
+  alertmanager:
+    persistentVolume:
+      enabled: true
+      storageClass: "ebs-sc"
+      accessModes:
+        - ReadWriteOnce
+      size: 10Gi
+
