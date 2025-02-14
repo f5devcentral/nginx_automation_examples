@@ -7,7 +7,7 @@ controller:
   enableSnippets: true
   image:
     repository: private-registry.nginx.com/nginx-ic-nap-dos/nginx-plus-ingress
-    tag: "4.0.1"
+    tag: "3.7.2"
     pullPolicy: Always
   nginxplus: true
   nginxStatus:
@@ -16,6 +16,6 @@ controller:
   readyStatus:
     initialDelaySeconds: 30
   serviceAccount:
-    imagePullSecretName: regcred 
+    imagePullSecretName: regcred
 prometheus:
   create: true
