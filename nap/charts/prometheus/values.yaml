@@ -4,16 +4,8 @@ prometheus:
     enabled: false
   server:
     persistentVolume:
-      enabled: true
-      storageClass: "ebs-sc"
-      accessModes:
-        - ReadWriteOnce
-      size: 50Gi
+      enabled: true  # Only enabling persistent storage, no need for custom PVC properties
   alertmanager:
     persistentVolume:
-      enabled: true
-      storageClass: "ebs-sc"
-      accessModes:
-        - ReadWriteOnce
-      size: 10Gi
+      enabled: true  # Only enabling persistent storage, no need for custom PVC properties
 
