@@ -2,3 +2,4 @@
 prometheus:
   pushgateway:
     enabled: false
+  storageClass: "ebs-sc"
