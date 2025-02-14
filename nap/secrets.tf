@@ -1,3 +1,16 @@
+resource "kubernetes_secret" "nginx_license" {
+  metadata {
+    name      = "license-token"
+    namespace = kubernetes_namespace.nginx-ingress.metadata[0].name
+  }
+
+  data = {
+    "license.jwt" = var.nginx_jwt
+  }
+
+  type = "nginx.com/license"
+}
+
 resource "kubernetes_secret" "docker-registry" {
     metadata {
         name      = "regcred"
@@ -18,4 +31,3 @@ resource "kubernetes_secret" "docker-registry" {
         })
     }
 }
-
