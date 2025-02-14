@@ -32,23 +32,44 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly-EK
 
 # Create IAM role for the worker nodes
 
+data "aws_eks_cluster" "cluster" {
+  name = var.cluster_name
+}
+
+data "aws_iam_openid_connect_provider" "oidc_provider" {
+  url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+}
 
 resource "aws_iam_role" "workernodes" {
   name = format("%s-eks-node-iam-role-%s", local.project_prefix, local.build_suffix)
- 
+
   assume_role_policy = jsonencode({
-   Statement = [{
-    Action = "sts:AssumeRole"
-    Effect = "Allow"
-    Principal = {
-     Service = "ec2.amazonaws.com"
-    }
-   }]
-   Version = "2012-10-17"
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        },
+        Action = "sts:AssumeRole"
+      },
+      {
+        Effect = "Allow",
+        Principal = {
+          Federated = data.aws_iam_openid_connect_provider.oidc_provider.arn
+        },
+        Action = "sts:AssumeRoleWithWebIdentity",
+        Condition = {
+          "StringEquals" = {
+            "${replace(data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer, "https://", "")}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+          }
+        }
+      }
+    ]
   })
- }
- 
- resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
+ } 
+
+resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
   role    = aws_iam_role.workernodes.name
  }
