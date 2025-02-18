@@ -31,10 +31,6 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly-EK
 
 # Create IAM role for the worker nodes
 
-data "aws_eks_cluster" "cluster" {
-  name = var.cluster_name
-}
-
 data "aws_iam_openid_connect_provider" "oidc_provider" {
   url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
 }
