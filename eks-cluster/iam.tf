@@ -1,9 +1,3 @@
-# Declare cluster_name variable
-variable "cluster_name" {
-  description = "The name of the EKS cluster"
-  type        = string
-}
-
 # Create IAM role for the EKS cluster
 
 resource "aws_iam_role" "eks-iam-role" {
