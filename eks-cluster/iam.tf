@@ -36,7 +36,8 @@ data "aws_eks_cluster" "cluster" {
 }
 
 data "aws_iam_openid_connect_provider" "oidc_provider" {
-  url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+  url = aws_eks_cluster.eks-tf.identity[0].oidc[0].issuer
+  depends_on = [aws_eks_cluster.eks-tf]
 }
 
 resource "aws_iam_role" "workernodes" {
