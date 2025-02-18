@@ -31,14 +31,22 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly-EK
 
 # Create IAM role for the worker nodes
 
-data "aws_eks_cluster" "cluster" {
-  name = aws_eks_cluster.eks-tf.name
-}
-
 data "aws_iam_openid_connect_provider" "oidc_provider" {
   url = aws_eks_cluster.eks-tf.identity[0].oidc[0].issuer
   depends_on = [aws_eks_cluster.eks-tf]
 }
+resource "aws_iam_openid_connect_provider" "oidc_provider" {
+  url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+
+  client_id_list = ["sts.amazonaws.com"]
+
+  thumbprint_list = ["9e99a48a9960b14926bb7f3b02e22da2b0ec444e"]
+
+  tags = {
+    Name = "${aws_eks_cluster.eks-tf.name}-oidc-provider"
+  }
+}
+
 
 resource "aws_iam_role" "workernodes" {
   name = format("%s-eks-node-iam-role-%s", local.project_prefix, local.build_suffix)
@@ -56,7 +64,7 @@ resource "aws_iam_role" "workernodes" {
       {
         Effect = "Allow",
         Principal = {
-          Federated = data.aws_iam_openid_connect_provider.oidc_provider.arn
+          Federated = aws_iam_openid_connect_provider.oidc_provider.arn
         },
         Action = "sts:AssumeRoleWithWebIdentity",
         Condition = {
@@ -67,7 +75,7 @@ resource "aws_iam_role" "workernodes" {
       }
     ]
   })
- } 
+}
 
 resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
