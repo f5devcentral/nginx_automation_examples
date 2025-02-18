@@ -7,5 +7,5 @@ prometheus:
       enabled: true  
   alertmanager:
     persistentVolume:
-      enabled: true  # Only enabling persistent storage, no need for custom PVC properties
+      enabled: true  
 
