@@ -10,46 +10,32 @@ controller:
         emptyDir: {}
       - name: app-protect-bundles
         emptyDir: {}
-        
     volumeMounts:
       - name: app-protect-bd-config
-        mountPath: /etc/app_protect/bd-config
+        mountPath: /opt/app_protect/bd_config  # Corrected path
       - name: app-protect-config
-        mountPath: /etc/app_protect/config
+        mountPath: /opt/app_protect/config     # Corrected path
       - name: app-protect-bundles
         mountPath: /etc/app_protect/bundles
-     ## Configuration for App Protect WAF v5 Enforcer
     enforcer:
-      # Host that the App Protect WAF v5 Enforcer runs on.
-      # This will normally be "127.0.0.1" as the Enforcer container
-      # will run in the same pod as the Ingress Controller container.
       host: "127.0.0.1"
-      # Port that the App Protect WAF v5 Enforcer runs on.
       port: 50000 
       image:
-        ## The image repository of the App Protect WAF v5 Enforcer.
-        repository:  private-registry.nginx.com/nap/waf-enforcer
+        repository: private-registry.nginx.com/nap/waf-enforcer
         tag: "5.4.0"
-        ## The pull policy for the App Protect WAF v5 Enforcer image.
         pullPolicy: IfNotPresent
       securityContext: 
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false  # Allow writes
     configManager:
       image:
-        ## The image repository of the App Protect WAF v5 Configuration Manager.
         repository: private-registry.nginx.com/nap/waf-config-mgr
-        ## The tag of the App Protect WAF v5 Configuration Manager image.
         tag: "5.4.0"
-        ## The pull policy for the App Protect WAF v5 Configuration Manager image.
         pullPolicy: IfNotPresent
       securityContext:
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false   # Allow writes
         allowPrivilegeEscalation: false
-        runAsUser: 101 #nginx
+        runAsUser: 101
         runAsNonRoot: true
-        capabilities:
-          drop:
-            - all
   appprotectdos:
     enable: true
   enableSnippets: true
@@ -64,6 +50,8 @@ controller:
   readyStatus:
     initialDelaySeconds: 30
   serviceAccount:
-    imagePullSecretName: regcred 
+    imagePullSecretName: regcred
+  podSecurityContext:
+    fsGroup: 101  # Ensure volume writability
 prometheus:
   create: true
