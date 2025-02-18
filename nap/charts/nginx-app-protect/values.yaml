@@ -12,19 +12,19 @@ controller:
         emptyDir: {}
     volumeMounts:
       - name: app-protect-bd-config
-        mountPath: /opt/app_protect/bd_config  # Corrected path
+        mountPath: /opt/app_protect/bd_config
       - name: app-protect-config
-        mountPath: /opt/app_protect/config     # Corrected path
+        mountPath: /opt/app_protect/config
       - name: app-protect-bundles
         mountPath: /etc/app_protect/bundles
     enforcer:
-      host: "127.0.0.1"
-      port: 50000 
+      host: "0.0.0.0"  # Ensure connectivity
+      port: 50000
       image:
         repository: private-registry.nginx.com/nap/waf-enforcer
         tag: "5.4.0"
         pullPolicy: IfNotPresent
-      securityContext: 
+      securityContext:
         readOnlyRootFilesystem: false  # Allow writes
     configManager:
       image:
@@ -32,26 +32,25 @@ controller:
         tag: "5.4.0"
         pullPolicy: IfNotPresent
       securityContext:
-        readOnlyRootFilesystem: false   # Allow writes
-        allowPrivilegeEscalation: false
-        runAsUser: 101
-        runAsNonRoot: true
+        readOnlyRootFilesystem: false
+        runAsUser: 101  # NGINX user
   appprotectdos:
     enable: true
-  enableSnippets: true
   image:
     repository: private-registry.nginx.com/nginx-ic-dos/nginx-plus-ingress
-    tag: "4.0.1"
+    tag: "4.0.1"  # Compatible with App Protect 5.4.0
     pullPolicy: Always
-  nginxplus: true
-  nginxStatus:
-    allowCidrs: 0.0.0.0/0
-    port: 9000
-  readyStatus:
-    initialDelaySeconds: 30
-  serviceAccount:
-    imagePullSecretName: regcred
+  nginxplus: true  # Requires valid NGINX Plus license
   podSecurityContext:
-    fsGroup: 101  # Ensure volume writability
+    fsGroup: 101  # Ensure volume permissions
+  extraArgs:
+    - -nginx-plus=true
+    - -enable-app-protect=true
+    - -app-protect-enforcer-address="127.0.0.1:50000"
+    - -log-level=info  # Valid logging flag
+  readyStatus:
+    initialDelaySeconds: 60  # Allow time for enforcer startup
+  serviceAccount:
+    imagePullSecretName: regcred  # Required for private registry
 prometheus:
   create: true
