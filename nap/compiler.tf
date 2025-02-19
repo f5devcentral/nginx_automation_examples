@@ -1,23 +1,22 @@
 provider "local" {}
 
 # Create the required directory for certificates
-
 resource "null_resource" "create_directory" {
   provisioner "local-exec" {
-    command = "mkdir -p /etc/docker/certs.d/private-registry.nginx.com"
+    command = "mkdir -p /home/ubuntu/docker/certs.d/private-registry.nginx.com"
   }
 }
 
 # Create the local file for the NGINX repository certificate
 resource "local_file" "nginx_repo_crt" {
   content  = var.nginx_repo_crt
-  filename = "/etc/docker/certs.d/private-registry.nginx.com/client.cert"
+  filename = "/home/ubuntu/docker/certs.d/private-registry.nginx.com/client.cert"
 }
 
 # Create the local file for the NGINX repository key
 resource "local_file" "nginx_repo_key" {
   content  = var.nginx_repo_key
-  filename = "/etc/docker/certs.d/private-registry.nginx.com/client.key"
+  filename = "/home/ubuntu/docker/certs.d/private-registry.nginx.com/client.key"
 }
 
 # Read the policy JSON file
@@ -41,13 +40,13 @@ resource "null_resource" "docker_build" {
 
   provisioner "local-exec" {
     command = <<EOT
-      cp /etc/docker/certs.d/private-registry.nginx.com/client.cert /home/ubuntu/nginx-repo.crt
-      cp /etc/docker/certs.d/private-registry.nginx.com/client.key /home/ubuntu/nginx-repo.key
+      cp /home/ubuntu/docker/certs.d/private-registry.nginx.com/client.cert /home/ubuntu/nginx-repo.crt
+      cp /home/ubuntu/docker/certs.d/private-registry.nginx.com/client.key /home/ubuntu/nginx-repo.key
 
       sudo docker build --no-cache \
       --secret id=nginx-crt,src=/home/ubuntu/nginx-repo.crt \
       --secret id=nginx-key,src=/home/ubuntu/nginx-repo.key \
-      -t waf-compiler-5.2.0:custom ${path.module}/charts
+      -t waf-compiler-5.5.0:custom ${path.module}/charts
     EOT
   }
 }
