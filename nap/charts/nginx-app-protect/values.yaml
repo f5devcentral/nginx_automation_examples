@@ -2,35 +2,14 @@
 controller:
   name: controller
   kind: deployment
-
-  selectorLabels: {}
-  annotations: {}
   nginxplus: true
-
   mgmt:
     licenseTokenSecretName: "license-token"
     sslVerify: false
-
-  nginxReloadTimeout: "60000"  # Changed to string for consistency
-
+  nginxReloadTimeout: "60000"
   appprotect:
     enable: true
     v5: true
-    volumes:
-      - name: app-protect-bd-config
-        emptyDir: {}
-      - name: app-protect-config
-        emptyDir: {}
-      - name: app-protect-bundles
-        emptyDir: {}
-    volumeMounts:
-      - name: app-protect-bd-config
-        mountPath: /etc/app_protect/bd-config
-      - name: app-protect-config
-        mountPath: /etc/app_protect/config
-      - name: app-protect-bundles
-        mountPath: /etc/app_protect/bundles
-
     enforcer:
       host: "127.0.0.1"
       port: 50000
@@ -40,7 +19,6 @@ controller:
         pullPolicy: IfNotPresent
       securityContext: 
         readOnlyRootFilesystem: true
-
     configManager:
       image:
         repository: private-registry.nginx.com/nap/waf-config-mgr
@@ -54,218 +32,21 @@ controller:
         capabilities:
           drop:
             - all
-
   appprotectdos:
     enable: true
     debug: false
-
-  hostNetwork: false
-  hostPort:
-    enable: false
-    http: 80
-    https: 443
-
-  containerPort:
-    http: 80
-    https: 443
-
-  dnsPolicy: ClusterFirst
-  nginxDebug: false
-  logLevel: "2"  # Fixed: logLevel should be a string
-  logFormat: json
-  customPorts: []
-
+  enableSnippets: true
   image:
     repository: private-registry.nginx.com/nginx-ic-dos/nginx-plus-ingress
     tag: "4.0.1"
     pullPolicy: IfNotPresent
-
-  config:
-    annotations: {}
-    entries:
-      error-log-level: debug
-
-  defaultTLS:
-    cert: ""
-    key: ""
-    secret: ""
-
-  wildcardTLS:
-    cert: ""
-    key: ""
-    secret: ""
-
-  terminationGracePeriodSeconds: "30"  # Changed to string for consistency
-
-  autoscaling:
-    enabled: false
-    annotations: {}
-    minReplicas: 1
-    maxReplicas: 3
-    targetCPUUtilizationPercentage: 50
-    targetMemoryUtilizationPercentage: 50
-    behavior: {}
-
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-
-  podSecurityContext:
-    seccompProfile:
-      type: RuntimeDefault
-
-  securityContext:
-    allowPrivilegeEscalation: true
-    readOnlyRootFilesystem: true
-    runAsUser: 0
-
-  initContainerSecurityContext: {}
-  initContainerResources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-
-  tolerations: []
-  affinity: {}
-  env: []
-  volumes: []
-  volumeMounts: []
-  initContainers: []
-  minReadySeconds: 0
-  podDisruptionBudget:
-    enabled: false
-    annotations: {}
-  strategy: {}
-  extraContainers: []
-  replicaCount: 1
-  ingressClass:
-    name: nginx
-    create: true
-    setAsDefaultIngress: false
-  watchNamespace: ""
-  watchNamespaceLabel: ""
-  watchSecretNamespace: ""
-  enableCustomResources: true
-  enableOIDC: true
-  enableTLSPassthrough: false
-  tlsPassthroughPort: 443
-  enableCertManager: false
-  enableExternalDNS: true
-  globalConfiguration:
-    create: false
-    spec: {}
-  enableSnippets: true
-  healthStatus: false
-  healthStatusURI: "/nginx-health"
+ logLevel: "2"  # Fixed: logLevel should be a string
   nginxStatus:
-    enable: true
-    port: 8080
-    allowCidrs: "127.0.0.1"  # Fixed: Changed from an array to a string
-
-  service:
-    create: true
-    type: LoadBalancer
-    externalTrafficPolicy: Local
-    annotations: {}
-    extraLabels: {}
-    loadBalancerIP: ""
-    clusterIP: ""
-    externalIPs: []
-    loadBalancerSourceRanges: []
-    httpPort:
-      enable: true
-      port: 80
-      targetPort: 80
-    httpsPort:
-      enable: true
-      port: 443
-      targetPort: 443
-    customPorts: []
-
-  serviceAccount:
-    annotations: {}
-    imagePullSecretName: ""
-    imagePullSecretsNames: []
-
-  reportIngressStatus:
-    enable: true
-    ingressLink: ""
-    enableLeaderElection: true
-    leaderElectionLockName: ""
-    annotations: {}
-
-  pod:
-    annotations: {}
-    extraLabels: {}
-
+    allowCidrs: "0.0.0.0/0"  # Fixed: Changed from array to string
+    port: 9000
   readyStatus:
-    enable: true
-    port: 8081
-    initialDelaySeconds: "0"  # Changed to string for consistency
-
-  enableLatencyMetrics: false
-  disableIPV6: false
-  defaultHTTPListenerPort: 80
-  defaultHTTPSListenerPort: 443
-  readOnlyRootFilesystem: false
-  enableSSLDynamicReload: true
-
-  telemetryReporting:
-    enable: true
-
-  enableWeightChangesDynamicReload: false
-
-rbac:
-  create: true
-  clusterrole:
-    create: true
-
+    initialDelaySeconds: "30"
+  serviceAccount:
+    imagePullSecretName: regcred
 prometheus:
   create: true
-  port: 9113
-  secret: ""
-  scheme: http
-  service:
-    create: false
-    labels:
-      service: "nginx-ingress-prometheus-service"
-  serviceMonitor:
-    create: false
-    labels: {}
-    selectorMatchLabels:
-      service: "nginx-ingress-prometheus-service"
-    endpoints:
-      - port: prometheus
-
-serviceInsight:
-  create: false
-  port: 9114
-  secret: ""
-  scheme: http
-
-nginxAgent:
-  enable: false
-  instanceGroup: ""
-  logLevel: "error"
-  syslog:
-    host: "127.0.0.1"
-    port: 1514
-  napMonitoring:
-    collectorBufferSize: 50000
-    processorBufferSize: 50000
-  instanceManager:
-    host: ""
-    grpcPort: 443
-    sni: ""
-    tls:
-      enabled: true
-      skipVerify: false
-      secret: ""
-      caSecret: ""
-  customConfigMap: ""
-
-
-
-
-
