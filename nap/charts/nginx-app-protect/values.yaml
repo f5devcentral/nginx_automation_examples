@@ -58,9 +58,6 @@ controller:
   appprotectdos:
     enable: true
     debug: false
-    maxWorkers: 0
-    maxDaemons: 0
-    memory: 0
 
   hostNetwork: false
   hostPort:
@@ -163,7 +160,8 @@ controller:
   nginxStatus:
     enable: true
     port: 8080
-    allowCidrs: "127.0.0.1"
+    allowCidrs: 
+      - "127.0.0.1"
   service:
     create: true
     type: LoadBalancer
@@ -258,6 +256,7 @@ nginxAgent:
       secret: ""
       caSecret: ""
   customConfigMap: ""
+
 
 
 
