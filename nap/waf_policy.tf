@@ -20,7 +20,10 @@ resource "null_resource" "copy_policy_bundle" {
   depends_on = [null_resource.compile_policy]
 
   provisioner "local-exec" {
-    command = "cp ${path.module}/compiled_policy.tgz /etc/app_protect/bundles/"
+    command = <<EOT
+      POD_NAME=$(kubectl get pods -n nginx-ingress -l app.kubernetes.io/name=nginx-ingress -o jsonpath='{.items[0].metadata.name}')
+      kubectl cp ${path.module}/compiled_policy.tgz nginx-ingress/$POD_NAME:/etc/app_protect/bundles/compiled_policy.tgz
+    EOT
   }
 }
 
