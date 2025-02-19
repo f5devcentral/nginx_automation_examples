@@ -22,13 +22,13 @@ resource "local_file" "nginx_repo_key" {
 
 # Read the policy JSON file
 data "local_file" "policy_json" {
-  filename = "${path.module}./charts/policy.json"  # Ensure this path is correct
+  filename = "${path.module}/charts/policy.json"  # Ensure this path is correct
 }
 
 # Create the App Protect policy file
 resource "local_file" "app_protect_policy" {
   content  = data.local_file.policy_json.content
-  filename = "${path.module}./charts/policy.json"  # This line might be unnecessary if it's just reading
+  filename = "${path.module}/charts/policy.json"  # This line might be unnecessary if it's just reading
 }
 
 # Build the Docker image
