@@ -11,7 +11,7 @@ controller:
     licenseTokenSecretName: "license-token"
     sslVerify: false
 
-  nginxReloadTimeout: 60000
+  nginxReloadTimeout: "60000"  # Changed to string for consistency
 
   appprotect:
     enable: true
@@ -71,7 +71,7 @@ controller:
 
   dnsPolicy: ClusterFirst
   nginxDebug: false
-  logLevel: 2
+  logLevel: "2"  # Fixed: logLevel should be a string
   logFormat: json
   customPorts: []
 
@@ -95,7 +95,8 @@ controller:
     key: ""
     secret: ""
 
-  terminationGracePeriodSeconds: 30
+  terminationGracePeriodSeconds: "30"  # Changed to string for consistency
+
   autoscaling:
     enabled: false
     annotations: {}
@@ -160,8 +161,8 @@ controller:
   nginxStatus:
     enable: true
     port: 8080
-    allowCidrs: 
-      - "127.0.0.1"
+    allowCidrs: "127.0.0.1"  # Fixed: Changed from an array to a string
+
   service:
     create: true
     type: LoadBalancer
@@ -181,31 +182,38 @@ controller:
       port: 443
       targetPort: 443
     customPorts: []
+
   serviceAccount:
     annotations: {}
     imagePullSecretName: ""
     imagePullSecretsNames: []
+
   reportIngressStatus:
     enable: true
     ingressLink: ""
     enableLeaderElection: true
     leaderElectionLockName: ""
     annotations: {}
+
   pod:
     annotations: {}
     extraLabels: {}
+
   readyStatus:
     enable: true
     port: 8081
-    initialDelaySeconds: 0
+    initialDelaySeconds: "0"  # Changed to string for consistency
+
   enableLatencyMetrics: false
   disableIPV6: false
   defaultHTTPListenerPort: 80
   defaultHTTPSListenerPort: 443
   readOnlyRootFilesystem: false
   enableSSLDynamicReload: true
+
   telemetryReporting:
     enable: true
+
   enableWeightChangesDynamicReload: false
 
 rbac:
