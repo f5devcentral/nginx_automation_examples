@@ -1,22 +1,31 @@
 provider "local" {}
 
+# Change ownership of /etc/docker/ to the current user
+resource "null_resource" "change_ownership" {
+  provisioner "local-exec" {
+    command = "sudo chown -R $(whoami):$(whoami) /etc/docker/"
+  }
+}
+
 # Create the required directory for certificates
 resource "null_resource" "create_directory" {
+  depends_on = [null_resource.change_ownership]
+
   provisioner "local-exec" {
-    command = "mkdir -p /home/ubuntu/docker/certs.d/private-registry.nginx.com"
+    command = "sudo mkdir -p /etc/docker/certs.d/private-registry.nginx.com"
   }
 }
 
 # Create the local file for the NGINX repository certificate
 resource "local_file" "nginx_repo_crt" {
   content  = var.nginx_repo_crt
-  filename = "/home/ubuntu/docker/certs.d/private-registry.nginx.com/client.cert"
+  filename = "/etc/docker/certs.d/private-registry.nginx.com/client.cert"
 }
 
 # Create the local file for the NGINX repository key
 resource "local_file" "nginx_repo_key" {
   content  = var.nginx_repo_key
-  filename = "/home/ubuntu/docker/certs.d/private-registry.nginx.com/client.key"
+  filename = "/etc/docker/certs.d/private-registry.nginx.com/client.key"
 }
 
 # Read the policy JSON file
@@ -40,8 +49,8 @@ resource "null_resource" "docker_build" {
 
   provisioner "local-exec" {
     command = <<EOT
-      cp /home/ubuntu/docker/certs.d/private-registry.nginx.com/client.cert /home/ubuntu/nginx-repo.crt
-      cp /home/ubuntu/docker/certs.d/private-registry.nginx.com/client.key /home/ubuntu/nginx-repo.key
+      sudo cp /etc/docker/certs.d/private-registry.nginx.com/client.cert /home/ubuntu/nginx-repo.crt
+      sudo cp /etc/docker/certs.d/private-registry.nginx.com/client.key /home/ubuntu/nginx-repo.key
 
       sudo docker build --no-cache \
       --secret id=nginx-crt,src=/home/ubuntu/nginx-repo.crt \
