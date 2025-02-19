@@ -6,7 +6,7 @@ controller:
   mgmt:
     licenseTokenSecretName: "license-token"
     sslVerify: false
-  nginxReloadTimeout: "60000"
+  nginxReloadTimeout: 60000  # Fixed: Changed from string to integer
   appprotect:
     enable: true
     v5: true
@@ -32,20 +32,17 @@ controller:
         capabilities:
           drop:
             - all
-  appprotectdos:
-    enable: true
-    debug: false
   enableSnippets: true
   image:
-    repository: private-registry.nginx.com/nginx-ic-dos/nginx-plus-ingress
+    repository: private-registry.nginx.com/nginx-ic-nap-v5/nginx-plus-ingress
     tag: "4.0.1"
     pullPolicy: IfNotPresent
- logLevel: "2"  # Fixed: logLevel should be a string
+  logLevel: "error"  # Fixed: Changed to a valid value
   nginxStatus:
-    allowCidrs: "0.0.0.0/0"  # Fixed: Changed from array to string
+    allowCidrs: "0.0.0.0/0"  # Fixed: Converted from array to string
     port: 9000
   readyStatus:
-    initialDelaySeconds: "30"
+    initialDelaySeconds: 30  # Fixed: Changed from string to integer
   serviceAccount:
     imagePullSecretName: regcred
 prometheus:
