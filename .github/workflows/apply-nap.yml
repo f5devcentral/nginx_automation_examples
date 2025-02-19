@@ -16,6 +16,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Create Certificates Directory
+        run: |
+          sudo mkdir -p /etc/docker/certs.d/private-registry.nginx.com
 
       - name: Setup Terraform 
         uses: hashicorp/setup-terraform@v2
@@ -128,11 +131,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Create Certificates Directory
-        run: |
-          sudo mkdir -p /etc/docker/certs.d/private-registry.nginx.com
-          sudo chown -R $USER:$USER /etc/docker
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2

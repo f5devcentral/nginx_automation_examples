@@ -1,18 +1,9 @@
 provider "local" {}
 
-# Change ownership of /etc/docker/ to the current user (if necessary)
-resource "null_resource" "change_ownership" {
-  provisioner "local-exec" {
-    command = "sudo chown -R $(whoami):$(whoami) /etc/docker/"
-  }
-}
-
 # Create the required directory for certificates
 resource "null_resource" "create_directory" {
-  depends_on = [null_resource.change_ownership]
-
   provisioner "local-exec" {
-    command = "sudo mkdir -p /etc/docker/certs.d/private-registry.nginx.com"
+    command = " mkdir -p /etc/docker/certs.d/private-registry.nginx.com"
   }
 }
 
@@ -49,7 +40,7 @@ resource "null_resource" "docker_build" {
 
   provisioner "local-exec" {
     command = <<EOT
-      sudo cp /etc/docker/certs.d/private-registry.nginx.com/client.cert /home/ubuntu/nginx-repo.crt
+       cp /etc/docker/certs.d/private-registry.nginx.com/client.cert /home/ubuntu/nginx-repo.crt
       sudo cp /etc/docker/certs.d/private-registry.nginx.com/client.key /home/ubuntu/nginx-repo.key
 
       sudo docker build --no-cache \
