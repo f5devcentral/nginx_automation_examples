@@ -30,7 +30,7 @@ controller:
         mountPath: /etc/app_protect/config
       - name: app-protect-bundles
         mountPath: /etc/app_protect/bundles
-    
+
     enforcer:
       host: "127.0.0.1"
       port: 50000
@@ -258,6 +258,7 @@ nginxAgent:
       secret: ""
       caSecret: ""
   customConfigMap: ""
+
 
 
 
