@@ -1,6 +1,6 @@
 provider "local" {}
 
-# Change ownership of /etc/docker/ to the current user
+# Change ownership of /etc/docker/ to the current user (if necessary)
 resource "null_resource" "change_ownership" {
   provisioner "local-exec" {
     command = "sudo chown -R $(whoami):$(whoami) /etc/docker/"
