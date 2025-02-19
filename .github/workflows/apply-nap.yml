@@ -132,6 +132,7 @@ jobs:
       - name: Create Certificates Directory
         run: |
           sudo mkdir -p /etc/docker/certs.d/private-registry.nginx.com
+          sudo chown -R $USER:$USER /etc/docker
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
