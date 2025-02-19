@@ -1,7 +1,7 @@
 ---
 controller:
   name: controller
-  kind: Deployment
+  kind: deployment
 
   selectorLabels: {}
   annotations: {}
