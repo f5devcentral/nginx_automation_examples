@@ -6,6 +6,7 @@ resource "kubernetes_manifest" "waf_policy" {
     kind       = "Policy"
     metadata = {
       name      = "waf-policy"
+      namespace = "default"
     }
     spec = {
       waf = {
