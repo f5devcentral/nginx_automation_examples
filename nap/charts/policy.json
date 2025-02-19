@@ -1,0 +1,67 @@
+{
+  "version": "1.0",
+  "id": "block-policy",
+  "name": "Block Policy",
+  "description": "A policy to block specific requests",
+  "rules": [
+    {
+      "id": "block-sql-injection",
+      "name": "Block SQL Injection",
+      "action": "block",
+      "conditions": [
+        {
+          "type": "request",
+          "field": "uri",
+          "operator": "contains",
+          "value": "union"
+        },
+        {
+          "type": "request",
+          "field": "query_string",
+          "operator": "contains",
+          "value": "SELECT"
+        }
+      ]
+    },
+    {
+      "id": "block-xss",
+      "name": "Block Cross-Site Scripting",
+      "action": "block",
+      "conditions": [
+        {
+          "type": "request",
+          "field": "uri",
+          "operator": "contains",
+          "value": "<script>"
+        },
+        {
+          "type": "request",
+          "field": "query_string",
+          "operator": "contains",
+          "value": "<img"
+        }
+      ]
+    },
+    {
+      "id": "block-unauthorized-access",
+      "name": "Block Unauthorized Access",
+      "action": "block",
+      "conditions": [
+        {
+          "type": "request",
+          "field": "http_method",
+          "operator": "equals",
+          "value": "DELETE"
+        },
+        {
+          "type": "request",
+          "field": "uri",
+          "operator": "startsWith",
+          "value": "/admin"
+        }
+      ]
+    }
+  ],
+  "default_action": "block"
+}
+

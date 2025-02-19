@@ -21,6 +21,16 @@ variable "nginx_pwd" {
   description = "Password for NGINX (if required)"
   default     = "none"
 }
+variable "nginx_repo_crt" {
+  description = "Content of the nginx_repo.crt file"
+  type        = string
+}
+
+variable "nginx_repo_key" {
+  description = "Content of the nginx_repo.key file"
+  type        = string
+}
+
 
 # SSH Key (for potential SSH-based configurations)
 variable "ssh_key" {
