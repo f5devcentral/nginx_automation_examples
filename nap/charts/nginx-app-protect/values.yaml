@@ -15,20 +15,6 @@ controller:
   appprotect:
     enable: true
     v5: true
-    volumes:
-      - name: app-protect-bd-config
-        emptyDir: {}
-      - name: app-protect-config
-        emptyDir: {}
-      - name: app-protect-bundles
-        emptyDir: {}
-    volumeMounts:
-      - name: app-protect-bd-config
-        mountPath: /etc/app_protect/bd-config
-      - name: app-protect-config
-        mountPath: /etc/app_protect/config
-      - name: app-protect-bundles
-        mountPath: /etc/app_protect/bundles
     
     ## Configuration for App Protect WAF v5 Enforcer
     enforcer:
@@ -114,26 +100,33 @@ controller:
       cpu: 100m
       memory: 128Mi
 
-  podSecurityContext:
-    seccompProfile:
-      type: RuntimeDefault
+  pod:
+    annotations: {}
+    extraLabels: {}
 
-  securityContext:
-    allowPrivilegeEscalation: true
-    readOnlyRootFilesystem: true
-    runAsUser: 0
+    securityContext:
+      seccompProfile:
+        type: RuntimeDefault
 
-  initContainerSecurityContext: {}
-  initContainerResources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
+    volumes:
+      - name: app-protect-bd-config
+        emptyDir: {}
+      - name: app-protect-config
+        emptyDir: {}
+      - name: app-protect-bundles
+        emptyDir: {}
+
+    volumeMounts:
+      - name: app-protect-bd-config
+        mountPath: /etc/app_protect/bd-config
+      - name: app-protect-config
+        mountPath: /etc/app_protect/config
+      - name: app-protect-bundles
+        mountPath: /etc/app_protect/bundles
 
   tolerations: []
   affinity: {}
   env: []
-  volumes: []
-  volumeMounts: []
   initContainers: []
   minReadySeconds: 0
   podDisruptionBudget:
@@ -194,9 +187,6 @@ controller:
     enableLeaderElection: true
     leaderElectionLockName: ""
     annotations: {}
-  pod:
-    annotations: {}
-    extraLabels: {}
   readyStatus:
     enable: true
     port: 8081
@@ -259,4 +249,5 @@ nginxAgent:
       secret: ""
       caSecret: ""
   customConfigMap: ""
+
 
