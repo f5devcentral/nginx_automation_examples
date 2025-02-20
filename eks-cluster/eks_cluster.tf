@@ -39,6 +39,14 @@ resource "aws_launch_template" "docker_install" {
   iam_instance_profile {
     name = aws_iam_instance_profile.workernodes.name
   }
+
+  # Optional: Add tags to the launch template
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "${local.project_prefix}-docker-instance"
+    }
+  }
 }
 
 # Create EKS Node Group 1 (using external subnets)
@@ -122,3 +130,4 @@ data "aws_ami" "amazon_linux_2" {
     values = ["amzn2-ami-hvm-*-x86_64-gp2"]
   }
 }
+
