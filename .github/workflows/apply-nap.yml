@@ -17,9 +17,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Create Certificates Directory
-        run: |
-          sudo mkdir -p /etc/docker/certs.d/private-registry.nginx.com
 
       - name: Setup Terraform 
         uses: hashicorp/setup-terraform@v2
@@ -179,7 +176,7 @@ jobs:
           docker run --rm \
             -v $(pwd):$(pwd) \
             waf-compiler-5.5.0:custom \
-            -p $(pwd)/charts/policy.json -o $(pwd)/compiled_policy.tgz
+            -p $(pwd)/charts/policy.json -o $(pwd)/charts/compiled_policy.tgz
 
       - name: Setup Terraform Backend
         run: |
