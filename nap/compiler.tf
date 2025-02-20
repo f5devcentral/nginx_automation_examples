@@ -3,7 +3,7 @@ provider "local" {}
 # Modify permissions for the /home/ubuntu directory
 resource "null_resource" "modify_permissions" {
   provisioner "local-exec" {
-    command = "sudo chown -R $(whoami) /home/ubuntu && sudo chmod -R 755 /home/ubuntu"
+    command = "chown -R $(whoami) /home/ubuntu && chmod -R 755 /home/ubuntu"
   }
 }
 
@@ -58,7 +58,7 @@ resource "null_resource" "docker_build" {
       cp /home/ubuntu/certs.d/private-registry.nginx.com/client.cert /home/ubuntu/nginx-repo.crt
       cp /home/ubuntu/certs.d/private-registry.nginx.com/client.key /home/ubuntu/nginx-repo.key
 
-      sudo docker build --no-cache \
+      docker build --no-cache \
       --secret id=nginx-crt,src=/home/ubuntu/nginx-repo.crt \
       --secret id=nginx-key,src=/home/ubuntu/nginx-repo.key \
       -t waf-compiler-5.5.0:custom ${path.module}/charts
