@@ -134,10 +134,7 @@ jobs:
 
       - name: Install Docker and Docker Compose
         run: |
-                - name: Install Docker and Docker Compose
-        run: |
             sudo apt-get update -y
-            
             # Uninstall conflicting containerd if necessary
             sudo apt-get remove -y containerd containerd.io
 
