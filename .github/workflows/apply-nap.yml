@@ -173,6 +173,13 @@ jobs:
             --secret id=nginx-crt,src=/etc/docker/certs.d/private-registry.nginx.com/client.cert \
             --secret id=nginx-key,src=/etc/docker/certs.d/private-registry.nginx.com/client.key \
             -t waf-compiler-5.5.0:custom ./charts
+  
+      - name: Run WAF Compiler
+        run: |
+          docker run --rm \
+            -v $(pwd):$(pwd) \
+            waf-compiler-5.5.0:custom \
+            -p $(pwd)/charts/policy.json -o $(pwd)/compiled_policy.tgz
 
       - name: Setup Terraform Backend
         run: |
