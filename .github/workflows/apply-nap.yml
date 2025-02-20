@@ -140,10 +140,8 @@ jobs:
       - name: Retrieve NGINX Repository CRT and Key
         id: get_vars
         run: |
-          NGINX_REPO_CRT=$(terraform output -json NGINX_REPO_CRT | jq -r .value)
-          NGINX_REPO_KEY=$(terraform output -json NGINX_REPO_KEY | jq -r .value)
-          echo "NGINX_REPO_CRT=${NGINX_REPO_CRT}" >> $GITHUB_ENV
-          echo "NGINX_REPO_KEY=${NGINX_REPO_KEY}" >> $GITHUB_ENV
+         echo "NGINX_REPO_CRT=$(terraform output -raw nginx_repo_crt)" >> $GITHUB_ENV
+         echo "NGINX_REPO_KEY=$(terraform output -raw nginx_repo_key)" >> $GITHUB_ENV
 
       - name: Install Docker and Docker Compose
         run: |
