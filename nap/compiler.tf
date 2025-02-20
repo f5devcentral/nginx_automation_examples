@@ -1,21 +1,34 @@
 provider "local" {}
 
-# Create the required directory for certificates (in home directory for debugging)
+# Modify permissions for the /home/ubuntu directory
+resource "null_resource" "modify_permissions" {
+  provisioner "local-exec" {
+    command = "sudo chown -R $(whoami) /home/ubuntu && sudo chmod -R 755 /home/ubuntu"
+  }
+}
+
+# Create the required directory for certificates
 resource "null_resource" "create_directory" {
+  depends_on = [null_resource.modify_permissions]
+
   provisioner "local-exec" {
     command = "mkdir -p /home/ubuntu/certs.d/private-registry.nginx.com"
   }
 }
 
-# Create the local file for the NGINX repository certificate (in home directory for debugging)
+# Create the local file for the NGINX repository certificate
 resource "null_resource" "nginx_repo_crt" {
+  depends_on = [null_resource.create_directory]
+
   provisioner "local-exec" {
     command = "echo '${var.nginx_repo_crt}' | tee /home/ubuntu/certs.d/private-registry.nginx.com/client.cert"
   }
 }
 
-# Create the local file for the NGINX repository key (in home directory for debugging)
+# Create the local file for the NGINX repository key
 resource "null_resource" "nginx_repo_key" {
+  depends_on = [null_resource.create_directory]
+
   provisioner "local-exec" {
     command = "echo '${var.nginx_repo_key}' | tee /home/ubuntu/certs.d/private-registry.nginx.com/client.key"
   }
