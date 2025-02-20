@@ -1,85 +1,61 @@
 provider "local" {}
 
-# Create the /home/ubuntu directory if it doesn't exist
-resource "null_resource" "create_home_directory" {
-  provisioner "local-exec" {
-    command = "mkdir -p /home/ubuntu"
-  }
-}
-
-# Modify permissions for the /home/ubuntu directory
-resource "null_resource" "modify_permissions" {
-  depends_on = [null_resource.create_home_directory]
-
-  provisioner "local-exec" {
-    command = "chown -R $(whoami) /home/ubuntu && chmod -R 755 /home/ubuntu"
-  }
-}
-
-# Create the required directory for certificates
+# Create the certificates directory relative to the module
 resource "null_resource" "create_directory" {
-  depends_on = [null_resource.modify_permissions]
-
   provisioner "local-exec" {
-    command = "mkdir -p /home/ubuntu/certs.d/private-registry.nginx.com"
+    command = "mkdir -p ${path.module}/certs.d/private-registry.nginx.com"
   }
 }
 
-# Create the local file for the NGINX repository certificate
+# Create NGINX repository certificate file
 resource "null_resource" "nginx_repo_crt" {
   depends_on = [null_resource.create_directory]
 
   provisioner "local-exec" {
-    command = "echo '${var.nginx_repo_crt}' | tee /home/ubuntu/certs.d/private-registry.nginx.com/client.cert"
+    command = <<EOT
+      echo '${var.nginx_repo_crt}' > ${path.module}/certs.d/private-registry.nginx.com/client.cert
+    EOT
   }
 }
 
-# Create the local file for the NGINX repository key
+# Create NGINX repository key file
 resource "null_resource" "nginx_repo_key" {
   depends_on = [null_resource.create_directory]
 
   provisioner "local-exec" {
-    command = "echo '${var.nginx_repo_key}' | tee /home/ubuntu/certs.d/private-registry.nginx.com/client.key"
+    command = <<EOT
+      echo '${var.nginx_repo_key}' > ${path.module}/certs.d/private-registry.nginx.com/client.key
+    EOT
   }
 }
 
 # Read the policy JSON file
 data "local_file" "policy_json" {
-  filename = "${path.module}/charts/policy.json"  # Ensure this path is correct
+  filename = "${path.module}/charts/policy.json"
 }
 
-# Create the App Protect policy file
-resource "local_file" "app_protect_policy" {
-  content  = data.local_file.policy_json.content
-  filename = "${path.module}/charts/policy.json"  # This line might be unnecessary if it's just reading
-}
-
-# Build the Docker image
+# Build the Docker image using BuildKit
 resource "null_resource" "docker_build" {
   depends_on = [
     null_resource.nginx_repo_crt,
     null_resource.nginx_repo_key,
-    null_resource.create_directory
   ]
 
   provisioner "local-exec" {
     command = <<EOT
-      cp /home/ubuntu/certs.d/private-registry.nginx.com/client.cert /home/ubuntu/nginx-repo.crt
-      cp /home/ubuntu/certs.d/private-registry.nginx.com/client.key /home/ubuntu/nginx-repo.key
-
       docker build --no-cache \
-      --secret id=nginx-crt,src=/home/ubuntu/nginx-repo.crt \
-      --secret id=nginx-key,src=/home/ubuntu/nginx-repo.key \
+      --secret id=nginx-crt,src=${path.module}/certs.d/private-registry.nginx.com/client.cert \
+      --secret id=nginx-key,src=${path.module}/certs.d/private-registry.nginx.com/client.key \
       -t waf-compiler-5.5.0:custom ${path.module}/charts
     EOT
   }
 }
 
-# Compile the policy
+# Compile the policy using Docker
 resource "null_resource" "compile_policy" {
   depends_on = [
     null_resource.docker_build,
-    local_file.app_protect_policy
+    data.local_file.policy_json
   ]
 
   provisioner "local-exec" {
@@ -91,4 +67,3 @@ resource "null_resource" "compile_policy" {
     EOT
   }
 }
-

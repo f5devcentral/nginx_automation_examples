@@ -6,64 +6,38 @@ on:
       - apply-nap
   pull_request:
 
+env:
+  DOCKER_BUILDKIT: 1  # Enable Docker BuildKit for secrets
+
 jobs:
   terraform_infra:
-    name: "AWS Infra" 
-    runs-on: ubuntu-latest   
+    name: "AWS Infra"
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./infra
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Create Certificates Directory
-        run: |
-          sudo mkdir -p /etc/docker/certs.d/private-registry.nginx.com
 
-      - name: Setup Terraform 
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-      - name: Setup Terraform Backend 
-        run: |
-          cat > backend.tf << EOF
-          terraform {
-            cloud {
-              organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
-              workspaces {
-                name = "${{ secrets.TF_CLOUD_WORKSPACE_INFRA }}"
-              }
-            }
-          }
-          EOF
-
       - name: Terraform Init
         run: terraform init
-      
+
       - name: Terraform Validate
         run: terraform validate -no-color
 
-      - name: Terraform Plan
+      - name: Terraform Plan (PR)
         if: github.event_name == 'pull_request'
-        run: |
-          export TF_LOG=DEBUG
-          terraform plan -no-color -input=false > plan.txt
-          cat plan.txt
+        run: terraform plan -no-color -input=false
 
-      - name: Terraform Plan Status
-        run: |
-          if grep -q "Error" plan.txt; then
-            echo "❌ Terraform plan contains errors!"
-            exit 1
-          else
-            echo "✅ Terraform plan is clean!"
-          fi
-
-      - name: Terraform Apply
+      - name: Terraform Apply (Push)
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
-
 
   terraform_eks:
     name: "AWS EKS"
@@ -81,43 +55,17 @@ jobs:
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-      - name: Setup Terraform Backend
-        run: |
-          cat > backend.tf << EOF
-          terraform {
-            cloud {
-              organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
-              workspaces {
-                name = "${{ secrets.TF_CLOUD_WORKSPACE_EKS }}"
-              }
-            }
-          }
-          EOF
-
       - name: Terraform Init
         run: terraform init
-      
+
       - name: Terraform Validate
         run: terraform validate -no-color
 
-      - name: Terraform Plan
+      - name: Terraform Plan (PR)
         if: github.event_name == 'pull_request'
-        run: |
-          export TF_LOG=DEBUG
-          terraform plan -no-color -input=false | tee plan.txt
-          cat plan.txt
-        continue-on-error: true
+        run: terraform plan -no-color -input=false
 
-      - name: Terraform Plan Status
-        run: |
-          if grep -q "Error" plan.txt; then
-            echo "❌ Terraform plan contains errors!"
-            exit 1
-          else
-            echo "✅ Terraform plan is clean!"
-          fi
-
-      - name: Terraform Apply
+      - name: Terraform Apply (Push)
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
 
@@ -132,48 +80,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v2  # Required for Docker BuildKit
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-      - name: Setup Terraform Backend
-        run: |
-          cat > backend.tf << EOF
-          terraform {
-            cloud {
-              organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
-              workspaces {
-                name = "${{ secrets.TF_CLOUD_WORKSPACE_NAP }}"
-              }
-            }
-          }
-          EOF
-
       - name: Terraform Init
         run: terraform init
-      
+
       - name: Terraform Validate
         run: terraform validate -no-color
 
-      - name: Terraform Plan
+      - name: Terraform Plan (PR)
         if: github.event_name == 'pull_request'
-        run: |
-          export TF_LOG=DEBUG
-          terraform plan -no-color -input=false | tee plan.txt
-          cat plan.txt
-        continue-on-error: true
+        run: terraform plan -no-color -input=false
 
-      - name: Terraform Plan Status
-        run: |
-          if grep -q "Error" plan.txt; then
-            echo "❌ Terraform plan contains errors!"
-            exit 1
-          else
-            echo "✅ Terraform plan is clean!"
-          fi
-
-      - name: Terraform Apply
+      - name: Terraform Apply (Push)
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
 
@@ -193,43 +118,16 @@ jobs:
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-      - name: Setup Terraform Backend
-        run: |
-          cat > backend.tf << EOF
-          terraform {
-            cloud {
-              organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
-              workspaces {
-                name = "${{ secrets.TF_CLOUD_WORKSPACE_ARCADIA }}"
-              }
-            }
-          }
-          EOF
-
       - name: Terraform Init
         run: terraform init
-      
+
       - name: Terraform Validate
         run: terraform validate -no-color
 
-      - name: Terraform Plan
+      - name: Terraform Plan (PR)
         if: github.event_name == 'pull_request'
-        run: |
-          export TF_LOG=DEBUG
-          terraform plan -no-color -input=false | tee plan.txt
-          cat plan.txt
-        continue-on-error: true
+        run: terraform plan -no-color -input=false
 
-      - name: Terraform Plan Status
-        run: |
-          if grep -q "Error" plan.txt; then
-            echo "❌ Terraform plan contains errors!"
-            exit 1
-          else
-            echo "✅ Terraform plan is clean!"
-          fi
-
-      - name: Terraform Apply
+      - name: Terraform Apply (Push)
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
-
