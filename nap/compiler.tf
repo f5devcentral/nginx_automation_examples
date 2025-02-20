@@ -1,7 +1,16 @@
 provider "local" {}
 
+# Create the /home/ubuntu directory if it doesn't exist
+resource "null_resource" "create_home_directory" {
+  provisioner "local-exec" {
+    command = "mkdir -p /home/ubuntu"
+  }
+}
+
 # Modify permissions for the /home/ubuntu directory
 resource "null_resource" "modify_permissions" {
+  depends_on = [null_resource.create_home_directory]
+
   provisioner "local-exec" {
     command = "chown -R $(whoami) /home/ubuntu && chmod -R 755 /home/ubuntu"
   }
