@@ -144,7 +144,6 @@ jobs:
             sudo chmod +x /usr/local/bin/docker-compose
             docker --version  # Optional: Check Docker version
             docker-compose --version  # Optional: Check Docker Compose version
-          EOF
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
