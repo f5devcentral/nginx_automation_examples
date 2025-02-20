@@ -1,22 +1,24 @@
 provider "local" {}
 
-# Create the required directory for certificates
+# Create the required directory for certificates (in home directory for debugging)
 resource "null_resource" "create_directory" {
   provisioner "local-exec" {
-    command = " mkdir -p /etc/docker/certs.d/private-registry.nginx.com"
+    command = "mkdir -p /home/ubuntu/certs.d/private-registry.nginx.com"
   }
 }
 
-# Create the local file for the NGINX repository certificate
-resource "local_file" "nginx_repo_crt" {
-  content  = var.nginx_repo_crt
-  filename = "/etc/docker/certs.d/private-registry.nginx.com/client.cert"
+# Create the local file for the NGINX repository certificate (in home directory for debugging)
+resource "null_resource" "nginx_repo_crt" {
+  provisioner "local-exec" {
+    command = "echo '${var.nginx_repo_crt}' | tee /home/ubuntu/certs.d/private-registry.nginx.com/client.cert"
+  }
 }
 
-# Create the local file for the NGINX repository key
-resource "local_file" "nginx_repo_key" {
-  content  = var.nginx_repo_key
-  filename = "/etc/docker/certs.d/private-registry.nginx.com/client.key"
+# Create the local file for the NGINX repository key (in home directory for debugging)
+resource "null_resource" "nginx_repo_key" {
+  provisioner "local-exec" {
+    command = "echo '${var.nginx_repo_key}' | tee /home/ubuntu/certs.d/private-registry.nginx.com/client.key"
+  }
 }
 
 # Read the policy JSON file
@@ -33,15 +35,15 @@ resource "local_file" "app_protect_policy" {
 # Build the Docker image
 resource "null_resource" "docker_build" {
   depends_on = [
-    local_file.nginx_repo_crt,
-    local_file.nginx_repo_key,
+    null_resource.nginx_repo_crt,
+    null_resource.nginx_repo_key,
     null_resource.create_directory
   ]
 
   provisioner "local-exec" {
     command = <<EOT
-       cp /etc/docker/certs.d/private-registry.nginx.com/client.cert /home/ubuntu/nginx-repo.crt
-      sudo cp /etc/docker/certs.d/private-registry.nginx.com/client.key /home/ubuntu/nginx-repo.key
+      cp /home/ubuntu/certs.d/private-registry.nginx.com/client.cert /home/ubuntu/nginx-repo.crt
+      cp /home/ubuntu/certs.d/private-registry.nginx.com/client.key /home/ubuntu/nginx-repo.key
 
       sudo docker build --no-cache \
       --secret id=nginx-crt,src=/home/ubuntu/nginx-repo.crt \
