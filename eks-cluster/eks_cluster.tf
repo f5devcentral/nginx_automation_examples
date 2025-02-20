@@ -20,8 +20,6 @@ resource "aws_eks_cluster" "eks-tf" {
 # Create Launch Template for EKS Node Groups
 resource "aws_launch_template" "docker_install" {
   name_prefix   = "${local.project_prefix}-docker-install-"
-  image_id      = data.aws_ami.amazon_linux_2.id  # Use a dynamic AMI ID
-
   instance_type = "t3.medium"
 
   user_data = base64encode(<<-EOF
@@ -63,6 +61,8 @@ resource "aws_eks_node_group" "private-node-group-1-tf" {
     id      = aws_launch_template.docker_install.id
     version = "$Latest"  # Use the latest version of the launch template
   }
+  
+  ami_type = "AL2_x86_64"  # Specify the AMI type here
 
   tags = {
     Name = format("%s-private-ng-1-%s", local.project_prefix, local.build_suffix)
@@ -81,6 +81,7 @@ resource "aws_eks_node_group" "private-node-group-2-tf" {
   node_group_name = format("%s-private-ng-2-%s", local.project_prefix, local.build_suffix)
   node_role_arn   = aws_iam_role.workernodes.arn
   subnet_ids      = [for e in aws_subnet.eks-external: e.id]
+  ami_type = "AL2_x86_64"  # Specify the AMI type here
 
   scaling_config {
     desired_size = 1
@@ -117,14 +118,4 @@ resource "aws_eks_addon" "cluster-addons" {
   ]
 }
 
-# Data resource for dynamic AMI ID
-data "aws_ami" "amazon_linux_2" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-  }
-}
 
