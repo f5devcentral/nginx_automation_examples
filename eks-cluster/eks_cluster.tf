@@ -37,10 +37,6 @@ resource "aws_launch_template" "docker_install" {
     create_before_destroy = true
   }
 
-  iam_instance_profile {
-    name = aws_iam_instance_profile.workernodes.name
-  }
-
   # Optional: Add tags to the launch template
   tag_specifications {
     resource_type = "instance"
