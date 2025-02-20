@@ -1,7 +1,7 @@
 # Create Launch Template for EKS Node Groups
-resource "aws_launch_template" "docker_install" {
+resource "aws_launch_template" "docker_install_template" {  # Renamed resource
   name_prefix   = "${local.project_prefix}-docker-install-"
-  image_id      = data.aws_ami.amazon_linux_2.id  # Use a dynamic AMI ID
+  image_id      = data.aws_ami.amazon_linux_2_dynamic.id  # Updated reference
 
   instance_type = "t3.medium"  # Specify your desired instance type
 
@@ -37,7 +37,7 @@ resource "aws_launch_template" "docker_install" {
 }
 
 # Data resource for dynamic AMI ID
-data "aws_ami" "amazon_linux_2" {
+data "aws_ami" "amazon_linux_2_dynamic" {  # Renamed data resource
   most_recent = true
   owners      = ["amazon"]
 
