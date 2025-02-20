@@ -133,7 +133,7 @@ jobs:
         uses: actions/checkout@v3
       
       - name: Install Docker and Docker Compose
-      run: |
+        run: |
           sudo yum update -y
           sudo amazon-linux-extras install docker -y
           sudo service docker start
