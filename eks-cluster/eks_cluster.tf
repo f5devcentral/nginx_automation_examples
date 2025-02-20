@@ -1,3 +1,15 @@
+# Data source to get the latest Amazon Linux 2 AMI
+data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+
+  owners = ["137112412989"] # Amazon's official account ID for Amazon Linux
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
 # Create EKS cluster
 resource "aws_eks_cluster" "eks-tf" {
   name     = local.cluster_name
@@ -17,41 +29,29 @@ resource "aws_eks_cluster" "eks-tf" {
   ]
 }
 
-# Launch template for Docker installation
-resource "aws_launch_template" "docker_install" {
-  name_prefix   = "docker-install-"
-  image_id      = data.aws_ami.ubuntu.id  # Use an appropriate AMI ID
-  instance_type = "t3.medium"
-
-  user_data = <<-EOF
-                #!/bin/bash
-                apt-get update
-                apt-get install -y docker.io
-                systemctl start docker
-                systemctl enable docker
-              EOF
-}
-
 # Create EKS Node Group 1 (using external subnets)
 resource "aws_eks_node_group" "private-node-group-1-tf" {
   cluster_name   = aws_eks_cluster.eks-tf.name
   node_group_name = format("%s-private-ng-1-%s", local.project_prefix, local.build_suffix)
   node_role_arn  = aws_iam_role.workernodes.arn
-  subnet_ids     = [for e in aws_subnet.eks-external: e.id]  # Use external subnets for public IP
+  subnet_ids     = [for e in aws_subnet.eks-external: e.id]
   instance_types = ["t3.medium"]
+  ami_type      = "AL2_x86_64" # Specify the AMI type
 
   scaling_config {
-    desired_size = 1
-    max_size     = 2
+    desired_size = 2
+    max_size     = 3
     min_size     = 1
-  }
-
-  launch_template {
-    id = aws_launch_template.docker_install.id
   }
 
   tags = {
     Name = format("%s-private-ng-1-%s", local.project_prefix, local.build_suffix)
+  }
+
+  # Use the latest Amazon Linux 2 AMI for the node group
+  launch_template {
+    id      = aws_launch_template.docker_install.id
+    version = "$Latest"
   }
 
   depends_on = [
@@ -66,18 +66,14 @@ resource "aws_eks_node_group" "private-node-group-2-tf" {
   cluster_name    = aws_eks_cluster.eks-tf.name
   node_group_name = format("%s-private-ng-2-%s", local.project_prefix, local.build_suffix)
   node_role_arn   = aws_iam_role.workernodes.arn
-  subnet_ids      = [for e in aws_subnet.eks-external: e.id]  # Use external subnets for public IP
+  subnet_ids      = [for e in aws_subnet.eks-external: e.id]
   ami_type        = "AL2_x86_64"
   instance_types  = ["t3.medium"]
 
   scaling_config {
-    desired_size = 1
-    max_size     = 2
+    desired_size = 2
+    max_size     = 3
     min_size     = 1
-  }
-
-  launch_template {
-    id = aws_launch_template.docker_install.id
   }
 
   tags = {
