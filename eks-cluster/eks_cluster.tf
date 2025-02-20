@@ -24,13 +24,14 @@ resource "aws_launch_template" "docker_install" {
 
   instance_type = "t3.medium"
 
-  user_data = <<-EOF
+  user_data = base64encode(<<-EOF
     #!/bin/bash
     yum update -y
     amazon-linux-extras install docker -y
     systemctl start docker
     systemctl enable docker
   EOF
+  )
 
   lifecycle {
     create_before_destroy = true
