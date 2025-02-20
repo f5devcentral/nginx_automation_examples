@@ -136,17 +136,6 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-      - name: Retrieve NGINX Repository CRT and Key
-        id: get_vars
-        run: |
-         # Retrieve the CRT and KEY using Terraform outputs and escape any special characters
-          NGINX_REPO_CRT=$(terraform output -raw nginx_repo_crt | tr -d '\n' | sed 's/\\/\\\\/g')
-          NGINX_REPO_KEY=$(terraform output -raw nginx_repo_key | tr -d '\n' | sed 's/\\/\\\\/g')
-
-          # Write the values to the environment
-          echo "NGINX_REPO_CRT=${NGINX_REPO_CRT}" >> $GITHUB_ENV
-          echo "NGINX_REPO_KEY=${NGINX_REPO_KEY}" >> $GITHUB_ENV
-
       - name: Install Docker and Docker Compose
         run: |
             sudo apt-get update -y
@@ -173,10 +162,10 @@ jobs:
           sudo mkdir -p /etc/docker/certs.d/private-registry.nginx.com
 
       - name: Create NGINX Repository Certificate
-        run: echo "${{ env.NGINX_REPO_CRT }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.cert
+        run: echo "${{ secrets.NGINX_REPO_CRT }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.cert
 
       - name: Create NGINX Repository Key
-        run: echo "${{ env.NGINX_REPO_KEY }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.key
+        run: echo "${{ secrets.NGINX_REPO_KEY }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.key
 
       - name: Build Docker Image
         run: |
