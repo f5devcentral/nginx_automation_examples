@@ -17,20 +17,30 @@ resource "aws_eks_cluster" "eks-tf" {
   ]
 }
 
-# Create Launch Template for EKS Node Groups
 resource "aws_launch_template" "docker_install" {
   name_prefix   = "${local.project_prefix}-docker-install-"
   
   instance_type = "t3.medium"
 
+  # MIME multipart user data
   user_data = base64encode(<<-EOF
-    #!/bin/bash
+    Content-Type: multipart/mixed; boundary="==MYBOUNDARY=="
+
+    --==MYBOUNDARY==
+    Content-Type: text/cloud-config; charset="us-ascii"
+
     #cloud-config
     packages:
       - docker
-    runcmd:
-      - systemctl start docker
-      - systemctl enable docker
+
+    --==MYBOUNDARY==
+    Content-Type: text/x-shellscript; charset="us-ascii"
+
+    #!/bin/bash
+    systemctl start docker
+    systemctl enable docker
+
+    --==MYBOUNDARY==--
   EOF
   )
 
@@ -38,7 +48,6 @@ resource "aws_launch_template" "docker_install" {
     create_before_destroy = true
   }
 
-  # Optional: Add tags to the launch template
   tag_specifications {
     resource_type = "instance"
     tags = {
