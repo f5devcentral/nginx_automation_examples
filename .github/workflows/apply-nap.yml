@@ -132,6 +132,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Retrieve NGINX Repository CRT and Key
+        id: get_vars
+        run: |
+          NGINX_REPO_CRT=$(terraform output -json NGINX_REPO_CRT | jq -r .value)
+          NGINX_REPO_KEY=$(terraform output -json NGINX_REPO_KEY | jq -r .value)
+          echo "NGINX_REPO_CRT=${NGINX_REPO_CRT}" >> $GITHUB_ENV
+          echo "NGINX_REPO_KEY=${NGINX_REPO_KEY}" >> $GITHUB_ENV
+
       - name: Install Docker and Docker Compose
         run: |
             sudo apt-get update -y
@@ -153,10 +166,22 @@ jobs:
             docker --version  # Optional: Check Docker version
             docker-compose --version  # Optional: Check Docker Compose version
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Create Certificates Directory
+        run: |
+          sudo mkdir -p /etc/docker/certs.d/private-registry.nginx.com
+
+      - name: Create NGINX Repository Certificate
+        run: echo "${{ env.NGINX_REPO_CRT }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.cert
+
+      - name: Create NGINX Repository Key
+        run: echo "${{ env.NGINX_REPO_KEY }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.key
+
+      - name: Build Docker Image
+        run: |
+          docker build --no-cache \
+            --secret id=nginx-crt,src=/etc/docker/certs.d/private-registry.nginx.com/client.cert \
+            --secret id=nginx-key,src=/etc/docker/certs.d/private-registry.nginx.com/client.key \
+            -t waf-compiler-5.5.0:custom ./charts
 
       - name: Setup Terraform Backend
         run: |
