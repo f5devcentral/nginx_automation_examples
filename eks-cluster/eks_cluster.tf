@@ -20,14 +20,17 @@ resource "aws_eks_cluster" "eks-tf" {
 # Create Launch Template for EKS Node Groups
 resource "aws_launch_template" "docker_install" {
   name_prefix   = "${local.project_prefix}-docker-install-"
+  
   instance_type = "t3.medium"
 
   user_data = base64encode(<<-EOF
     #!/bin/bash
-    yum update -y
-    amazon-linux-extras install docker -y
-    systemctl start docker
-    systemctl enable docker
+    #cloud-config
+    packages:
+      - docker
+    runcmd:
+      - systemctl start docker
+      - systemctl enable docker
   EOF
   )
 
@@ -43,6 +46,7 @@ resource "aws_launch_template" "docker_install" {
     }
   }
 }
+
 
 # Create EKS Node Group 1 (using external subnets)
 resource "aws_eks_node_group" "private-node-group-1-tf" {
