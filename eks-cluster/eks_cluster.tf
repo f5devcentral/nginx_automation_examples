@@ -12,18 +12,22 @@ resource "aws_eks_cluster" "eks-tf" {
     subnet_ids = concat([for e in aws_subnet.eks-external: e.id], [for i in aws_subnet.eks-internal: i.id])
   }
 
+  tags = {
+    Name        = local.cluster_name
+    Environment = "Production"
+  }
+
   depends_on = [
     aws_iam_role.eks-iam-role,
   ]
 }
 
-
 # Create EKS Node Group 1 (using external subnets)
 resource "aws_eks_node_group" "private-node-group-1-tf" {
-  cluster_name   = aws_eks_cluster.eks-tf.name
+  cluster_name    = aws_eks_cluster.eks-tf.name
   node_group_name = format("%s-private-ng-1-%s", local.project_prefix, local.build_suffix)
-  node_role_arn  = aws_iam_role.workernodes.arn
-  subnet_ids     = [for i in aws_subnet.eks-external: i.id]
+  node_role_arn   = aws_iam_role.workernodes.arn
+  subnet_ids      = [for i in aws_subnet.eks-external: i.id]
 
   scaling_config {
     desired_size = 1
@@ -31,8 +35,7 @@ resource "aws_eks_node_group" "private-node-group-1-tf" {
     min_size     = 1
   }
 
-  
-  ami_type = "AL2_x86_64"  # Specify the AMI type here
+  ami_type = "AL2_x86_64"
 
   tags = {
     Name = format("%s-private-ng-1-%s", local.project_prefix, local.build_suffix)
@@ -51,7 +54,6 @@ resource "aws_eks_node_group" "private-node-group-2-tf" {
   node_group_name = format("%s-private-ng-2-%s", local.project_prefix, local.build_suffix)
   node_role_arn   = aws_iam_role.workernodes.arn
   subnet_ids      = [for i in aws_subnet.eks-external: i.id]
-  ami_type = "AL2_x86_64"  # Specify the AMI type here
 
   scaling_config {
     desired_size = 1
@@ -59,8 +61,7 @@ resource "aws_eks_node_group" "private-node-group-2-tf" {
     min_size     = 1
   }
 
-}
-
+  ami_type = "AL2_x86_64"
 
   tags = {
     Name = format("%s-private-ng-2-%s", local.project_prefix, local.build_suffix)
@@ -85,5 +86,4 @@ resource "aws_eks_addon" "cluster-addons" {
     aws_eks_node_group.private-node-group-2-tf,
   ]
 }
-
 
