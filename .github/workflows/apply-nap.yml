@@ -181,26 +181,17 @@ jobs:
             --secret id=nginx-crt,src=/etc/ssl/nginx/nginx-repo.crt \
             --secret id=nginx-key,src=/etc/ssl/nginx/nginx-repo.key \
             -t waf-compiler-5.5.0:custom ./charts
-      - name: Get User and Group IDs
-        run: |
-          USER_ID=$(id -u)
-          GROUP_ID=$(id -g)
-          echo "User ID: $USER_ID"
-          echo "Group ID: $GROUP_ID"
-          echo "USER_ID=$USER_ID" >> $GITHUB_ENV
-          echo "GROUP_ID=$GROUP_ID" >> $GITHUB_ENV
 
       - name: Change Permissions for Charts Directory
         run: |
           sudo chmod 777 $(pwd)/charts
 
-      - name: Run Docker Container
+      - name: Run Docker Container as Root
         run: |
-          sudo docker run --rm --user ${{ env.USER_ID }}:${{ env.GROUP_ID }} \
+          sudo docker run --rm \
             -v $(pwd):$(pwd) \
             waf-compiler-5.5.0:custom \
-            -p $(pwd)/charts/policy.json -o $(pwd)/charts/compiled_policy.tgz
-  
+            -p $(pwd)/charts/policy.json -o $(pwd)/charts/compiled_policy.tgz 
 
       - name: Setup Terraform Backend
         run: |
