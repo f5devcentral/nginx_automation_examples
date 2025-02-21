@@ -3,23 +3,23 @@ resource "kubectl_manifest" "virtual_server" {
 apiVersion: k8s.nginx.org/v1
 kind: VirtualServer
 metadata:
-  name: arcadia-virtual-server
+  name: acradia-virtual-server
 spec:
   host: "${local.external_name}"
   policies:
     - name: waf-policy
   upstreams:
     - name: main
-      service: ${kubernetes_service.main.metadata.0.name}
+      service: main
       port: 80
     - name: backend
-      service: ${kubernetes_service.backend.metadata.0.name}
+      service: backend
       port: 80
-    - name: app_2
-      service: ${kubernetes_service.app_2.metadata.0.name}
+    - name: app2  # Changed from app_2 to app2
+      service: app2
       port: 80
-    - name: app_3
-      service: ${kubernetes_service.app_3.metadata.0.name}
+    - name: app3  # Changed from app_3 to app3
+      service: app3
       port: 80
   routes:
     - path: /
@@ -30,10 +30,10 @@ spec:
         pass: backend
     - path: /api
       action:
-        pass: app_2
+        pass: app2  # Changed from app_2 to app2
     - path: /app3
       action:
-        pass: app_3
+        pass: app3  # Changed from app_3 to app3
 YAML
 }
 
