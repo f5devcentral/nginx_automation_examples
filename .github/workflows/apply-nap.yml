@@ -185,7 +185,7 @@ jobs:
 
       - name: Run Docker Container
         run: |
-          docker run --rm --user ${{ env.USER_ID }}:${{ env.GROUP_ID }} \
+          sudo docker run --rm --user ${{ env.USER_ID }}:${{ env.GROUP_ID }} \
             -v $(pwd):$(pwd) \
             waf-compiler-5.5.0:custom \
             -p $(pwd)/charts/policy.json -o $(pwd)/charts/compiled_policy.tgz
