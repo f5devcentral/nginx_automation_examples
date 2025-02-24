@@ -247,21 +247,20 @@ jobs:
       
       - name: Create ConfigMap for NGINX App Protect Policy
         run: |
-          POLICY=$(cat compiled_policy_base64.txt)
-    
-          cat <<EOF > waf-policy-bundle.yaml
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        name: waf-policy-bundle
-        namespace: nginx-ingress
-      binaryData:
-        policy_bundle.tgz: ${POLICY}
-      EOF
+         POLICY=$(cat compiled_policy_base64.txt)
+         cat <<EOF > waf-policy-bundle.yaml
+         apiVersion: v1
+         kind: ConfigMap
+         metadata:
+          name: waf-policy-bundle
+          namespace: nginx-ingress
+         binaryData:
+            policy_bundle.tgz: ${POLICY}
+          EOF
 
-    # Apply the ConfigMap.
+          # Apply the ConfigMap
           kubectl apply -f waf-policy-bundle.yaml
-
+          
   terraform_arcadia:
     name: "Arcadia WebApp"
     runs-on: ubuntu-latest
@@ -317,3 +316,4 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
+
