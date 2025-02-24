@@ -1,15 +1,3 @@
-terraform {
-  required_providers {
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = ">= 1.7.0"
-    }
-    http = {
-      source  = "hashicorp/http"
-      version = ">= 3.4.0"
-    }
-  }
-}
 
 provider "kubectl" {
   # Configure your Kubernetes cluster access
