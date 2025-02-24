@@ -193,6 +193,18 @@ jobs:
             waf-compiler-5.5.0:custom \
             -p $(pwd)/charts/policy.json -o $(pwd)/charts/compiled_policy.tgz 
 
+      - name: Encode Compiled Policy to Base64
+        id: encode_policy
+        run: |
+         base64 -w 0 ./charts/compiled_policy.tgz > compiled_policy_base64.txt
+
+      - name: Upload Compiled Policy as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: waf-policy-bundle
+          path: ./charts/compiled_policy.tgz
+
+
       - name: Setup Terraform Backend
         run: |
           cat > backend.tf << EOF
@@ -232,6 +244,25 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
+
+     - name: Create ConfigMap for NGINX App Protect Policy
+       run: |
+        # Read the base64 content from the file into a variable.
+         POLICY=$(cat compiled_policy_base64.txt)
+    
+    # Generate a YAML manifest for the ConfigMap with binaryData.
+         cat <<EOF > waf-policy-bundle.yaml
+   apiVersion: v1
+   kind: ConfigMap
+   metadata:
+     name: waf-policy-bundle
+     namespace: nginx-ingress
+   binaryData:
+     policy_bundle.tgz: ${POLICY}
+   EOF
+
+    # Apply the ConfigMap.
+         kubectl apply -f waf-policy-bundle.yaml
 
 
   terraform_arcadia:
