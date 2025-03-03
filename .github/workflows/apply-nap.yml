@@ -263,7 +263,7 @@ jobs:
            namespace: nginx-ingress
           binaryData:
             policy_bundle.tgz: |
-             ${POLICY}
+              $(cat ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt)
           EOF
 
           # Debugging: Print the generated YAML
@@ -272,6 +272,8 @@ jobs:
 
       - name: Apply the ConfigMap
         run: kubectl apply -f ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
+
+        
   terraform_arcadia:
     name: "Arcadia WebApp"
     runs-on: ubuntu-latest
