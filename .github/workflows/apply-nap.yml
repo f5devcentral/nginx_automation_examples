@@ -1,4 +1,4 @@
-name: "NGINX V5-NAP Apply"
+name: "NGINX v5-NAP Apply"
 
 on:
   push:
