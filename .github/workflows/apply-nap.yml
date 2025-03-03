@@ -262,8 +262,7 @@ jobs:
            name: waf-policy-bundle
            namespace: nginx-ingress
           binaryData:
-            policy_bundle.tgz: |
-              $(cat ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt)
+            policy_bundle.tgz: "$(cat ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt)"
           EOF
 
           # Debugging: Print the generated YAML
