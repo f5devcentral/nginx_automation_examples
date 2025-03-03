@@ -186,14 +186,15 @@ jobs:
         run: |
           sudo chmod 777 $(pwd)/charts
 
+
       - name: Run Docker Container and Compile Policy
         run: |
           sudo docker run --rm \
-            -v ${{ github.workspace }}/nap/charts:/output \
+            -v ${{ github.workspace }}/nap/charts:/workspace \
             waf-compiler-5.5.0:custom \
             -p /workspace/policy.json -o /workspace/compiled_policy.tgz
-            
-           # Debug: Check if the file exists after running the container
+
+          echo "Checking files in nap/charts directory..."
           ls -lh ${{ github.workspace }}/nap/charts
 
       - name: Verify Compiled Policy Exists
@@ -204,6 +205,7 @@ jobs:
             echo "❌ Compiled policy NOT found!"
             exit 1
           fi
+
 
       - name: Fix Permissions on Compiled Policy
         run: |
