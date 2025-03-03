@@ -244,34 +244,6 @@ jobs:
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
 
-      - name: Create ConfigMap for NGINX App Protect Policy
-        run: |
-          # Ensure the policy file exists and is base64 encoded
-          if [ -f "${{ github.workspace }}/nap/charts/compiled_policy_base64.txt" ]; then
-            POLICY=$(cat ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt)
-          else
-            echo "Error: compiled_policy_base64.txt not found!"
-            exit 1
-          fi
-
-          # Create the YAML file
-          cat <<EOF > ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
-          apiVersion: v1
-          kind: ConfigMap
-          metadata:
-           name: waf-policy-bundle
-           namespace: nginx-ingress
-          binaryData:
-            policy_bundle.tgz: "$(cat ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt)"
-          EOF
-
-          # Debugging: Print the generated YAML
-          echo "Generated ConfigMap YAML:"
-          cat ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
-
-      - name: Apply the ConfigMap
-        run: kubectl apply -f ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
-
         
   terraform_arcadia:
     name: "Arcadia WebApp"
