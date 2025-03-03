@@ -173,7 +173,7 @@ jobs:
           docker build --no-cache \
             --secret id=nginx-crt,src=/etc/ssl/nginx/nginx-repo.crt \
             --secret id=nginx-key,src=/etc/ssl/nginx/nginx-repo.key \
-            -t waf-compiler-5.5.0:custom ./charts
+            -t waf-compiler-5.4.0:custom ./charts
 
       - name: Ensure correct permissions for nap/charts directory
         run: |
