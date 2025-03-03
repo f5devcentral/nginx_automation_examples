@@ -1,4 +1,4 @@
-name: "F5XC + NAP Apply"
+name: "NGINX V5-NAP Apply"
 
 on:
   push:
@@ -186,17 +186,25 @@ jobs:
         run: |
           sudo chmod 777 $(pwd)/charts
 
-      - name: Run Docker Container as Root
+      - name: Run Docker Container and Compile Policy
         run: |
           sudo docker run --rm \
-            -v $(pwd):$(pwd) \
+            -v ${{ github.workspace }}/nap/charts:/output \
             waf-compiler-5.5.0:custom \
-            -p $(pwd)/charts/policy.json -o $(pwd)/charts/compiled_policy.tgz 
+            -p /output/policy.json -o /output/compiled_policy.tgz
+            
+           # Debug: Check if the file exists after running the container
+          ls -lh ${{ github.workspace }}/nap/charts
+
+      - name: Fix Permissions on Compiled Policy
+        run: |
+          sudo chmod 777 ${{ github.workspace }}/nap/charts/compiled_policy.tgz
 
       - name: Encode Compiled Policy to Base64
         id: encode_policy
         run: |
-         base64 -w 0 ./charts/compiled_policy.tgz > compiled_policy_base64.txt
+          base64 -w 0 ${{ github.workspace }}/nap/charts/compiled_policy.tgz > ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt
+          ls -lh ${{ github.workspace }}/nap/charts  # Debugging step to verify files exist
 
       - name: Upload Compiled Policy as Artifact
         uses: actions/upload-artifact@v4
@@ -205,8 +213,6 @@ jobs:
           path: |
             ./charts/compiled_policy.tgz
             ./charts/compiled_policy_base64.txt
-   
-
 
       - name: Setup Terraform Backend
         run: |
@@ -250,19 +256,23 @@ jobs:
       
       - name: Create ConfigMap for NGINX App Protect Policy
         run: |
-         POLICY=$(cat compiled_policy_base64.txt)
-         cat <<EOF > waf-policy-bundle.yaml
-         apiVersion: v1
-         kind: ConfigMap
-         metadata:
-          name: waf-policy-bundle
-          namespace: nginx-ingress
-         binaryData:
+          POLICY=$(cat ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt)
+          cat <<EOF > ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: waf-policy-bundle
+            namespace: nginx-ingress
+          binaryData:
             policy_bundle.tgz: ${POLICY}
           EOF
 
+          # Debugging: Ensure file exists before applying
+          ls -lh ${{ github.workspace }}/nap/charts
+          cat ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
+
           # Apply the ConfigMap
-          kubectl apply -f waf-policy-bundle.yaml
+          kubectl apply -f ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
           
   terraform_arcadia:
     name: "Arcadia WebApp"
@@ -319,4 +329,3 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
-
