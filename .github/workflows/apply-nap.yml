@@ -182,10 +182,6 @@ jobs:
             --secret id=nginx-key,src=/etc/ssl/nginx/nginx-repo.key \
             -t waf-compiler-5.5.0:custom ./charts
 
-      - name: Fix permissions for compiled_policy.tgz
-        run: |
-          sudo chown runner:docker ${{ github.workspace }}/nap/charts/compiled_policy.tgz
-          ls -lh ${{ github.workspace }}/nap/charts
 
       - name: Run Docker Container as Root
         run: |
@@ -193,6 +189,11 @@ jobs:
             -v ${{ github.workspace }}/nap/charts:/workspace \
             waf-compiler-5.5.0:custom \
             -p /workspace/policy.json -o /workspace/compiled_policy.tgz
+
+      - name: Fix permissions for compiled_policy.tgz
+        run: |
+          sudo chown runner:docker ${{ github.workspace }}/nap/charts/compiled_policy.tgz
+          ls -lh ${{ github.workspace }}/nap/charts
 
       - name: Convert compiled_policy.tgz to Base64
         run: |
