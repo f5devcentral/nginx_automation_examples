@@ -182,41 +182,31 @@ jobs:
             --secret id=nginx-key,src=/etc/ssl/nginx/nginx-repo.key \
             -t waf-compiler-5.5.0:custom ./charts
 
-      - name: Change Permissions for Charts Directory
+      - name: Fix permissions for compiled_policy.tgz
         run: |
-          sudo chmod 777 $(pwd)/charts
+          sudo chown runner:docker ${{ github.workspace }}/nap/charts/compiled_policy.tgz
+          ls -lh ${{ github.workspace }}/nap/charts
 
-
-      - name: Run Docker Container and Compile Policy
+      - name: Run Docker Container as Root
         run: |
           sudo docker run --rm \
             -v ${{ github.workspace }}/nap/charts:/workspace \
             waf-compiler-5.5.0:custom \
             -p /workspace/policy.json -o /workspace/compiled_policy.tgz
 
-          echo "Checking files in nap/charts directory..."
-          ls -lh ${{ github.workspace }}/nap/charts
-
-      - name: Verify Compiled Policy Exists
+      - name: Convert compiled_policy.tgz to Base64
         run: |
-          if [ -f ${{ github.workspace }}/nap/charts/compiled_policy.tgz ]; then
-            echo "✅ Compiled policy exists!"
-          else
-            echo "❌ Compiled policy NOT found!"
-            exit 1
-          fi
+          base64 ${{ github.workspace }}/nap/charts/compiled_policy.tgz > ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt
 
+      - name: Upload Compiled Policy as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: waf-policy-bundle
+          path: |
+            ${{ github.workspace }}/nap/charts/compiled_policy.tgz
+            ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt
 
-      - name: Fix Permissions on Compiled Policy
-        run: |
-          sudo chmod 777 ${{ github.workspace }}/nap/charts/compiled_policy.tgz
-
-      - name: Encode Compiled Policy to Base64
-        id: encode_policy
-        run: |
-          base64 -w 0 ${{ github.workspace }}/nap/charts/compiled_policy.tgz > ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt
-          ls -lh ${{ github.workspace }}/nap/charts  # Debugging step to verify files exist
-
+     
       - name: Setup Terraform Backend
         run: |
           cat > backend.tf << EOF
@@ -256,13 +246,10 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
-    
+ 
       - name: Create ConfigMap for NGINX App Protect Policy
         run: |
-          # Read base64-encoded policy into variable, ensuring no line breaks
-          POLICY=$(cat ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt | tr -d '\n')
-
-          # Create ConfigMap YAML
+          POLICY=$(cat ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt)
           cat <<EOF > ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
           apiVersion: v1
           kind: ConfigMap
@@ -270,18 +257,15 @@ jobs:
             name: waf-policy-bundle
             namespace: nginx-ingress
           binaryData:
-            policy_bundle.tgz: $POLICY
+            policy_bundle.tgz: ${POLICY}
           EOF
 
           # Debugging: Ensure file exists before applying
-          echo "✅ ConfigMap YAML created successfully!"
           ls -lh ${{ github.workspace }}/nap/charts
-          echo "🔹 ConfigMap contents:"
           cat ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
 
-      - name: Apply ConfigMap
-        run: |
           kubectl apply -f ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
+    
 
       
           
