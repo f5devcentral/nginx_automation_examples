@@ -217,14 +217,6 @@ jobs:
           base64 -w 0 ${{ github.workspace }}/nap/charts/compiled_policy.tgz > ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt
           ls -lh ${{ github.workspace }}/nap/charts  # Debugging step to verify files exist
 
-      - name: Upload Compiled Policy as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: waf-policy-bundle
-          path: |
-            ./charts/compiled_policy.tgz
-            ./charts/compiled_policy_base64.txt
-
       - name: Setup Terraform Backend
         run: |
           cat > backend.tf << EOF
@@ -264,10 +256,13 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
-      
+    
       - name: Create ConfigMap for NGINX App Protect Policy
         run: |
-          POLICY=$(cat ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt)
+          # Read base64-encoded policy into variable, ensuring no line breaks
+          POLICY=$(cat ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt | tr -d '\n')
+
+          # Create ConfigMap YAML
           cat <<EOF > ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
           apiVersion: v1
           kind: ConfigMap
@@ -275,15 +270,20 @@ jobs:
             name: waf-policy-bundle
             namespace: nginx-ingress
           binaryData:
-            policy_bundle.tgz: ${POLICY}
+            policy_bundle.tgz: $POLICY
           EOF
 
           # Debugging: Ensure file exists before applying
+          echo "✅ ConfigMap YAML created successfully!"
           ls -lh ${{ github.workspace }}/nap/charts
+          echo "🔹 ConfigMap contents:"
           cat ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
 
-          # Apply the ConfigMap
+      - name: Apply ConfigMap
+        run: |
           kubectl apply -f ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
+
+      
           
   terraform_arcadia:
     name: "Arcadia WebApp"
