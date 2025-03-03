@@ -1,4 +1,4 @@
-name: "NAP Destroy"
+name: "NAPv5 Destroy"
 
 on:
   push:
