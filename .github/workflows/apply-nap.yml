@@ -244,12 +244,8 @@ jobs:
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
 
-     - name: Terraform Apply
-        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false
-
-     - name: Wait for NGINX Pods to be Ready
-       run: |
+      - name: Wait for NGINX Pods to be Ready
+        run: |
           kubectl wait --namespace nginx-ingress \
             --for=condition=Ready pod \
             -l app.kubernetes.io/name=nginx-ingress \
