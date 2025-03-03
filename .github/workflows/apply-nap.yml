@@ -244,6 +244,28 @@ jobs:
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
 
+     - name: Terraform Apply
+        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
+        run: terraform apply -auto-approve -input=false
+
+     - name: Wait for NGINX Pods to be Ready
+       run: |
+          kubectl wait --namespace nginx-ingress \
+            --for=condition=Ready pod \
+            -l app.kubernetes.io/name=nginx-ingress \
+            --timeout=120s
+
+      - name: Copy Compiled Policy to NGINX Ingress Pod
+        run: |
+          POD_NAME=$(kubectl get pods -n nginx-ingress -l app.kubernetes.io/name=nginx-ingress -o jsonpath="{.items[0].metadata.name}")
+          kubectl cp ${{ github.workspace }}/nap/charts/compiled_policy.tgz nginx-ingress/$POD_NAME:/etc/app_protect/bundles/
+
+      - name: Verify Policy Upload
+        run: |
+          POD_NAME=$(kubectl get pods -n nginx-ingress -l app.kubernetes.io/name=nginx-ingress -o jsonpath="{.items[0].metadata.name}")
+          kubectl exec -n nginx-ingress $POD_NAME -- ls -lh /etc/app_protect/bundles/
+
+
         
   terraform_arcadia:
     name: "Arcadia WebApp"
