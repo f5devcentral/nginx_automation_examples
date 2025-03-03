@@ -182,10 +182,10 @@ jobs:
 
       - name: Run Docker Container as Root
         run: |
-          sudo docker run --rm \
-            -v ${{ github.workspace }}/nap/charts:/workspace \
-            waf-compiler-5.5.0:custom \
-            -p /workspace/policy.json -o /workspace/compiled_policy.tgz
+         sudo docker run --rm \
+             -v ${{ github.workspace }}:/workspace \
+               waf-compiler-5.4.0:custom \
+             -p /workspace/nap/charts/policy.json -o /workspace/nap/charts/compiled_policy.tgz
 
       - name: Fix permissions for compiled_policy.tgz
         run: |
