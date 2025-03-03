@@ -8,8 +8,8 @@ on:
 
 jobs:
   terraform_infra:
-    name: "AWS Infra" 
-    runs-on: ubuntu-latest   
+    name: "AWS Infra"
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./infra
@@ -17,15 +17,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-
-      - name: Setup Terraform 
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-      - name: Setup Terraform Backend 
+      - name: Setup Terraform Backend
         run: |
-          cat > backend.tf << EOF
+          cat > backend.tf <<EOF
           terraform {
             cloud {
               organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
@@ -38,7 +37,7 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-      
+
       - name: Terraform Validate
         run: terraform validate -no-color
 
@@ -80,7 +79,7 @@ jobs:
 
       - name: Setup Terraform Backend
         run: |
-          cat > backend.tf << EOF
+          cat > backend.tf <<EOF
           terraform {
             cloud {
               organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
@@ -93,7 +92,7 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-      
+
       - name: Terraform Validate
         run: terraform validate -no-color
 
@@ -133,26 +132,21 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
       - name: Install Docker and Docker Compose
         run: |
-            sudo apt-get update -y
-            # Uninstall conflicting containerd if necessary
-            sudo apt-get remove -y containerd containerd.io
+          sudo apt-get update -y
+          sudo apt-get remove -y containerd containerd.io
+          sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+          sudo apt-get update -y
+          sudo apt-get install docker-ce docker-ce-cli containerd.io -y
+          sudo service docker start
+          sudo usermod -aG docker $USER
 
-            # Install Docker from the official Docker repository
-            sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y
-            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-            sudo apt-get update -y
-            sudo apt-get install docker-ce docker-ce-cli containerd.io -y
-            sudo service docker start
-            sudo usermod -aG docker $USER
-            
-            # Install Docker Compose
-            sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
-            docker --version  # Optional: Check Docker version
-            docker-compose --version  # Optional: Check Docker Compose version
+          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
 
       - name: Create Certificates Directory for Docker
         run: |
@@ -174,7 +168,6 @@ jobs:
       - name: Save NGINX Repository Key for NGINX
         run: echo "${{ secrets.NGINX_REPO_KEY }}" | sudo tee /etc/ssl/nginx/nginx-repo.key > /dev/null
 
-
       - name: Build Docker Image
         run: |
           docker build --no-cache \
@@ -185,9 +178,7 @@ jobs:
       - name: Ensure correct permissions for nap/charts directory
         run: |
          sudo chown -R $USER:$USER ${{ github.workspace }}/nap/charts
-         sudo chmod -R 777 ${{ github.workspace }}/nap/charts  # Allow full permissions
-
-
+         sudo chmod -R 777 ${{ github.workspace }}/nap/charts
 
       - name: Run Docker Container as Root
         run: |
@@ -213,10 +204,9 @@ jobs:
             ${{ github.workspace }}/nap/charts/compiled_policy.tgz
             ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt
 
-     
       - name: Setup Terraform Backend
         run: |
-          cat > backend.tf << EOF
+          cat > backend.tf <<EOF
           terraform {
             cloud {
               organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
@@ -253,29 +243,35 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
- 
+
       - name: Create ConfigMap for NGINX App Protect Policy
         run: |
-          POLICY=$(cat ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt)
+          # Ensure the policy file exists and is base64 encoded
+          if [ -f "${{ github.workspace }}/nap/charts/compiled_policy_base64.txt" ]; then
+            POLICY=$(cat ${{ github.workspace }}/nap/charts/compiled_policy_base64.txt)
+          else
+            echo "Error: compiled_policy_base64.txt not found!"
+            exit 1
+          fi
+
+          # Create the YAML file
           cat <<EOF > ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
           apiVersion: v1
           kind: ConfigMap
           metadata:
-            name: waf-policy-bundle
-            namespace: nginx-ingress
+           name: waf-policy-bundle
+           namespace: nginx-ingress
           binaryData:
-            policy_bundle.tgz: ${POLICY}
+            policy_bundle.tgz: |
+             ${POLICY}
           EOF
 
-          # Debugging: Ensure file exists before applying
-          ls -lh ${{ github.workspace }}/nap/charts
+          # Debugging: Print the generated YAML
+          echo "Generated ConfigMap YAML:"
           cat ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
 
-          kubectl apply -f ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
-    
-
-      
-          
+      - name: Apply the ConfigMap
+        run: kubectl apply -f ${{ github.workspace }}/nap/charts/waf-policy-bundle.yaml
   terraform_arcadia:
     name: "Arcadia WebApp"
     runs-on: ubuntu-latest
@@ -294,7 +290,7 @@ jobs:
 
       - name: Setup Terraform Backend
         run: |
-          cat > backend.tf << EOF
+          cat > backend.tf <<EOF
           terraform {
             cloud {
               organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
@@ -307,7 +303,7 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-      
+
       - name: Terraform Validate
         run: terraform validate -no-color
 
