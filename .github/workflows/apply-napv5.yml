@@ -41,14 +41,6 @@ jobs:
         if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/apply-nap')
         run: terraform plan -no-color -input=false -out=tfplan
 
-      - name: Upload Plan
-        # Upload plan only for PR review
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: infra-tfplan
-          path: tfplan
-          retention-days: 2
 
       - name: Terraform Apply
         # Apply directly using the generated plan during push
