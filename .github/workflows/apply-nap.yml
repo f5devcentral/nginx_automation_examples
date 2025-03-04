@@ -116,6 +116,12 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
         run: terraform apply -auto-approve -input=false
+        
+      - name: Upload kubeconfig as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+         name: kubeconfig
+         path: ./kubeconfig
 
   terraform_nap:
      name: "NGINX App Protect"
@@ -203,6 +209,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Download kubeconfig Artifact
+        uses: actions/download-artifact@v4
+        with:
+         name: kubeconfig
+         path: ./nap
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -289,9 +301,14 @@ jobs:
 
       - name: Copy Compiled Policy to NGINX Ingress Controller Pod
         run: |
-           POD_NAME=$(kubectl get pods -n nginx-ingress -l app=nginx-ingress -o jsonpath="{.items[0].metadata.name}")
-           kubectl cp ${{ github.workspace }}/policy/compiled_policy.tgz $POD_NAME:/etc/app_protect/bundles/compiled_policy.tgz -n nginx-ingress
-           kubectl exec -n nginx-ingress $POD_NAME -- ls -lh /etc/app_protect/bundles/
+         export KUBECONFIG=./kubeconfig
+         POD_NAME=$(kubectl get pods -n nginx-ingress -l app=nginx-ingress -o jsonpath="{.items[0].metadata.name}")
+         if [ -z "$POD_NAME" ]; then
+          echo "❌ NGINX Ingress Controller pod not found!"
+          exit 1
+         fi
+         kubectl cp ${{ github.workspace }}/policy/compiled_policy.tgz $POD_NAME:/etc/app_protect/bundles/compiled_policy.tgz -n nginx-ingress
+         kubectl exec -n nginx-ingress $POD_NAME -- ls -lh /etc/app_protect/bundles/
 
 
         
