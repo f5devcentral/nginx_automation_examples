@@ -90,16 +90,16 @@ clusters:
 - cluster:
     server: ${aws_eks_cluster.eks-tf.endpoint}
     certificate-authority-data: ${aws_eks_cluster.eks-tf.certificate_authority[0].data}
-  name: ${local.cluster_name}  # Changed from var to local
+  name: ${aws_eks_cluster.eks-tf.arn}  # Use ARN as context name
 contexts:
 - context:
-    cluster: ${local.cluster_name}  # Changed from var to local
-    user: aws
-  name: aws
-current-context: aws
+    cluster: ${aws_eks_cluster.eks-tf.arn}
+    user: ${aws_eks_cluster.eks-tf.arn}
+  name: ${aws_eks_cluster.eks-tf.arn}  # Dynamic context name
+current-context: ${aws_eks_cluster.eks-tf.arn}
 kind: Config
 users:
-- name: aws
+- name: ${aws_eks_cluster.eks-tf.arn}
   user:
     exec:
       apiVersion: client.authentication.k8s.io/v1beta1
@@ -108,9 +108,9 @@ users:
         - "eks"
         - "get-token"
         - "--cluster-name"
-        - ${local.cluster_name}  # Changed from var to local
+        - ${aws_eks_cluster.eks-tf.name}
         - "--region"
-        - ${local.aws_region}  # Changed from var to local
+        - ${local.aws_region}
 EOT
   sensitive = true
 }
