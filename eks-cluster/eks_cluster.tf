@@ -114,26 +114,3 @@ users:
 EOT
   sensitive = true
 }
-# Update aws-auth configmap for RBAC
-resource "kubernetes_config_map" "aws_auth" {
-  metadata {
-    name      = "aws-auth"
-    namespace = "kube-system"
-  }
-
-  data = {
-    mapRoles = <<YAML
-- rolearn: ${aws_iam_role.workernodes.arn}
-  username: system:node:{{EC2PrivateDNSName}}
-  groups:
-    - system:bootstrappers
-    - system:nodes
-- rolearn: ${aws_iam_role.github_actions.arn}
-  username: github-actions
-  groups:
-    - system:masters
-YAML
-  }
-
-  depends_on = [aws_eks_cluster.eks-tf]
-}
