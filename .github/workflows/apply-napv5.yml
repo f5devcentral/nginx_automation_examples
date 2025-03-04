@@ -1,5 +1,4 @@
 name: "NGINX v5-NAP Apply"
-
 on:
   push:
     branches:
@@ -87,15 +86,15 @@ jobs:
         run: |
           terraform output -raw kubeconfig > kubeconfig
           base64 -w0 kubeconfig > kubeconfig.b64
+          ls -la
 
       - name: Upload Kubeconfig
-        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: eks-kubeconfig
           path: |
-            kubeconfig
-            kubeconfig.b64
+           eks-cluster/kubeconfig
+           eks-cluster/kubeconfig.b64
           retention-days: 2
 
   terraform_nap:
@@ -114,11 +113,20 @@ jobs:
         with:
           name: eks-kubeconfig
           path: .
+      - name: Verify Artifact Download
+        run: |
+          ls -la
+          [ -f kubeconfig.b64 ] || exit 1
 
       - name: Configure Access
         run: |
-          base64 -d kubeconfig.b64 > kubeconfig
-          chmod 600 kubeconfig
+        mkdir -p ~/.kube
+        base64 -d kubeconfig.b64 > config
+        mv config ~/.kube/
+        chmod 600 ~/.kube/config
+        kubectl config use-context aws
+        kubectl get nodes
+
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
