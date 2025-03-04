@@ -1,4 +1,5 @@
 name: "NGINX v5-NAP Apply"
+
 on:
   push:
     branches:
@@ -37,10 +38,21 @@ jobs:
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: terraform plan -no-color -input=false -out=tfplan
+        run: |
+          terraform plan -no-color -input=false -out=tfplan
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
 
   terraform_eks:
@@ -75,26 +87,38 @@ jobs:
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: terraform plan -no-color -input=false -out=tfplan
+        run: |
+          terraform plan -no-color -input=false -out=tfplan
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
 
       - name: Generate Kubeconfig
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && steps.check_changes.outputs.has_changes == 'true'
         run: |
           terraform output -raw kubeconfig > kubeconfig
           base64 -w0 kubeconfig > kubeconfig.b64
           ls -la
 
       - name: Upload Kubeconfig
+        if: github.event_name == 'push' && steps.check_changes.outputs.has_changes == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: eks-kubeconfig
           path: |
-           eks-cluster/kubeconfig
-           eks-cluster/kubeconfig.b64
+            eks-cluster/kubeconfig
+            eks-cluster/kubeconfig.b64
           retention-days: 2
 
   terraform_nap:
@@ -113,6 +137,7 @@ jobs:
         with:
           name: eks-kubeconfig
           path: .
+
       - name: Verify Artifact Download
         run: |
           ls -la
@@ -120,13 +145,12 @@ jobs:
 
       - name: Configure Access
         run: |
-         mkdir -p ~/.kube
-         base64 -d kubeconfig.b64 > config
-         mv config ~/.kube/
-         chmod 600 ~/.kube/config
-         kubectl config use-context aws
-         kubectl get nodes
-
+          mkdir -p ~/.kube
+          base64 -d kubeconfig.b64 > config
+          mv config ~/.kube/
+          chmod 600 ~/.kube/config
+          kubectl config use-context aws
+          kubectl get nodes
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -149,10 +173,21 @@ jobs:
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: terraform plan -no-color -input=false -out=tfplan
+        run: |
+          terraform plan -no-color -input=false -out=tfplan
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
 
   terraform_policy:
@@ -260,8 +295,19 @@ jobs:
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: terraform plan -no-color -input=false -out=tfplan
+        run: |
+          terraform plan -no-color -input=false -out=tfplan
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
