@@ -120,12 +120,12 @@ jobs:
 
       - name: Configure Access
         run: |
-        mkdir -p ~/.kube
-        base64 -d kubeconfig.b64 > config
-        mv config ~/.kube/
-        chmod 600 ~/.kube/config
-        kubectl config use-context aws
-        kubectl get nodes
+         mkdir -p ~/.kube
+         base64 -d kubeconfig.b64 > config
+         mv config ~/.kube/
+         chmod 600 ~/.kube/config
+         kubectl config use-context aws
+         kubectl get nodes
 
 
       - name: Setup Terraform
