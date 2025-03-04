@@ -68,13 +68,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-    
-      - name: Configure AWS Creds
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
-          role-session-name: github-${{ github.repository }}-${{ github.run_id }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -130,11 +123,7 @@ jobs:
     
           # Get dynamic context name
           CONTEXT_NAME=$(awk '/current-context:/ {print $2}' kubeconfig)
-    
-          # Configure kubectl
-          mkdir -p ~/.kube
-          mv kubeconfig ~/.kube/config
-          chmod 600 ~/.kube/config
+  
     
           # Verify context
           kubectl config use-context "$CONTEXT_NAME"
@@ -235,12 +224,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Configure AWS Creds
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}  # Fixed: Use GitHub secret
-          aws-region: ${{ secrets.AWS_REGION }}           # Fixed: Use GitHub secret
           
       - name: Download Kubeconfig
         uses: actions/download-artifact@v4
