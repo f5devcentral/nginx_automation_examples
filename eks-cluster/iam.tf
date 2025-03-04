@@ -231,33 +231,5 @@ resource "aws_iam_instance_profile" "workernodes" {
   role = aws_iam_role.workernodes.name
 }
 
-# IAM Role for GitHub Actions
-resource "aws_iam_role" "github_actions" {
-  name = "${local.project_prefix}-github-actions-${local.build_suffix}"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Federated = aws_iam_openid_connect_provider.github.arn
-        }
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Condition = {
-          StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:akananth/nginx_automation_examples:*"
-          }
-        }
-      }
-    ]
-  })
-}
-
-# Attach EKS access policy
-resource "aws_iam_role_policy_attachment" "github_eks_access" {
-  role       = aws_iam_role.github_actions.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-}
 
 
