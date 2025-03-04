@@ -74,7 +74,7 @@ jobs:
         with:
           role-to-assume: ${aws_iam_role.github_actions.arn}
           aws-region: ${local.aws_region}
-          role-session-name: github-${{{ github.repository }}}-${{{{ github.run_id}}}}
+          role-session-name: github-${{{ github.repository }}}-${{{{ github.run_id}}}} 
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -147,8 +147,8 @@ jobs:
         with:
           name: eks-kubeconfig
           path: |
-            eks-cluster/kubeconfig
-            eks-cluster/kubeconfig.b64
+            kubeconfig
+            kubeconfig.b64
           retention-days: 2
 
   terraform_nap:
@@ -174,12 +174,14 @@ jobs:
           [ -f kubeconfig.b64 ] || exit 1
 
       - name: Configure Access
+        if: github.event_name == 'push' && steps.check_changes.outputs.has_changes == 'true'
         run: |
           mkdir -p ~/.kube
           base64 -d kubeconfig.b64 > config
           mv config ~/.kube/
           chmod 600 ~/.kube/config
-          kubectl config use-context aws
+          CONTEXT_NAME=$(awk '/current-context:/ {print $2}' ~/.kube/config)
+          kubectl config use-context "$CONTEXT_NAME"
           kubectl get nodes
 
       - name: Setup Terraform
@@ -238,7 +240,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${aws_iam_role.github_actions.arn}
-          aws-region: ${local.aws_region}    
+          aws-region: ${local.aws_region}     
 
       - name: Download Kubeconfig
         uses: actions/download-artifact@v4
@@ -286,11 +288,13 @@ jobs:
             -p /workspace/policy/policy.json -o /workspace/policy/compiled_policy.tgz
 
       - name: Deploy Policy
+        if: github.event_name == 'push' && steps.check_changes.outputs.has_changes == 'true'
         run: |
           POD=$(kubectl get pod -n nginx-ingress -l app=nginx-ingress -o jsonpath='{.items[0].metadata.name}')
           kubectl cp compiled_policy.tgz $POD:/etc/app_protect/bundles/ -n nginx-ingress
 
       - name: Upload Artifacts
+        if: github.event_name == 'push' && steps.check_changes.outputs.has_changes == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: policy-bundle
@@ -349,4 +353,3 @@ jobs:
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
-        run: terraform apply -auto-approve tfplan
