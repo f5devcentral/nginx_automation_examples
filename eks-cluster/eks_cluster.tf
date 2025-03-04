@@ -82,7 +82,7 @@ resource "aws_eks_addon" "cluster-addons" {
     aws_eks_node_group.private-node-group-2-tf,
   ]
 }
-# Generate kubeconfig output
+
 output "kubeconfig" {
   value = <<EOT
 apiVersion: v1
@@ -90,10 +90,10 @@ clusters:
 - cluster:
     server: ${aws_eks_cluster.eks-tf.endpoint}
     certificate-authority-data: ${aws_eks_cluster.eks-tf.certificate_authority[0].data}
-  name: ${var.cluster_name}
+  name: ${local.cluster_name}  # Changed from var to local
 contexts:
 - context:
-    cluster: ${var.cluster_name}
+    cluster: ${local.cluster_name}  # Changed from var to local
     user: aws
   name: aws
 current-context: aws
@@ -108,10 +108,9 @@ users:
         - "eks"
         - "get-token"
         - "--cluster-name"
-        - ${var.cluster_name}
+        - ${local.cluster_name}  # Changed from var to local
         - "--region"
-        - ${var.aws_region}
+        - ${local.aws_region}  # Changed from var to local
 EOT
   sensitive = true
 }
-
