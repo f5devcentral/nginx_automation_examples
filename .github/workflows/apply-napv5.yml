@@ -15,10 +15,10 @@ jobs:
         working-directory: ./infra
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # Updated to v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3  # Updated to v3
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
@@ -45,8 +45,8 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           export TF_LOG=DEBUG
-          terraform plan -no-color -input=false > plan.txt
-          cat plan.txt
+          terraform plan -no-color -input=false -out=tfplan  # Added plan file
+          terraform show -no-color tfplan > plan.txt
 
       - name: Terraform Plan Status
         run: |
@@ -59,7 +59,7 @@ jobs:
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false
+        run: terraform apply -auto-approve tfplan  # Use saved plan
 
   terraform_eks:
     name: "AWS EKS"
@@ -70,10 +70,10 @@ jobs:
         working-directory: ./eks-cluster
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # Updated to v4
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3  # Updated to v3
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
@@ -100,8 +100,8 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           export TF_LOG=DEBUG
-          terraform plan -no-color -input=false | tee plan.txt
-          cat plan.txt
+          terraform plan -no-color -input=false -out=tfplan  # Added plan file
+          terraform show -no-color tfplan | tee plan.txt
         continue-on-error: true
 
       - name: Terraform Plan Status
@@ -115,34 +115,41 @@ jobs:
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false
+        run: terraform apply -auto-approve tfplan  # Use saved plan
+     
+      - name: Get Kubeconfig
+        run: |
+          terraform output -raw kubeconfig > kubeconfig
+          base64 -w0 kubeconfig > kubeconfig.b64  # Added base64 encoding
         
       - name: Upload kubeconfig as Artifact
         uses: actions/upload-artifact@v4
         with:
-         name: kubeconfig
-         path: ./kubeconfig
+          name: kubeconfig
+          path: 
+            - kubeconfig
+            - kubeconfig.b64  # Upload both files
+          retention-days: 1  # Auto-cleanup
 
   terraform_nap:
-     name: "NGINX App Protect"
-     runs-on: ubuntu-latest
-     needs: terraform_eks
-     defaults:
-       run:
+    name: "NGINX App Protect"
+    runs-on: ubuntu-latest
+    needs: terraform_eks
+    defaults:
+      run:
         working-directory: ./nap
-     steps:
+    steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # Updated to v4
       
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3  # Updated to v3
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Setup Terraform Backend
-        id: backend
         run: |
-          cat > backend.tf << EOF
+          cat > backend.tf <<EOF
           terraform {
             cloud {
               organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
@@ -154,49 +161,38 @@ jobs:
           EOF
           
       - name: Terraform Init
-        id: init
         run: terraform init
       
       - name: Terraform Validate
-        id: validate
         run: terraform validate -no-color
 
       - name: Terraform Plan
-        id: plan
         if: github.event_name == 'pull_request'
-        run: terraform plan -no-color -input=false
-        continue-on-error: true
+        run: terraform plan -no-color -input=false -out=tfplan  # Added plan file
 
-      - uses: actions/github-script@v6
+      - uses: actions/github-script@v7  # Updated to v7
         if: github.event_name == 'pull_request'
         env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+          PLAN: "terraform\n$(terraform show -no-color tfplan)"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            const output = `#### Terraform Plan 📖
             <details><summary>Show Plan</summary>
             \`\`\`\n
             ${process.env.PLAN}
             \`\`\`
-            </details>
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            </details>`;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: output
             })
-      - name: Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false
-
+        run: terraform apply -auto-approve tfplan  # Use saved plan
 
   terraform_policy:
     name: "NGINX Policy"
@@ -207,111 +203,72 @@ jobs:
         working-directory: ./policy
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # Updated to v4
 
       - name: Download kubeconfig Artifact
         uses: actions/download-artifact@v4
         with:
-         name: kubeconfig
-         path: ./nap
+          name: kubeconfig
+          path: ./policy
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Install kubectl
+      - name: Configure Kubernetes
         run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-          kubectl version --client
+          base64 -d kubeconfig.b64 > kubeconfig  # Decode base64
+          chmod 600 kubeconfig  # Secure permissions
+          kubectl cluster-info
 
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v3  # Official Docker setup
 
-      - name: Install Docker and Docker Compose
-        run: |
-          sudo apt-get update -y
-          sudo apt-get remove -y containerd containerd.io
-          sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-          sudo apt-get update -y
-          sudo apt-get install docker-ce docker-ce-cli containerd.io -y
-          sudo service docker start
-          sudo usermod -aG docker $USER
-
-          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-
-      - name: Create Certificates Directory for Docker
+      - name: Configure Certificates
+        env:
+          NGINX_CRT: ${{ secrets.NGINX_REPO_CRT }}
+          NGINX_KEY: ${{ secrets.NGINX_REPO_KEY }}
         run: |
           sudo mkdir -p /etc/docker/certs.d/private-registry.nginx.com
-
-      - name: Create NGINX Repository Certificate for Docker
-        run: echo "${{ secrets.NGINX_REPO_CRT }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.cert > /dev/null
-
-      - name: Create NGINX Repository Key for Docker
-        run: echo "${{ secrets.NGINX_REPO_KEY }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.key > /dev/null
-
-      - name: Create Certificates Directory for NGINX
-        run: |
-          sudo mkdir -p /etc/ssl/nginx
-
-      - name: Save NGINX Repository Certificate for NGINX
-        run: echo "${{ secrets.NGINX_REPO_CRT }}" | sudo tee /etc/ssl/nginx/nginx-repo.crt > /dev/null
-
-      - name: Save NGINX Repository Key for NGINX
-        run: echo "${{ secrets.NGINX_REPO_KEY }}" | sudo tee /etc/ssl/nginx/nginx-repo.key > /dev/null
+          echo "$NGINX_CRT" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.cert > /dev/null
+          echo "$NGINX_KEY" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.key > /dev/null
+          mkdir -p /etc/ssl/nginx
+          echo "$NGINX_CRT" | sudo tee /etc/ssl/nginx/nginx-repo.crt > /dev/null
+          echo "$NGINX_KEY" | sudo tee /etc/ssl/nginx/nginx-repo.key > /dev/null
+          sudo chmod 644 /etc/ssl/nginx/*  # Secure permissions
 
       - name: Build Docker Image
-        run: |
-          docker build --no-cache \
-            --secret id=nginx-crt,src=/etc/ssl/nginx/nginx-repo.crt \
-            --secret id=nginx-key,src=/etc/ssl/nginx/nginx-repo.key \
-            -t waf-compiler-5.4.0:custom .
+        uses: docker/build-push-action@v5  # Official build action
+        with:
+          context: .
+          tags: waf-compiler-5.4.0:custom
+          secrets: |
+            "nginx-crt=/etc/ssl/nginx/nginx-repo.crt"
+            "nginx-key=/etc/ssl/nginx/nginx-repo.key"
 
-      - name: Ensure correct permissions for nap/charts directory
+      - name: Run Docker Container
         run: |
-         sudo chown -R $USER:$USER ${{ github.workspace }}    
-         sudo chmod -R 777 ${{ github.workspace }}
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            waf-compiler-5.4.0:custom \
+            -p /workspace/policy/policy.json -o /workspace/policy/compiled_policy.tgz
 
-      - name: Run Docker Container as Root
+      - name: Prepare Policy Bundle
         run: |
-         sudo docker run --rm \
-             -v ${{ github.workspace }}:/workspace \
-               waf-compiler-5.4.0:custom \
-             -p /workspace/policy/policy.json -o /workspace/policy/compiled_policy.tgz
+          base64 compiled_policy.tgz > compiled_policy_base64.txt
+          chmod 644 compiled_policy.tgz  # Secure permissions
 
-      - name: Fix permissions for compiled_policy.tgz
-        run: |
-          sudo chown runner:docker ${{ github.workspace }}/policy/compiled_policy.tgz
-          ls -lh ${{ github.workspace }}/policy
-
-      - name: Convert compiled_policy.tgz to Base64
-        run: |
-         base64 ${{ github.workspace }}/policy/compiled_policy.tgz > ${{ github.workspace }}/policy/compiled_policy_base64.txt
-      
-      - name: Upload Compiled Policy as Artifact
+      - name: Upload Compiled Policy
         uses: actions/upload-artifact@v4
         with:
           name: waf-policy-bundle
           path: |
-            ${{ github.workspace }}/policy/compiled_policy.tgz
-            ${{ github.workspace }}/policy/compiled_policy_base64.txt
+            compiled_policy.tgz
+            compiled_policy_base64.txt
+          retention-days: 1  # Auto-cleanup
 
-      - name: Copy Compiled Policy to NGINX Ingress Controller Pod
+      - name: Deploy Policy to Cluster
         run: |
-         export KUBECONFIG=./kubeconfig
-         POD_NAME=$(kubectl get pods -n nginx-ingress -l app=nginx-ingress -o jsonpath="{.items[0].metadata.name}")
-         if [ -z "$POD_NAME" ]; then
-          echo "❌ NGINX Ingress Controller pod not found!"
-          exit 1
-         fi
-         kubectl cp ${{ github.workspace }}/policy/compiled_policy.tgz $POD_NAME:/etc/app_protect/bundles/compiled_policy.tgz -n nginx-ingress
-         kubectl exec -n nginx-ingress $POD_NAME -- ls -lh /etc/app_protect/bundles/
+          POD_NAME=$(kubectl get pods -n nginx-ingress -l app=nginx-ingress -o jsonpath="{.items[0].metadata.name}")
+          kubectl cp compiled_policy.tgz $POD_NAME:/etc/app_protect/bundles/ -n nginx-ingress
+          kubectl exec $POD_NAME -n nginx-ingress -- ls -lh /etc/app_protect/bundles/
 
-
-        
   terraform_arcadia:
     name: "Arcadia WebApp"
     runs-on: ubuntu-latest
