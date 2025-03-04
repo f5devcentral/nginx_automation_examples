@@ -58,9 +58,6 @@ jobs:
   terraform_eks:
      name: "AWS EKS"
      runs-on: ubuntu-latest
-     permissions:
-      id-token: write
-      contents: read
      needs: terraform_infra
      defaults:
       run:
@@ -214,9 +211,6 @@ jobs:
   terraform_policy:
     name: "NGINX Policy"
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     needs: terraform_nap
     defaults:
       run:
