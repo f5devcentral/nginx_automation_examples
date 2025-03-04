@@ -37,10 +37,12 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        if: github.event_name == 'pull_request'
+        # Generate plan for both PR and push events
+        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/apply-nap')
         run: terraform plan -no-color -input=false -out=tfplan
 
       - name: Upload Plan
+        # Upload plan only for PR review
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
         with:
@@ -48,15 +50,9 @@ jobs:
           path: tfplan
           retention-days: 2
 
-      - name: Download Plan
-        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
-        uses: actions/download-artifact@v4
-        with:
-          name: infra-tfplan
-          path: .
-
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
+        # Apply directly using the generated plan during push
+        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
         run: terraform apply -auto-approve tfplan
 
   terraform_eks:
