@@ -58,6 +58,9 @@ jobs:
   terraform_eks:
     name: "AWS EKS"
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     needs: terraform_infra
     defaults:
       run:
@@ -65,6 +68,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+    
+      - name: Configure AWS Creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${aws_iam_role.github_actions.arn}
+          aws-region: ${local.aws_region}
+          role-session-name: github-${{{ github.repository }}}-${{{{ github.run_id}}}}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -213,6 +223,9 @@ jobs:
   terraform_policy:
     name: "NGINX Policy"
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     needs: terraform_nap
     defaults:
       run:
@@ -220,6 +233,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure AWS Creds
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${aws_iam_role.github_actions.arn}
+          aws-region: ${local.aws_region}    
 
       - name: Download Kubeconfig
         uses: actions/download-artifact@v4
