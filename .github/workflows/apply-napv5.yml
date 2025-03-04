@@ -110,6 +110,14 @@ jobs:
           terraform output -raw kubeconfig > kubeconfig
           base64 -w0 kubeconfig > kubeconfig.b64
           ls -la
+          [ -s kubeconfig ] || (echo "kubeconfig is empty"; exit 1)
+          [ -s kubeconfig.b64 ] || (echo "kubeconfig.b64 is empty"; exit 1)
+
+      - name: Verify Cluster Access
+        run: |
+          export KUBECONFIG=kubeconfig
+          kubectl config use-context aws
+          kubectl get nodes --request-timeout=30s
 
       - name: Upload Kubeconfig
         if: github.event_name == 'push' && steps.check_changes.outputs.has_changes == 'true'
