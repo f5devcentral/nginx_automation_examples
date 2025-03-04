@@ -45,8 +45,8 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           export TF_LOG=DEBUG
-          terraform plan -no-color -input=false -out=tfplan  # Added plan file
-          terraform show -no-color tfplan > plan.txt
+          terraform plan -no-color -input=false > plan.txt
+          cat plan.txt
 
       - name: Terraform Plan Status
         run: |
