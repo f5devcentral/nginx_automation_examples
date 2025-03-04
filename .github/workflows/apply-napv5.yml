@@ -116,20 +116,20 @@ jobs:
       - name: Configure Access
         run: |
           # Decode kubeconfig
-         base64 -d kubeconfig.b64 > kubeconfig
+          base64 -d kubeconfig.b64 > kubeconfig
     
-         # Get dynamic context name
-         CONTEXT_NAME=$(awk '/current-context:/ {print $2}' kubeconfig)
+          # Get dynamic context name
+          CONTEXT_NAME=$(awk '/current-context:/ {print $2}' kubeconfig)
     
-         # Configure kubectl
-         mkdir -p ~/.kube
-         mv kubeconfig ~/.kube/config
-         chmod 600 ~/.kube/config
+          # Configure kubectl
+          mkdir -p ~/.kube
+          mv kubeconfig ~/.kube/config
+          chmod 600 ~/.kube/config
     
-         # Verify context
-         kubectl config use-context "$CONTEXT_NAME"
-         kubectl config current-context
-         kubectl get nodes --request-timeout=30s
+          # Verify context
+          kubectl config use-context "$CONTEXT_NAME"
+          kubectl config current-context
+          kubectl get nodes --request-timeout=30s
 
       - name: Upload Kubeconfig
         if: github.event_name == 'push' && steps.check_changes.outputs.has_changes == 'true'
