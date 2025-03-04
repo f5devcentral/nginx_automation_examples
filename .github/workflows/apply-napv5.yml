@@ -37,13 +37,10 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        # Generate plan for both PR and push events
-        if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/apply-nap')
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: terraform plan -no-color -input=false -out=tfplan
 
-
       - name: Terraform Apply
-        # Apply directly using the generated plan during push
         if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
         run: terraform apply -auto-approve tfplan
 
@@ -57,7 +54,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -79,20 +75,21 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: terraform plan -no-color -input=false -out=tfplan
 
-
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
         run: terraform apply -auto-approve tfplan
 
       - name: Generate Kubeconfig
+        if: github.event_name == 'push'
         run: |
           terraform output -raw kubeconfig > kubeconfig
           base64 -w0 kubeconfig > kubeconfig.b64
 
       - name: Upload Kubeconfig
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: eks-kubeconfig
@@ -143,26 +140,11 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: terraform plan -no-color -input=false -out=tfplan
 
-      - name: Upload Plan
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: nap-tfplan
-          path: tfplan
-          retention-days: 2
-
-      - name: Download Plan
-        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
-        uses: actions/download-artifact@v4
-        with:
-          name: nap-tfplan
-          path: .
-
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
         run: terraform apply -auto-approve tfplan
 
   terraform_policy:
@@ -265,33 +247,13 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-
       - name: Terraform Validate
         run: terraform validate -no-color
 
       - name: Terraform Plan
-        if: github.event_name == 'pull_request'
-        run: |
-          terraform plan -no-color -input=false -out=tfplan
-          terraform show -no-color tfplan | tee plan.txt
-
-      - name: Upload Plan File
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: arcadia-tfplan
-          path: ./arcadia/tfplan
-          retention-days: 1
-
-      - name: Download Plan File
-        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
-        uses: actions/download-artifact@v4
-        with:
-          name: arcadia-tfplan
-          path: ./arcadia
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: terraform plan -no-color -input=false -out=tfplan
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
         run: terraform apply -auto-approve tfplan
-
-
