@@ -287,18 +287,11 @@ jobs:
             ${{ github.workspace }}/policy/compiled_policy.tgz
             ${{ github.workspace }}/policy/compiled_policy_base64.txt
 
-      - name: Copy Compiled Policy to NGINX Ingress Controller Pod
-        run: |
-        # Get the NGINX Ingress Controller pod name
-          POD_NAME=$(kubectl get pods -n nginx-ingress -l app=nginx-ingress -o jsonpath="{.items[0].metadata.name}")
-
-        # Copy the compiled policy to the pod
-          kubectl cp ${{ github.workspace }}/policy/compiled_policy.tgz $POD_NAME:/etc/app_protect/bundles/compiled_policy.tgz -n nginx-ingress
-
-        # Verify the file was copied
-          kubectl exec -n nginx-ingress $POD_NAME -- ls -lh /etc/app_protect/bundles/
-
-
+       - name: Copy Compiled Policy to NGINX Ingress Controller Pod
+         run: |
+           POD_NAME=$(kubectl get pods -n nginx-ingress -l app=nginx-ingress -o jsonpath="{.items[0].metadata.name}")
+           kubectl cp ${{ github.workspace }}/policy/compiled_policy.tgz $POD_NAME:/etc/app_protect/bundles/compiled_policy.tgz -n nginx-ingress
+           kubectl exec -n nginx-ingress $POD_NAME -- ls -lh /etc/app_protect/bundles/
 
 
         
