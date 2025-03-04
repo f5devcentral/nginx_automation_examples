@@ -82,20 +82,6 @@ jobs:
         if: github.event_name == 'pull_request'
         run: terraform plan -no-color -input=false -out=tfplan
 
-      - name: Upload Plan
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: eks-tfplan
-          path: tfplan
-          retention-days: 2
-
-      - name: Download Plan
-        if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
-        uses: actions/download-artifact@v4
-        with:
-          name: eks-tfplan
-          path: .
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/apply-nap' && github.event_name == 'push'
