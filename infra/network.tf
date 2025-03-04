@@ -11,7 +11,7 @@ locals {
 
 module "vpc" {
   source               = "terraform-aws-modules/vpc/aws"
-  version              = ">= 4.0"
+  version              = ">= 5.0"
   name                 = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
   cidr                 = var.cidr
   azs                  = local.valid_azs
