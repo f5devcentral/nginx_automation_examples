@@ -239,9 +239,9 @@ jobs:
       - name: Configure AWS Creds
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${aws_iam_role.github_actions.arn}
-          aws-region: ${local.aws_region}     
-
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}  # Fixed: Use GitHub secret
+          aws-region: ${{ secrets.AWS_REGION }}           # Fixed: Use GitHub secret
+          
       - name: Download Kubeconfig
         uses: actions/download-artifact@v4
         with:
