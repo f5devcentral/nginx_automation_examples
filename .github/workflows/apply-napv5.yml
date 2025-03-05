@@ -195,11 +195,11 @@ jobs:
 
     - name: Upload Compiled Policy as Artifact
       uses: actions/upload-artifact@v4
-       with:
-         name: waf-policy-bundle
-         path: ${{ github.workspace }}/policy/compiled_policy.tgz
+      with:
+        name: waf-policy-bundle
+        path: ${{ github.workspace }}/policy/compiled_policy.tgz
 
-   terraform_nap:
+  terraform_nap:
     name: "NGINX App Protect"
     runs-on: ubuntu-latest
     needs: terraform_policy  # Ensure this job runs after the policy is generated
