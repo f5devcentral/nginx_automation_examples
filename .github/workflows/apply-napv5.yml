@@ -187,6 +187,10 @@ jobs:
               waf-compiler-5.4.0:custom \
             -p /workspace/policy/policy.json -o /workspace/policy/compiled_policy.tgz
 
+    - name: Convert Compiled Policy to Base64
+      run: |
+        base64 ${{ github.workspace }}/policy/compiled_policy.tgz > ${{ github.workspace }}/policy/compiled_policy_base64.txt
+
     - name: Fix permissions for compiled_policy.tgz
       run: |
         sudo chown runner:docker ${{ github.workspace }}/policy/compiled_policy.tgz
@@ -197,7 +201,9 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: waf-policy-bundle
-        path: ${{ github.workspace }}/policy/compiled_policy.tgz
+        path: |
+          ${{ github.workspace }}/policy/compiled_policy.tgz
+          ${{ github.workspace }}/policy/compiled_policy_base64.txt
 
   terraform_nap:
     name: "NGINX App Protect"
@@ -251,9 +257,9 @@ jobs:
           fi
 
       - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
-        run: terraform apply -auto-approve tfplan
-
+        run: |
+          terraform apply -auto-approve \
+            -var="compiled_policy_base64=$(cat ./policy/compiled_policy_base64.txt)"
 
 
   terraform_arcadia:
