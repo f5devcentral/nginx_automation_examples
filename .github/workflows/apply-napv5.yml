@@ -205,13 +205,6 @@ jobs:
             ${{ github.workspace }}/policy/compiled_policy.tgz
             ${{ github.workspace }}/policy/compiled_policy_base64.txt
 
-      - name: Upload Compiled Policy as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: waf-policy-bundle
-          path: |
-            ${{ github.workspace }}/policy/compiled_policy.tgz
-            ${{ github.workspace }}/policy/compiled_policy_base64.txt
 
   terraform_nap:
     name: "NGINX App Protect"
