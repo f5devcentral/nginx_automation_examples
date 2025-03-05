@@ -159,58 +159,99 @@ jobs:
         run: terraform apply -auto-approve tfplan
 
   terraform_policy:
-    name: "NGINX Policy"
-    runs-on: ubuntu-latest
-    needs: terraform_nap
-    defaults:
-      run:
-        working-directory: ./policy
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+   name: "NGINX Policy"
+   runs-on: ubuntu-latest
+   needs: terraform_nap
+   defaults:
+    run:
+      working-directory: ./policy
+   steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-      - name: Setup Docker
-        uses: docker/setup-buildx-action@v3
+    - name: Install kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+        kubectl version --client
 
-      - name: Configure Certificates
-        env:
-          NGINX_CRT: ${{ secrets.NGINX_REPO_CRT }}
-          NGINX_KEY: ${{ secrets.NGINX_REPO_KEY }}
-        run: |
-          mkdir -p {/etc/docker/certs.d/private-registry.nginx.com,/etc/ssl/nginx}
-          echo "$NGINX_CRT" | tee \
-            /etc/docker/certs.d/private-registry.nginx.com/client.cert \
-            /etc/ssl/nginx/nginx-repo.crt >/dev/null
-          echo "$NGINX_KEY" | tee \
-            /etc/docker/certs.d/private-registry.nginx.com/client.key \
-            /etc/ssl/nginx/nginx-repo.key >/dev/null
-          chmod 644 /etc/ssl/nginx/*
+    - name: Install Docker and Docker Compose
+      run: |
+        sudo apt-get update -y
+        sudo apt-get remove -y containerd containerd.io
+        sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        sudo apt-get update -y
+        sudo apt-get install docker-ce docker-ce-cli containerd.io -y
+        sudo service docker start
+        sudo usermod -aG docker $USER
 
-      - name: Build Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          tags: waf-compiler-5.4.0:custom
-          secrets: |
-            "nginx-crt=/etc/ssl/nginx/nginx-repo.crt"
-            "nginx-key=/etc/ssl/nginx/nginx-repo.key"
+        sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
 
-      - name: Generate Policy
-        run: |
-          docker run --rm \
+    - name: Create Certificates Directory for Docker
+      run: |
+        sudo mkdir -p /etc/docker/certs.d/private-registry.nginx.com
+
+    - name: Create NGINX Repository Certificate for Docker
+      run: echo "${{ secrets.NGINX_REPO_CRT }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.cert > /dev/null
+
+    - name: Create NGINX Repository Key for Docker
+      run: echo "${{ secrets.NGINX_REPO_KEY }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.key > /dev/null
+
+    - name: Create Certificates Directory for NGINX
+      run: |
+        sudo mkdir -p /etc/ssl/nginx
+
+    - name: Save NGINX Repository Certificate for NGINX
+      run: echo "${{ secrets.NGINX_REPO_CRT }}" | sudo tee /etc/ssl/nginx/nginx-repo.crt > /dev/null
+
+    - name: Save NGINX Repository Key for NGINX
+      run: echo "${{ secrets.NGINX_REPO_KEY }}" | sudo tee /etc/ssl/nginx/nginx-repo.key > /dev/null
+
+    - name: Build Docker Image
+      run: |
+        docker build --no-cache \
+          --secret id=nginx-crt,src=/etc/ssl/nginx/nginx-repo.crt \
+          --secret id=nginx-key,src=/etc/ssl/nginx/nginx-repo.key \
+          -t waf-compiler-5.4.0:custom .
+
+    - name: Ensure correct permissions for nap/charts directory
+      run: |
+        sudo chown -R $USER:$USER ${{ github.workspace }}    
+        sudo chmod -R 777 ${{ github.workspace }}
+
+    - name: Run Docker Container as Root
+      run: |
+        sudo docker run --rm \
             -v ${{ github.workspace }}:/workspace \
-            waf-compiler-5.4.0:custom \
+              waf-compiler-5.4.0:custom \
             -p /workspace/policy/policy.json -o /workspace/policy/compiled_policy.tgz
 
-      - name: Upload Artifacts
-        if: github.event_name == 'push' && steps.check_changes.outputs.has_changes == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: policy-bundle
-          path: |
-            compiled_policy.tgz
-            compiled_policy_base64.txt
-          retention-days: 1
+    - name: Fix permissions for compiled_policy.tgz
+      run: |
+        sudo chown runner:docker ${{ github.workspace }}/policy/compiled_policy.tgz
+        ls -lh ${{ github.workspace }}/policy
+
+    - name: Convert compiled_policy.tgz to Base64
+      run: |
+        base64 ${{ github.workspace }}/policy/compiled_policy.tgz > ${{ github.workspace }}/policy/compiled_policy_base64.txt
+
+    - name: Upload Compiled Policy as Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: waf-policy-bundle
+        path: |
+          ${{ github.workspace }}/policy/compiled_policy.tgz
+          ${{ github.workspace }}/policy/compiled_policy_base64.txt
+
 
   terraform_arcadia:
     name: "Arcadia WebApp"
