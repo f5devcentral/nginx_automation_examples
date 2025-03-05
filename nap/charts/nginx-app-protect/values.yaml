@@ -10,6 +10,13 @@ controller:
   appprotect:
     enable: true
     v5: true
+    volumes:
+      - name: app-protect-bd-config
+        emptyDir: {}
+      - name: app-protect-config
+        emptyDir: {}
+      - name: app-protect-bundles
+        emptyDir: {}
     enforcer:
       host: "127.0.0.1"
       port: 50000
@@ -43,6 +50,11 @@ controller:
     port: 9000
   readyStatus:
     initialDelaySeconds: 30  # Fixed: Changed from string to integer
+  ## The volumeMounts of the Ingress Controller pods.
+  volumeMounts: []
+   - name: bundles
+     mountPath: /etc/app_protect/bundles/compiled_policy.tgz
+      subPath: compiled_policy.tgz
   serviceAccount:
     imagePullSecretName: regcred
 prometheus:
