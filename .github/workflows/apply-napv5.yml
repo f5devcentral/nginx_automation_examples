@@ -120,12 +120,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Kubeconfig
-        uses: actions/download-artifact@v4
-        with:
-          name: eks-kubeconfig
-          path: .
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -207,12 +201,6 @@ jobs:
             -v ${{ github.workspace }}:/workspace \
             waf-compiler-5.4.0:custom \
             -p /workspace/policy/policy.json -o /workspace/policy/compiled_policy.tgz
-
-      - name: Deploy Policy
-        if: github.event_name == 'push' && steps.check_changes.outputs.has_changes == 'true'
-        run: |
-          POD=$(kubectl get pod -n nginx-ingress -l app=nginx-ingress -o jsonpath='{.items[0].metadata.name}')
-          kubectl cp compiled_policy.tgz $POD:/etc/app_protect/bundles/ -n nginx-ingress
 
       - name: Upload Artifacts
         if: github.event_name == 'push' && steps.check_changes.outputs.has_changes == 'true'
