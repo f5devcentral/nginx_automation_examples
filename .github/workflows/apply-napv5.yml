@@ -224,8 +224,8 @@ jobs:
       - name: Debug Compiled Policy Base64 and Setup Var
         run: |
           echo "Compiled Policy Base64:"
-          echo "$(cat {{ github.workspace }}/compiled_policy_base64.txt)"
-          POL = $(cat {{ github.workspace }}/compiled_policy_base64.txt)
+          echo "$(cat {{github.workspace}}/policy/compiled_policy_base64.txt)"
+          POL = $(cat {{github.workspace}}/policy/compiled_policy_base64.txt)
           echo "TF_VAR_compiled_policy_base64=$VER" >> $GITHUB_ENV
 
       - name: Setup Terraform
