@@ -221,11 +221,6 @@ jobs:
         run: |
           git pull
 
-      - name: Verify Compiled Policy Base64 File
-        run: |
-          ls -lh ./policy
-          cat ./policy/compiled_policy_base64.txt
-
       - name: Debug Compiled Policy Base64 and Setup Var
         run: |
           echo "Compiled Policy Base64:"
