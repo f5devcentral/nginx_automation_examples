@@ -45,5 +45,14 @@ controller:
     initialDelaySeconds: 30  # Fixed: Changed from string to integer
   serviceAccount:
     imagePullSecretName: regcred
+  volumes:
+    - name: app-protect-bundles
+      configMap:
+        name: app-protect-bundles  # Must match the ConfigMap name
+
+  volumeMounts:
+    - name: app-protect-bundles
+      mountPath: /etc/app_protect/bundles
+
 prometheus:
   create: true
