@@ -221,30 +221,26 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: waf-policy-bundle
-          path: .  # Download to the root directory
-
-      - name: Move Downloaded Files to ./nap
-        run: |
-          mv compiled_policy.tgz compiled_policy_base64.txt .
-
+          path: ./nap
+          
       - name: Verify Downloaded Artifacts
         run: |
-          ls -lh .
+          ls -lh ./nap
 
       - name: Fix Permissions for Downloaded Artifacts
         run: |
-          chmod 644 compiled_policy.tgz compiled_policy_base64.txt
-          ls -lh .
+          chmod 644 ./nap/compiled_policy.tgz ./nap/compiled_policy_base64.txt
+          ls -lh ./nap
 
       - name: Verify Compiled Policy Base64 File
         run: |
-          ls -lh .
-          cat compiled_policy_base64.txt
+          ls -lh ./nap
+          cat ./nap/compiled_policy_base64.txt
 
       - name: Debug Compiled Policy Base64
         run: |
           echo "Compiled Policy Base64:"
-          echo "$(cat compiled_policy_base64.txt)"
+          echo "$(cat ./nap/compiled_policy_base64.txt)"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
