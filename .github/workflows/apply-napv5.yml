@@ -221,17 +221,30 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: waf-policy-bundle
-          path: .
+          path: .  # Download to the root directory
+
+      - name: Move Downloaded Files to ./nap
+        run: |
+          mv compiled_policy.tgz compiled_policy_base64.txt ./nap/
+
+      - name: Verify Downloaded Artifacts
+        run: |
+          ls -lh ./nap
 
       - name: Fix Permissions for Downloaded Artifacts
         run: |
-          chmod 644 compiled_policy.tgz compiled_policy_base64.txt
-          ls -lh .
+          chmod 644 ./nap/compiled_policy.tgz ./nap/compiled_policy_base64.txt
+          ls -lh ./nap
 
       - name: Verify Compiled Policy Base64 File
         run: |
-          ls -lh .
-          cat compiled_policy_base64.txt
+          ls -lh ./nap
+          cat ./nap/compiled_policy_base64.txt
+
+      - name: Debug Compiled Policy Base64
+        run: |
+          echo "Compiled Policy Base64:"
+          echo "$(cat ./nap/compiled_policy_base64.txt)"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -269,7 +282,7 @@ jobs:
 
       - name: Create terraform.tfvars
         run: |
-          echo 'compiled_policy_base64 = "$(cat ./policy/compiled_policy_base64.txt)"' > terraform.tfvars
+          echo 'compiled_policy_base64 = "$(cat ./nap/compiled_policy_base64.txt)"' > terraform.tfvars
 
       - name: Debug terraform.tfvars
         run: |
@@ -278,7 +291,6 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
-
  
   terraform_arcadia:
     name: "Arcadia WebApp"
