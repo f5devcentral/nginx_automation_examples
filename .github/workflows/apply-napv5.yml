@@ -190,6 +190,14 @@ jobs:
         run: |
           base64 ${{ github.workspace }}/policy/compiled_policy.tgz > ${{ github.workspace }}/policy/compiled_policy_base64.txt
 
+      - name: Verify Compiled Policy Files
+        run: |
+          ls -la ./policy
+          if [ ! -f ./policy/compiled_policy.tgz ]; then
+          echo "Compiled policy file not found!"
+          exit 1
+          fi
+
       - name: Fix permissions for compiled files
         run: |
           sudo chown -R $USER:$USER ${{ github.workspace }}/policy
@@ -201,10 +209,9 @@ jobs:
         run: |
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-          git add ./policy
+          git add ./policy/compiled_policy.tgz ./policy/compiled_policy_base64.txt
           git commit -m 'Committing Policy'
           git push
-
 
   terraform_nap:
     name: "NGINX App Protect"
