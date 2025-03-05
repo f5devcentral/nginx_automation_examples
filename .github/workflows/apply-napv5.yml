@@ -216,12 +216,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Download Compiled Policy
-        uses: actions/download-artifact@v4
-        with:
-          name: waf-policy-bundle
-          path: ./nap
           
       - name: Git Pull
         run: |
