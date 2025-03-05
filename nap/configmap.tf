@@ -1,3 +1,6 @@
+variable "compiled_policy_base64" {
+  type = string
+}
 resource "kubernetes_config_map" "app_protect_bundles" {
   metadata {
     name      = "app-protect-bundles"
@@ -5,6 +8,6 @@ resource "kubernetes_config_map" "app_protect_bundles" {
   }
 
   binary_data = {
-    "compiled_policy.tgz" = filebase64("${path.module}/policy/compiled_policy.tgz")
+    "compiled_policy.tgz" = var.compiled_policy_base64
   }
 }
