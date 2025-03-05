@@ -6,6 +6,9 @@ data "tfe_outputs" "eks" {
   organization = var.tf_cloud_organization
   workspace = "eks"
 }
+data "github_actions_secrets" "policyb64" {
+  name = "policyb64"
+}
 data "aws_eks_cluster_auth" "auth" {
   name = data.tfe_outputs.eks.values.cluster_name
 }
