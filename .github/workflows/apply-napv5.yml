@@ -225,7 +225,7 @@ jobs:
         run: |
           echo "Compiled Policy Base64:"
           echo "$(cat ${{github.workspace}}/policy/compiled_policy_base64.txt)"
-          POL = $(cat ${{github.workspace}}/policy/compiled_policy_base64.txt)
+          POL=$(cat ${{github.workspace}}/policy/compiled_policy_base64.txt)
           echo "TF_VAR_compiled_policy_base64=$VER" >> $GITHUB_ENV
 
       - name: Setup Terraform
