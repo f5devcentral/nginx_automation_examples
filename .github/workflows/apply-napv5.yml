@@ -221,6 +221,16 @@ jobs:
         with:
           name: waf-policy-bundle
           path: ./policy
+      
+      - name: Verify Compiled Policy Base64 File
+        run: |
+          ls -lh ./policy
+          cat ./policy/compiled_policy_base64.txt
+
+      - name: Debug Compiled Policy Base64
+        run: |
+          echo "Compiled Policy Base64:"
+          echo "$(cat ./policy/compiled_policy_base64.txt)"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -247,6 +257,7 @@ jobs:
           terraform plan -no-color -input=false -out=tfplan
           terraform show -no-color tfplan > plan.txt
 
+
       - name: Check Changes
         id: check_changes
         run: |
@@ -256,10 +267,12 @@ jobs:
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Terraform Apply
+      - name: Create terraform.tfvars
         run: |
-          terraform apply -auto-approve \
-            -var="compiled_policy_base64=$(cat ./policy/compiled_policy_base64.txt)"
+          echo 'compiled_policy_base64 = "$(cat ./policy/compiled_policy_base64.txt)"' > terraform.tfvars
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
 
 
   terraform_arcadia:
