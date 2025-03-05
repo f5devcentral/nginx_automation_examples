@@ -192,16 +192,17 @@ jobs:
 
       - name: Fix permissions for compiled files
         run: |
-          sudo chown runner:docker ${{ github.workspace }}/policy/compiled_policy.tgz
-          sudo chown runner:docker ${{ github.workspace }}/policy/compiled_policy_base64.txt
-          sudo chmod 644 ${{ github.workspace }}/policy/compiled_policy.tgz
-          sudo chmod 644 ${{ github.workspace }}/policy/compiled_policy_base64.txt
+          chmod 644 ${{ github.workspace }}/policy/compiled_policy.tgz
+          chmod 644 ${{ github.workspace }}/policy/compiled_policy_base64.txt
           ls -lh ${{ github.workspace }}/policy
 
-      - name: Verify Compiled Policy Base64 File (Before Upload)
-        run: |
-          ls -lh ${{ github.workspace }}/policy
-          cat ${{ github.workspace }}/policy/compiled_policy_base64.txt
+      - name: Upload Compiled Policy as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: waf-policy-bundle
+          path: |
+            ${{ github.workspace }}/policy/compiled_policy.tgz
+            ${{ github.workspace }}/policy/compiled_policy_base64.txt
 
       - name: Upload Compiled Policy as Artifact
         uses: actions/upload-artifact@v4
@@ -222,34 +223,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Create Policy Directory
-        run: mkdir -p ./policy
-
       - name: Download Compiled Policy
         uses: actions/download-artifact@v4
         with:
           name: waf-policy-bundle
-          path: ./policy
-
-      - name: Verify Downloaded Artifacts
-        run: |
-          ls -lh ./policy
+          path: .
 
       - name: Fix Permissions for Downloaded Artifacts
         run: |
-          sudo chown -R $USER:$USER ./policy
-          sudo chmod -R 644 ./policy
-          ls -lh ./policy
+          chmod 644 compiled_policy.tgz compiled_policy_base64.txt
+          ls -lh .
 
       - name: Verify Compiled Policy Base64 File
         run: |
-          ls -lh ./policy
-          cat ./policy/compiled_policy_base64.txt
-
-      - name: Debug Compiled Policy Base64
-        run: |
-          echo "Compiled Policy Base64:"
-          echo "$(cat ./policy/compiled_policy_base64.txt)"
+          ls -lh .
+          cat compiled_policy_base64.txt
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
