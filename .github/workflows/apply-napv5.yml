@@ -191,22 +191,22 @@ jobs:
           base64 ${{ github.workspace }}/policy/compiled_policy.tgz > ${{ github.workspace }}/policy/compiled_policy_base64.txt
 
     
-     - name: Fix permissions for compiled files
-       run: |
+      - name: Fix permissions for compiled files
+        run: |
          sudo chown runner:docker ${{ github.workspace }}/policy/compiled_policy.tgz
          sudo chown runner:docker ${{ github.workspace }}/policy/compiled_policy_base64.txt
          sudo chmod 644 ${{ github.workspace }}/policy/compiled_policy.tgz
          sudo chmod 644 ${{ github.workspace }}/policy/compiled_policy_base64.txt
          ls -lh ${{ github.workspace }}/policy
 
-     - name: Verify Compiled Policy Files
-       run: |
+      - name: Verify Compiled Policy Files
+        run: |
          ls -lh ${{ github.workspace }}/policy
          cat ${{ github.workspace }}/policy/compiled_policy_base64.txt
 
-     - name: Upload Compiled Policy as Artifact
-       uses: actions/upload-artifact@v4
-       with:
+      - name: Upload Compiled Policy as Artifact
+        uses: actions/upload-artifact@v4
+        with:
          name: waf-policy-bundle
          path: |
            ${{ github.workspace }}/policy/compiled_policy.tgz
