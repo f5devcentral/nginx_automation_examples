@@ -205,7 +205,7 @@ jobs:
           ${{ github.workspace }}/policy/compiled_policy.tgz
           ${{ github.workspace }}/policy/compiled_policy_base64.txt
 
-  terraform_nap:
+    terraform_nap:
     name: "NGINX App Protect"
     runs-on: ubuntu-latest
     needs: terraform_policy  
@@ -216,12 +216,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Create Policy Directory
+        run: mkdir -p ./policy
+
       - name: Download Compiled Policy
         uses: actions/download-artifact@v4
         with:
           name: waf-policy-bundle
           path: ./policy
-      
+
       - name: Verify Compiled Policy Base64 File
         run: |
           ls -lh ./policy
@@ -257,7 +260,6 @@ jobs:
           terraform plan -no-color -input=false -out=tfplan
           terraform show -no-color tfplan > plan.txt
 
-
       - name: Check Changes
         id: check_changes
         run: |
@@ -274,7 +276,7 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve
 
-
+ 
   terraform_arcadia:
     name: "Arcadia WebApp"
     runs-on: ubuntu-latest
