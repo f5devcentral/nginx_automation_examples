@@ -22,6 +22,11 @@ variable "nginx_pwd" {
   default     = "none"
 }
 
+variable "compiled_policy_base64" {
+  type        = string
+  description = "Base64-encoded content of the compiled policy bundle"
+}
+
 
 # SSH Key (for potential SSH-based configurations)
 variable "ssh_key" {
