@@ -226,11 +226,10 @@ jobs:
          echo "Compiled Policy Content:"
          cat ${{ github.workspace }}/policy/compiled_policy_base64.txt
 
-      - name: Read Compiled Policy and Set Environment Variable
+      - name: Write Compiled Policy to File
         run: |
-         echo "Reading compiled policy..."
-         COMPILED_POLICY=$(cat ${{ github.workspace }}/policy/compiled_policy_base64.txt | tr -d '\n')
-         echo "TF_VAR_compiled_policy_base64=${COMPILED_POLICY}" >> $GITHUB_ENV
+         echo "Writing compiled policy to file..."
+         cp ${{ github.workspace }}/policy/compiled_policy_base64.txt ${{ github.workspace }}/nap/compiled_policy_base64.txt
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -254,7 +253,7 @@ jobs:
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: |
-         terraform plan -no-color -input=false -out=tfplan -var="compiled_policy_base64=$TF_VAR_compiled_policy_base64"
+         terraform plan -no-color -input=false -out=tfplan
          terraform show -no-color tfplan > plan.txt
 
       - name: Check Changes
@@ -267,7 +266,7 @@ jobs:
           fi
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -var="compiled_policy_base64=$TF_VAR_compiled_policy_base64"
+        run: terraform apply -auto-approve
  
   terraform_arcadia:
     name: "Arcadia WebApp"
