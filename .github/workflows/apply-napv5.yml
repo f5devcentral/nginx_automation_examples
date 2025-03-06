@@ -221,16 +221,11 @@ jobs:
         run: |
           git pull
 
-      - name: Debug Compiled Policy Content
+      - name: Debug Compiled Policy
         run: |
-         echo "Compiled Policy Content:"
-         cat ${{ github.workspace }}/policy/compiled_policy_base64.txt
-
-      - name: Write Compiled Policy to File
-        run: |
-         echo "Writing compiled policy to file..."
-         cp ${{ github.workspace }}/policy/compiled_policy_base64.txt ${{ github.workspace }}/nap/compiled_policy_base64.txt
-
+         echo "Compiled Policy:"
+         ls -la ${{ github.workspace }}/policy
+    
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
