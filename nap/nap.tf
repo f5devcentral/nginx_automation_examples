@@ -8,8 +8,7 @@ resource "helm_release" "nginx-plus-ingress" {
   timeout    = 600
 
   depends_on = [
-    kubernetes_secret.docker-registry,
-    kubernetes_config_map.policy,  # Ensure Helm release runs after ConfigMap
+    kubernetes_secret.docker-registry
   ]
 }
 
