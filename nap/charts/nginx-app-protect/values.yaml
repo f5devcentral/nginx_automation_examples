@@ -16,7 +16,8 @@ controller:
       - name: app-protect-config
         emptyDir: {}
       - name: app-protect-bundles
-        emptyDir: {}
+        persistentVolumeClaim:
+        claimName: policy-claim 
     enforcer:
       host: "127.0.0.1"
       port: 50000
@@ -51,7 +52,7 @@ controller:
   readyStatus:
     initialDelaySeconds: 30  # Fixed: Changed from string to integer
   ## The volumeMounts of the Ingress Controller pods.
-  volumeMounts: []
+  volumeMounts: 
    - name: bundles
      mountPath: /etc/app_protect/bundles/compiled_policy.tgz
       subPath: compiled_policy.tgz
