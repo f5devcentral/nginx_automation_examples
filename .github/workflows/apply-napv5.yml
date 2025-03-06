@@ -221,11 +221,16 @@ jobs:
         run: |
           git pull
 
-      - name: Debug Compiled Policy Base64 and Setup Var
+      - name: Debug Compiled Policy Content
         run: |
-          echo "Reading compiled policy..."
-          COMPILED_POLICY=$(cat ${{ github.workspace }}/policy/compiled_policy_base64.txt)
-          echo "TF_VAR_compiled_policy_base64=$COMPILED_POLICY" >> $GITHUB_ENV
+         echo "Compiled Policy Content:"
+         cat ${{ github.workspace }}/policy/compiled_policy_base64.txt
+
+      - name: Read Compiled Policy and Set Environment Variable
+        run: |
+         echo "Reading compiled policy..."
+         COMPILED_POLICY=$(cat ${{ github.workspace }}/policy/compiled_policy_base64.txt | tr -d '\n')
+         echo "TF_VAR_compiled_policy_base64=${COMPILED_POLICY}" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -249,8 +254,8 @@ jobs:
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: |
-          terraform plan -no-color -input=false -out=tfplan
-          terraform show -no-color tfplan > plan.txt
+         terraform plan -no-color -input=false -out=tfplan -var="compiled_policy_base64=$TF_VAR_compiled_policy_base64"
+         terraform show -no-color tfplan > plan.txt
 
       - name: Check Changes
         id: check_changes
