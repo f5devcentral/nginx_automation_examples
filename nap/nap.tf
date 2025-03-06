@@ -9,7 +9,7 @@ resource "helm_release" "nginx-plus-ingress" {
 
   depends_on = [
     kubernetes_secret.docker-registry,
-    kubernetes_config_map.app_protect_bundles,  # Ensure Helm release runs after ConfigMap
+    kubernetes_config_map.policy,  # Ensure Helm release runs after ConfigMap
   ]
 }
 

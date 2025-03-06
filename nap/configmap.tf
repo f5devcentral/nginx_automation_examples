@@ -5,6 +5,6 @@ resource "kubernetes_config_map" "policy" {
   }
 
    data = {
-    "compiled_policy.tgz" = filebase64("${path.module}/policy/compiled_policy_base64.txt")
+     "compiled_policy.tgz" = var.compiled_policy_base64
   }
 }

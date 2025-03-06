@@ -223,11 +223,9 @@ jobs:
 
       - name: Debug Compiled Policy Base64 and Setup Var
         run: |
-          echo "Compiled Policy Base64:"
-          echo "$(cat ${{github.workspace}}/policy/compiled_policy_base64.txt)"
-          POL=$(cat ${{github.workspace}}/policy/compiled_policy_base64.txt)
-          echo $POL "POL: $POL"
-          echo "TF_VAR_compiled_policy_base64=$VER" >> $GITHUB_ENV
+          echo "Reading compiled policy..."
+          COMPILED_POLICY=$(cat ${{ github.workspace }}/policy/compiled_policy_base64.txt)
+          echo "TF_VAR_compiled_policy_base64=$COMPILED_POLICY" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -264,7 +262,7 @@ jobs:
           fi
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve -var="compiled_policy_base64=$TF_VAR_compiled_policy_base64"
  
   terraform_arcadia:
     name: "Arcadia WebApp"
