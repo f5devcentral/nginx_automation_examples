@@ -17,7 +17,7 @@ controller:
         emptyDir: {}
       - name: app-protect-bundles
         persistentVolumeClaim:
-        claimName: policy-claim 
+          claimName: policy-claim  # Fixed indentation
     enforcer:
       host: "127.0.0.1"
       port: 50000
@@ -51,12 +51,11 @@ controller:
     port: 9000
   readyStatus:
     initialDelaySeconds: 30  # Fixed: Changed from string to integer
-  ## The volumeMounts of the Ingress Controller pods.
-  volumeMounts: 
-   - name: bundles
-     mountPath: /etc/app_protect/bundles
-      subPath: compiled_policy.tgz
+  volumeMounts:
+    - name: bundles
+      mountPath: /etc/app_protect/bundles
+      subPath: compiled_policy.tgz  # Fixed indentation
   serviceAccount:
     imagePullSecretName: regcred
-prometheus:
+  prometheus:
   create: true
