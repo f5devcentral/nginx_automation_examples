@@ -54,7 +54,7 @@ controller:
   ## The volumeMounts of the Ingress Controller pods.
   volumeMounts: 
    - name: bundles
-     mountPath: /etc/app_protect/bundles/compiled_policy.tgz
+     mountPath: /etc/app_protect/bundles
       subPath: compiled_policy.tgz
   serviceAccount:
     imagePullSecretName: regcred
