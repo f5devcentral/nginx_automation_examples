@@ -5,6 +5,11 @@ resource "kubernetes_job" "copy_policy" {
   }
   spec {
     template {
+      metadata {
+        labels = {
+          app = "copy-policy"
+        }
+      }
       spec {
         container {
           name  = "copy-policy"
