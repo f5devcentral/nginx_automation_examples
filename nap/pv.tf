@@ -30,5 +30,5 @@ resource "kubernetes_persistent_volume_claim" "policy_claim" {
     volume_name = kubernetes_persistent_volume.policy_volume.metadata[0].name
   }
 
-  depends_on = [kubernetes_namespace.nginx-ingress]
+  depends_on = [helm_release.nginx-plus-ingress]
 }
