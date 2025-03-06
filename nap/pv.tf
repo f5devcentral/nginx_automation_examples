@@ -1,9 +1,3 @@
-resource "kubernetes_namespace" "nginx-ingress" {
-  metadata {
-    name = "nginx-ingress"
-  }
-}
-
 resource "kubernetes_persistent_volume" "policy_volume" {
   metadata {
     name = "policy-volume"
