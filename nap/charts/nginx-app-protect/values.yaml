@@ -52,9 +52,8 @@ controller:
   readyStatus:
     initialDelaySeconds: 30  # Fixed: Changed from string to integer
   volumeMounts:
-    - name: bundles  # Match the volume name
-      mountPath: /etc/app_protect/bundles
-      subPath: compiled_policy.tgz
+    - name: policy-volume  # Match the volume name defined above
+      mountPath: /etc/app_protect/bundles  # Mount path for the bundles
   serviceAccount:
     imagePullSecretName: regcred
 prometheus:
