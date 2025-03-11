@@ -8,7 +8,8 @@ resource "helm_release" "nginx-plus-ingress" {
   timeout    = 600
 
   depends_on = [
-    kubernetes_secret.docker-registry
+    kubernetes_secret.docker-registry,
+    kubernetes_persistent_volume_claim.policy_claim 
   ]
 }
 
