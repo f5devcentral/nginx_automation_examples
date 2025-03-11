@@ -52,7 +52,7 @@ controller:
   readyStatus:
     initialDelaySeconds: 30  # Fixed: Changed from string to integer
   volumeMounts:
-    - name: bundles
+    - name: app-protect-bundles
       mountPath: /etc/app_protect/bundles
       subPath: compiled_policy.tgz  # Fixed indentation
   serviceAccount:
