@@ -1,35 +1,17 @@
-resource "kubernetes_job" "copy_policy" {
+resource "kubernetes_persistent_volume_claim" "policy_claim" {
   metadata {
-    name      = "copy-policy"
+    name      = "policy-claim"
     namespace = kubernetes_namespace.nginx-ingress.metadata[0].name
   }
   spec {
-    template {
-      metadata {
-        labels = {
-          app = "copy-policy"
-        }
-      }
-      spec {
-        container {
-          name  = "copy-policy"
-          image = "busybox"  # Use a lightweight image
-          command = ["sh", "-c", "cp /policy/compiled_policy.tgz /mnt/policy/compiled_policy.tgz"]
-          volume_mount {
-            name       = "policy-volume"
-            mount_path = "/mnt/policy"
-          }
-        }
-        volume {
-          name = "policy-volume"
-          persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.policy_claim.metadata[0].name
-          }
-        }
-        restart_policy = "Never"
+    access_modes = ["ReadWriteOnce"]
+    resources {
+      requests = {
+        storage = "1Gi"  # Adjust the size as needed
       }
     }
+    volume_name = kubernetes_persistent_volume.policy_volume.metadata[0].name
   }
 
-  depends_on = [kubernetes_persistent_volume_claim.policy_claim]
+  depends_on = [kubernetes_namespace.nginx-ingress]  # Depend only on the namespace
 }
