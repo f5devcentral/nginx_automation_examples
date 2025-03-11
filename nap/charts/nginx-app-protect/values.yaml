@@ -51,9 +51,6 @@ controller:
     port: 9000
   readyStatus:
     initialDelaySeconds: 30  # Fixed: Changed from string to integer
-  volumeMounts:
-    - name: app-protect  # Match the volume name defined above
-      mountPath: /etc/app_protect/bundles  # Ensure this path is unique
   serviceAccount:
     imagePullSecretName: regcred
 prometheus:
