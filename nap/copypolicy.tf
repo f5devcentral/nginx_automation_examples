@@ -31,5 +31,8 @@ resource "kubernetes_job" "copy_policy" {
     }
   }
 
-  depends_on = [helm_release.nginx-plus-ingress]  # Depend on the Helm release
+  depends_on = [
+    kubernetes_persistent_volume_claim.policy_claim,  # Ensure the PVC exists
+    helm_release.nginx-plus-ingress  # Ensure the Helm release is deployed
+  ]
 }
