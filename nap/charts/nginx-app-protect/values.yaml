@@ -52,7 +52,7 @@ controller:
   readyStatus:
     initialDelaySeconds: 30  # Fixed: Changed from string to integer
   volumeMounts:
-    - name: app-protect-bundles  # Match the volume name
+    - name: bundles  # Match the volume name
       mountPath: /etc/app_protect/bundles
       subPath: compiled_policy.tgz
   serviceAccount:
