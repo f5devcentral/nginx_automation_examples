@@ -15,9 +15,9 @@ controller:
         emptyDir: {}
       - name: app-protect-config
         emptyDir: {}
-      - name: app-protect-bundles
+      - name: app-protect-bundles  # Volume name
         persistentVolumeClaim:
-          claimName: policy-claim  # Fixed indentation
+          claimName: policy-claim  # Reference the PVC
     enforcer:
       host: "127.0.0.1"
       port: 50000
@@ -52,10 +52,10 @@ controller:
   readyStatus:
     initialDelaySeconds: 30  # Fixed: Changed from string to integer
   volumeMounts:
-    - name: app-protect-bundles
+    - name: app-protect-bundles  # Match the volume name
       mountPath: /etc/app_protect/bundles
-      subPath: compiled_policy.tgz  # Fixed indentation
+      subPath: compiled_policy.tgz
   serviceAccount:
     imagePullSecretName: regcred
-  prometheus:
+prometheus:
   create: true
