@@ -15,7 +15,7 @@ controller:
         emptyDir: {}
       - name: app-protect-config
         emptyDir: {}
-      - name: bundles
+      - name: app-protect-bundles
         persistentVolumeClaim:
           claimName: policy-claim  # Fixed indentation
     enforcer:
