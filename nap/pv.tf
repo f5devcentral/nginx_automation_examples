@@ -10,7 +10,7 @@ resource "kubernetes_persistent_volume" "policy_volume" {
     access_modes = ["ReadWriteOnce"]
     persistent_volume_source {
       host_path {
-        path = "/mnt/data"  # Adjust the path as needed
+        path = "${{ github.workspace }}/policy"  # Use the path where the file is generated
       }
     }
   }
