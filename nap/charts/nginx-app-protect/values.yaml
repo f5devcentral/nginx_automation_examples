@@ -1,3 +1,4 @@
+---
 controller:
   name: controller
   kind: deployment
@@ -5,7 +6,7 @@ controller:
   mgmt:
     licenseTokenSecretName: "license-token"
     sslVerify: false
-  nginxReloadTimeout: 60000  # Fixed: Changed from string to integer
+  nginxReloadTimeout: 60000  # Integer value is correct
   appprotect:
     enable: true
     v5: true
@@ -55,12 +56,12 @@ controller:
     capabilities:
       drop:
         - all
-  logLevel: 1  # Fixed: Changed to a valid integer value (1 for error level)
+  logLevel: "error"  # Fixed: Changed to a string value
   nginxStatus:
-    allowCidrs: "0.0.0.0/0"  # Fixed: Converted from array to string
+    allowCidrs: "0.0.0.0/0"  # String value is correct
     port: 9000
   readyStatus:
-    initialDelaySeconds: 30  # Fixed: Changed from string to integer
+    initialDelaySeconds: 30  # Integer value is correct
   serviceAccount:
     imagePullSecretName: regcred
 prometheus:
