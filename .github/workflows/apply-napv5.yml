@@ -260,7 +260,7 @@ jobs:
           fi
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -var="workspace_path=${{ github.workspace }}/policy"
+        run: terraform apply -auto-approve -var="workspace_path=${{ github.workspace }}/policy/compiled_policy.tgz"
  
   terraform_arcadia:
     name: "Arcadia WebApp"
