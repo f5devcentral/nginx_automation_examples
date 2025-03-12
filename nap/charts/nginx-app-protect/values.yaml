@@ -57,4 +57,4 @@ controller:
   serviceAccount:
     imagePullSecretName: regcred
 prometheus:
-  create
+  create: true
