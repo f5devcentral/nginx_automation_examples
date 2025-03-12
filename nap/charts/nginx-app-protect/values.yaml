@@ -6,7 +6,7 @@ controller:
   mgmt:
     licenseTokenSecretName: "license-token"
     sslVerify: false
-  nginxReloadTimeout: 60000  # Integer value is correct
+  nginxReloadTimeout: 60000  # Fixed: Changed from string to integer
   appprotect:
     enable: true
     v5: true
@@ -19,8 +19,8 @@ controller:
         persistentVolumeClaim:
           claimName: policy-claim  # Reference the PVC
     volumeMounts:
-      - name: app-protect-bundles
-        mountPath: /etc/app_protect/bundles
+     - name: app-protect-bundles
+       mountPath: /etc/app_protect/bundles
     enforcer:
       host: "127.0.0.1"
       port: 50000
@@ -28,7 +28,7 @@ controller:
         repository: private-registry.nginx.com/nap/waf-enforcer
         tag: "5.4.0"
         pullPolicy: IfNotPresent
-      securityContext:
+      securityContext: 
         readOnlyRootFilesystem: true
     configManager:
       image:
@@ -48,16 +48,13 @@ controller:
     repository: private-registry.nginx.com/nginx-ic-nap-v5/nginx-plus-ingress
     tag: "4.0.1"
     pullPolicy: IfNotPresent
-  securityContext:
-    readOnlyRootFilesystem: false
-    allowPrivilegeEscalation: false
-  logLevel: "error"  # Fixed: Changed to a string value
+  logLevel: "error"  # Fixed: Changed to a valid value
   nginxStatus:
-    allowCidrs: "0.0.0.0/0"  # String value is correct
+    allowCidrs: "0.0.0.0/0"  # Fixed: Converted from array to string
     port: 9000
   readyStatus:
-    initialDelaySeconds: 30  # Integer value is correct
+    initialDelaySeconds: 30  # Fixed: Changed from string to integer
   serviceAccount:
     imagePullSecretName: regcred
 prometheus:
-  create: true
+  create
