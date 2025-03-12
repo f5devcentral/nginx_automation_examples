@@ -36,7 +36,7 @@ controller:
         tag: "5.4.0"
         pullPolicy: IfNotPresent
       securityContext:
-        readOnlyRootFilesystem: true
+        readOnlyRootFilesystem: false
         allowPrivilegeEscalation: false
         runAsUser: 101
         runAsNonRoot: true
@@ -48,6 +48,14 @@ controller:
     repository: private-registry.nginx.com/nginx-ic-nap-v5/nginx-plus-ingress
     tag: "4.0.1"
     pullPolicy: IfNotPresent
+  securityContext:
+        readOnlyRootFilesystem: false
+        allowPrivilegeEscalation: false
+        runAsUser: 101
+        runAsNonRoot: true
+        capabilities:
+          drop:
+            - all
   logLevel: "error"  # Fixed: Changed to a valid value
   nginxStatus:
     allowCidrs: "0.0.0.0/0"  # Fixed: Converted from array to string
