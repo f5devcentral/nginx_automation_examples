@@ -8,6 +8,15 @@ resource "kubernetes_manifest" "arcadia_virtualserver" {
     }
     spec = {
       host = try(data.tfe_outputs.nap[0].values.external_name, data.tfe_outputs.nic[0].values.external_name, "arcadia-cd-demo.sr.f5-cloud-demo.com")
+      
+      # Reference the WAF policy
+      policies = [
+        {
+          name = "waf-policy"  # Name of the WAF policy
+          namespace = "default"  # Namespace where the WAF policy is deployed
+        }
+      ]
+
       upstreams = [
         {
           name = "main-upstream"
