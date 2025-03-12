@@ -21,7 +21,10 @@ variable "nginx_pwd" {
   description = "Password for NGINX (if required)"
   default     = "none"
 }
-
+variable "workspace_path" {
+  type    = string
+  default = ""  # Provide a default value or leave it empty
+}
 # SSH Key (for potential SSH-based configurations)
 variable "ssh_key" {
   type        = string

@@ -1,4 +1,4 @@
-# Create the PersistentVolume (PV)
+# pv.tf
 resource "kubernetes_persistent_volume" "policy_volume" {
   metadata {
     name = "policy-volume"
@@ -10,7 +10,7 @@ resource "kubernetes_persistent_volume" "policy_volume" {
     access_modes = ["ReadWriteOnce"]
     persistent_volume_source {
       host_path {
-        path = "${{ github.workspace }}/policy"  # Use the path where the file is generated
+        path = var.workspace_path  # Use the variable here
       }
     }
   }
