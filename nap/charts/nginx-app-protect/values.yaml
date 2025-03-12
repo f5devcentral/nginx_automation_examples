@@ -18,6 +18,9 @@ controller:
       - name: app-protect-bundles  # Volume name
         persistentVolumeClaim:
           claimName: policy-claim  # Reference the PVC
+    volumeMounts:
+     - name: app-protect-bundles
+       mountPath: /etc/app_protect/bundles
     enforcer:
       host: "127.0.0.1"
       port: 50000
