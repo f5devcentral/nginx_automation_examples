@@ -225,7 +225,6 @@ jobs:
         run: |
          echo "Compiled Policy:"
          ls -la ${{ github.workspace }}/policy
-    
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -261,7 +260,7 @@ jobs:
           fi
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve -var="workspace_path=${{ github.workspace }}/policy"
  
   terraform_arcadia:
     name: "Arcadia WebApp"
