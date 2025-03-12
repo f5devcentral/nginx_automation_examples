@@ -51,11 +51,6 @@ controller:
   securityContext:
     readOnlyRootFilesystem: false
     allowPrivilegeEscalation: false
-    runAsUser: 101
-    runAsNonRoot: true
-    capabilities:
-      drop:
-        - all
   logLevel: "error"  # Fixed: Changed to a string value
   nginxStatus:
     allowCidrs: "0.0.0.0/0"  # String value is correct
