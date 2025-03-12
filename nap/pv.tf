@@ -8,7 +8,7 @@ resource "kubernetes_persistent_volume" "policy_volume" {
       storage = "1Gi"  # Adjust the size as needed
     }
     access_modes = ["ReadWriteOnce"]
-    persistent_volume_reclaim_policy = "delete"  
+    persistent_volume_reclaim_policy = "Delete"  
     storage_class_name = "ebs-sc"  # Must match the PVC's storage class
     persistent_volume_source {
       host_path {
