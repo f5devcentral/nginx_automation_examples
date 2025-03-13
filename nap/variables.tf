@@ -30,3 +30,12 @@ variable "ssh_key" {
   type        = string
   description = "Unneeded for NGINX App Protect, only used for TF Cloud variable warnings"
 }
+variable "eks_cluster_name" {
+  description = "Name of the EKS cluster"
+  type        = string
+}
+
+variable "nginx_pod_name" {
+  description = "Name of the NGINX Ingress Controller pod"
+  type        = string
+}
