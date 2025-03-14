@@ -169,7 +169,7 @@ jobs:
   terraform_policy:
     name: "NGINX Policy"
     runs-on: ubuntu-latest
-    needs: terraform_eks
+    needs: terraform_nap
     defaults:
       run:
         working-directory: ./policy
