@@ -28,3 +28,8 @@ variable "ssh_key" {
   type        = string
   description = "Unneeded for NGINX App Protect, only used for TF Cloud variable warnings"
 }
+
+variable "nginx_pod_name" {
+  description = "Name of the NGINX Ingress Controller pod"
+  type        = string
+}
