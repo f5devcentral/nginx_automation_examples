@@ -108,7 +108,64 @@ jobs:
         env:
           TF_LOG: DEBUG
         run: terraform apply -auto-approve tfplan
+
+  terraform_nap:
+    name: "NGINX App Protect"
+    runs-on: ubuntu-latest
+    needs: terraform_eks 
+    defaults:
+      run:
+        working-directory: ./nap
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
           
+      - name: Git Pull
+        run: |
+          git pull
+
+      - name: Debug Compiled Policy
+        run: |
+         echo "Compiled Policy:"
+         ls -la ${{ github.workspace }}/policy
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Setup Backend
+        run: |
+          cat <<EOF > backend.tf
+          terraform {
+            cloud {
+              organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
+              workspaces { name = "${{ secrets.TF_CLOUD_WORKSPACE_NAP }}" }
+            }
+          }
+          EOF
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+         terraform plan -no-color -input=false -out=tfplan
+         terraform show -no-color tfplan > plan.txt
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -var="workspace_path=${{ github.workspace }}/policy/compiled_policy.tgz"
+
+
   terraform_policy:
     name: "NGINX Policy"
     runs-on: ubuntu-latest
@@ -206,49 +263,19 @@ jobs:
           git commit -m 'Committing Policy'
           git push
 
-  terraform_nap:
-    name: "NGINX App Protect"
-    runs-on: ubuntu-latest
-    needs: terraform_policy  
-    defaults:
-      run:
-        working-directory: ./nap
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-          
-      - name: Git Pull
+      - name: Copy Compiled Policy to NGINX Ingress Controller
         run: |
-          git pull
+          NGINX_POD=$(kubectl get pods -n nginx-ingress -l app=nginx-ingress -o jsonpath='{.items[0].metadata.name}')
+          kubectl cp ${{ github.workspace }}/policy/compiled_policy.tgz $NGINX_POD:/etc/app_protect/bundles/compiled_policy.tgz -n nginx-ingress -c nginx-plus-ingress
 
-      - name: Debug Compiled Policy
-        run: |
-         echo "Compiled Policy:"
-         ls -la ${{ github.workspace }}/policy
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Setup Backend
-        run: |
-          cat <<EOF > backend.tf
-          terraform {
-            cloud {
-              organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
-              workspaces { name = "${{ secrets.TF_CLOUD_WORKSPACE_NAP }}" }
-            }
-          }
-          EOF
-
+      
       - name: Terraform Init
         run: terraform init
 
       - name: Terraform Plan
-        if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: |
-         terraform plan -no-color -input=false -out=tfplan
-         terraform show -no-color tfplan > plan.txt
+          terraform plan -no-color -input=false -out=tfplan
+          terraform show -no-color tfplan > plan.txt
 
       - name: Check Changes
         id: check_changes
@@ -260,43 +287,14 @@ jobs:
           fi
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -var="workspace_path=${{ github.workspace }}/policy/compiled_policy.tgz"
+        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
+        run: terraform apply -auto-approve tfplan
 
-  terraform_copy_policy:
-    name: "Copy Compiled Policy"
-    runs-on: ubuntu-latest
-    needs: terraform_nap  # Run after NAP deployment
-    defaults:
-      run:
-        working-directory: ./policy
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Install kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-          kubectl version --client
-
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Apply
-        env:
-          TF_VAR_nginx_pod_name: "$(kubectl get pods -n nginx-ingress -l app=nginx-ingress -o jsonpath='{.items[0].metadata.name}')"
-        run: terraform apply -auto-approve
  
   terraform_arcadia:
     name: "Arcadia WebApp"
     runs-on: ubuntu-latest
-    needs: terraform_copy_policy
+    needs: terraform_policy
     defaults:
       run:
         working-directory: ./arcadia
