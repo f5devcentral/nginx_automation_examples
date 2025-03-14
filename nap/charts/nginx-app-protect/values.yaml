@@ -18,9 +18,6 @@ controller:
       - name: app-protect-bundles  # Volume name
         persistentVolumeClaim:
           claimName: policy-claim  # Reference the PVC
-    volumeMounts:
-     - name: app-protect-bundles
-       mountPath: /etc/app_protect/bundles
     enforcer:
       host: "127.0.0.1"
       port: 50000
@@ -36,18 +33,28 @@ controller:
         tag: "5.4.0"
         pullPolicy: IfNotPresent
       securityContext:
-        readOnlyRootFilesystem: false
+        readOnlyRootFilesystem: true
         allowPrivilegeEscalation: false
         runAsUser: 101
         runAsNonRoot: true
         capabilities:
           drop:
             - all
+      volumeMounts:
+        - name: app-protect-bd-config
+          mountPath: /opt/app_protect/bd_config
+        - name: app-protect-config
+          mountPath: /opt/app_protect/config
+        - name: app-protect-bundles
+          mountPath: /etc/app_protect/bundles
   enableSnippets: true
   image:
     repository: private-registry.nginx.com/nginx-ic-nap-v5/nginx-plus-ingress
     tag: "4.0.1"
     pullPolicy: IfNotPresent
+  securityContext:
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
   logLevel: "error"  # Fixed: Changed to a valid value
   nginxStatus:
     allowCidrs: "0.0.0.0/0"  # Fixed: Converted from array to string

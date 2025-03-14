@@ -8,7 +8,7 @@ resource "kubernetes_persistent_volume_claim" "policy_claim" {
     access_modes = ["ReadWriteOnce"]
     resources {
       requests = {
-        storage = "1Gi"
+        storage = "2Gi"
       }
     }
     volume_name = kubernetes_persistent_volume.policy_volume.metadata[0].name  # Explicitly reference the PV

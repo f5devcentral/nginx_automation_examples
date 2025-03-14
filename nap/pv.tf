@@ -5,10 +5,10 @@ resource "kubernetes_persistent_volume" "policy_volume" {
   }
   spec {
     capacity = {
-      storage = "1Gi"  # Adjust the size as needed
+      storage = "2Gi"  # Adjust the size as needed
     }
     access_modes = ["ReadWriteOnce"]
-    persistent_volume_reclaim_policy = "Delete"  
+    persistent_volume_reclaim_policy = "Retain"  
     storage_class_name = "ebs-sc"  # Must match the PVC's storage class
     persistent_volume_source {
       host_path {
