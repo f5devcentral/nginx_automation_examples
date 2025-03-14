@@ -187,6 +187,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq
 
+      - name: Debug Terraform Outputs
+        run: |
+          terraform output
+
       - name: Fetch AWS Credentials from Terraform
         id: tf_vars
         run: |
@@ -195,15 +199,27 @@ jobs:
           echo "AWS_ACCESS_KEY_ID=$(jq -r '.aws_access_key_id.value' outputs.json)" >> $GITHUB_ENV
           echo "AWS_SECRET_ACCESS_KEY=$(jq -r '.aws_secret_access_key.value' outputs.json)" >> $GITHUB_ENV
           echo "AWS_SESSION_TOKEN=$(jq -r '.aws_session_token.value' outputs.json)" >> $GITHUB_ENV
-      
+
+      - name: Debug Environment Variables
+        run: |
+          echo "AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}"
+          echo "AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}"
+          echo "AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}"
+          echo "AWS_REGION: ${{ env.AWS_REGION }}"
+
       - name: Configure AWS CLI
         run: |
+          if [ -z "${{ env.AWS_ACCESS_KEY_ID }}" ] || [ -z "${{ env.AWS_SECRET_ACCESS_KEY }}" ]; then
+            echo "Error: AWS credentials are missing or null."
+            exit 1
+          fi
           aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws configure set region ${{ env.AWS_REGION }}
           if [ -n "${{ env.AWS_SESSION_TOKEN }}" ]; then
             aws configure set aws_session_token ${{ env.AWS_SESSION_TOKEN }}
           fi
+
 
       - name: Install kubectl
         run: |
