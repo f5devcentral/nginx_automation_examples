@@ -182,7 +182,13 @@ jobs:
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
       - name: Fetch AWS Credentials from Terraform
+        id: tf_vars
         run: |
           echo "AWS_ACCESS_KEY_ID=$(terraform output -raw aws_access_key_id)" >> $GITHUB_ENV
           echo "AWS_SECRET_ACCESS_KEY=$(terraform output -raw aws_secret_access_key)" >> $GITHUB_ENV
