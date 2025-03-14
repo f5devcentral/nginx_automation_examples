@@ -182,12 +182,36 @@ jobs:
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
+      - name: Fetch AWS Credentials from Terraform
+        run: |
+          echo "AWS_ACCESS_KEY_ID=$(terraform output -raw aws_access_key_id)" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=$(terraform output -raw aws_secret_access_key)" >> $GITHUB_ENV
+          echo "AWS_SESSION_TOKEN=$(terraform output -raw aws_session_token)" >> $GITHUB_ENV
+          echo "AWS_REGION=$(terraform output -raw aws_region)" >> $GITHUB_ENV
+      
+      - name: Configure AWS CLI
+        run: |
+          aws configure set aws_access_key_id ${{ env.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws configure set region ${{ env.AWS_REGION }}
+          if [ -n "${{ env.AWS_SESSION_TOKEN }}" ]; then
+            aws configure set aws_session_token ${{ env.AWS_SESSION_TOKEN }}
+          fi
+
       - name: Install kubectl
         run: |
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
           kubectl version --client
+
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig --name $(terraform output -raw cluster_name) --region ${{ env.AWS_REGION }}
+
+      - name: Verify kubectl access
+        run: |
+          kubectl get nodes
 
       - name: Install Docker and Docker Compose
         run: |
