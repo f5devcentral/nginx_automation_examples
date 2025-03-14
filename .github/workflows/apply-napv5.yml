@@ -190,10 +190,11 @@ jobs:
       - name: Fetch AWS Credentials from Terraform
         id: tf_vars
         run: |
-          echo "AWS_ACCESS_KEY_ID=$(terraform output -raw aws_access_key_id)" >> $GITHUB_ENV
-          echo "AWS_SECRET_ACCESS_KEY=$(terraform output -raw aws_secret_access_key)" >> $GITHUB_ENV
-          echo "AWS_SESSION_TOKEN=$(terraform output -raw aws_session_token)" >> $GITHUB_ENV
-          echo "AWS_REGION=$(terraform output -raw aws_region)" >> $GITHUB_ENV
+          echo "Fetching AWS credentials from Terraform Cloud..."
+          terraform output -json > outputs.json
+          echo "AWS_ACCESS_KEY_ID=$(jq -r '.aws_access_key_id.value' outputs.json)" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=$(jq -r '.aws_secret_access_key.value' outputs.json)" >> $GITHUB_ENV
+          echo "AWS_SESSION_TOKEN=$(jq -r '.aws_session_token.value' outputs.json)" >> $GITHUB_ENV
       
       - name: Configure AWS CLI
         run: |
