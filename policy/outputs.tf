@@ -5,19 +5,19 @@ output "aws_region" {
 }
 output "aws_access_key_id" {
   description = "AWS Access Key ID"
-  value       = aws_iam_access_key.example.id
+  value       = var.aws_access_key_id
   sensitive   = true
 }
 
 output "aws_secret_access_key" {
   description = "AWS Secret Access Key"
-  value       = aws_iam_access_key.example.secret
+  value       = var.aws_secret_access_key
   sensitive   = true
 }
 
 output "aws_session_token" {
   description = "AWS Session Token"
-  value       = aws_iam_access_key.example.sesion_token
+  value       = var.aws_session_token
   sensitive   = true
 }
 
