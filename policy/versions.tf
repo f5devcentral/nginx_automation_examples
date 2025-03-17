@@ -25,7 +25,7 @@ terraform {
   }
 
   cloud {
-    organization = var.tf_cloud_organization  # Uses the variable from variables.tf
+    organization = "F5NGINX"  # Uses the variable from variables.tf
     workspaces {
       name = "policy"  
      }
