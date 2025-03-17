@@ -120,14 +120,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
           
-      - name: Git Pull
-        run: |
-          git pull
-
-      - name: Debug Compiled Policy
-        run: |
-         echo "Compiled Policy:"
-         ls -la ${{ github.workspace }}/policy
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -186,11 +178,6 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-      
-      - name: Debug Terraform Outputs
-        run: |
-          echo "Cluster Name: $(terraform output -raw cluster_name)"
-          echo "AWS Region: $(terraform output -raw aws_region)"
 
 
       - name: Fetch AWS Credentials from Terraform Cloud
@@ -260,7 +247,9 @@ jobs:
             aws configure set aws_session_token "$AWS_SESSION_TOKEN"
           fi
       
-
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig --name aws-akash-eks-cluster-4588 --region us-east-1
       - name: Install kubectl
         run: |
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
