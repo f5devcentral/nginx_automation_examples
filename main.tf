@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 module "infra" {
-  source = "./modules/infra"
+  source = "./"
 
   # Pass input variables to the infra module
   project_prefix          = var.project_prefix
@@ -22,7 +22,7 @@ module "infra" {
 }
 
 module "eks_cluster" {
-  source = "./modules/eks-cluster"
+  source = "./"
 
   # Pass outputs from the infra module as input variables
   project_prefix          = module.infra.project_prefix
@@ -38,7 +38,7 @@ module "eks_cluster" {
 }
 
 module "nap" {
-  source = "./modules/nap"
+  source = "./"
 
   # Pass outputs from the infra and eks-cluster modules as input variables
   project_prefix          = module.infra.project_prefix
@@ -49,7 +49,7 @@ module "nap" {
   cluster_ca_certificate  = module.eks_cluster.cluster_ca_certificate
 }
 module "policy" {
-    source = "./modules/policy"
+    source = "./"
   
     # Pass outputs from the infra and eks-cluster modules as input variables
     project_prefix          = module.infra.project_prefix
