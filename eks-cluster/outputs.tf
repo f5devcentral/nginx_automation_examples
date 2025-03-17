@@ -9,14 +9,15 @@ output "cluster_endpoint" {
 }
 
 output "cluster_name" {
-  description = "Kubernetes Cluster Name"
-  value       = nonsensitive(aws_eks_cluster.eks-tf.name)
+  description = "EKS cluster name"
+  value       = aws_eks_cluster.eks-tf.name
 }
 
-output "kubeconfig-certificate-authority-data" {
-  value = aws_eks_cluster.eks-tf.certificate_authority[0].data
-  sensitive = true
+output "cluster_ca_certificate" {
+  description = "EKS cluster CA certificate"
+  value       = aws_eks_cluster.eks-tf.certificate_authority[0].data
 }
+
 
 output "node_security_group_id" {
   description = "EKS NG SG ID"
