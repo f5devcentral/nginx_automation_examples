@@ -184,6 +184,9 @@ jobs:
           terraform_version: latest
           terraform_wrapper: true
 
+      - name: Terraform Init
+        run: terraform init
+
       - name: Fetch AWS Credentials from Terraform Cloud
         env:
           TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
@@ -257,6 +260,7 @@ jobs:
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
           kubectl version --client
+
 
       - name: Update kubeconfig for EKS
         run: |
