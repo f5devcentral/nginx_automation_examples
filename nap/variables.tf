@@ -1,9 +1,3 @@
-# Terraform Cloud Organization
-variable "tf_cloud_organization" {
-  type        = string
-  description = "Terraform Cloud Organization (set in GitHub secrets)"
-}
-
 # NGINX Configuration
 variable "nginx_registry" {
   type        = string
@@ -26,11 +20,6 @@ variable "workspace_path" {
   default = ""  # Provide a default value or leave it empty
 }
 
-# SSH Key (for potential SSH-based configurations)
-variable "ssh_key" {
-  type        = string
-  description = "Unneeded for NGINX App Protect, only used for TF Cloud variable warnings"
-}
 
 variable "aws_region" {
   description = "AWS region"

@@ -1,8 +1,3 @@
-# Terraform Cloud Organization
-variable "tf_cloud_organization" {
-  type        = string
-  description = "Terraform Cloud Organization (set in GitHub secrets)"
-}
 
 # NGINX Configuration
 variable "nginx_registry" {
@@ -49,12 +44,6 @@ variable "aws_session_token" {
   description = "AWS Session Token"
   type        = string
   sensitive   = true
-}
-
-# SSH Key (for potential SSH-based configurations)
-variable "ssh_key" {
-  type        = string
-  description = "Unneeded for NGINX App Protect, only used for TF Cloud variable warnings"
 }
 
 variable "nginx_pod_name" {
