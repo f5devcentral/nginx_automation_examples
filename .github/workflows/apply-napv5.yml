@@ -186,6 +186,15 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+      
+      - name: Debug Terraform Outputs
+        run: |
+          echo "Project Prefix: $(terraform output -raw project_prefix)"
+          echo "Build Suffix: $(terraform output -raw build_suffix)"
+          echo "AWS Region: $(terraform output -raw aws_region)"
+          echo "Cluster Name: $(terraform output -raw cluster_name)"
+          echo "Cluster Endpoint: $(terraform output -raw host)"
+          echo "Cluster CA Certificate: $(terraform output -raw cluster_ca_certificate)"
 
       - name: Fetch AWS Credentials from Terraform Cloud
         env:
