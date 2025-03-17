@@ -3,6 +3,10 @@ output "aws_region" {
   value = var.aws_region
 }
 
+output "cluster_name" {
+  value = data.tfe_outputs.eks.values.cluster_name
+}
+
 output "aws_access_key_id" {
   description = "AWS Access Key ID"
   value       = var.aws_access_key_id

@@ -23,11 +23,5 @@ terraform {
       version = ">= 3.0.2"
     }
   }
-
-  cloud {
-    organization = "F5NGINX"  # Uses the variable from variables.tf
-    workspaces {
-      name = "policy"  
-     }
-  }
+  
  }
