@@ -30,10 +30,7 @@ variable "eks_addons" {
     }
   ]
 }
-variable "ssh_key" {
-  type        = string
-  description = "Unneeded for EKS, only present for warning handling with TF cloud variable set"
-}
+
 
 
 
