@@ -1,6 +1,13 @@
+#Main
+#AWS Provider
 provider "aws" {
-    region     = local.aws_region
+  region = var.aws_region
 }
+# Create a random id
+resource "random_id" "build_suffix" {
+  byte_length = 2
+}
+
 provider "kubernetes" {
     host = local.host
     cluster_ca_certificate = base64decode(local.cluster_ca_certificate)

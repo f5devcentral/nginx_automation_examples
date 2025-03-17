@@ -22,6 +22,17 @@ variable "nginx_pwd" {
   default     = "none"
 }
 
+variable "aws_region" {
+  description = "aws region"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "azs" {
+  description = "Availability Zones"
+  type        = list
+}
+
 variable "aws_access_key_id" {
   description = "AWS Access Key ID"
   type        = string
