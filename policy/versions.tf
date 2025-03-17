@@ -23,4 +23,11 @@ terraform {
       version = ">= 3.0.2"
     }
   }
-}
+
+  cloud {
+    organization = var.tf_cloud_organization  # Uses the variable from variables.tf
+    workspaces {
+      name = "policy"  
+     }
+  }
+ }
