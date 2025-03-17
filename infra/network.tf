@@ -7,6 +7,21 @@ locals {
   valid_azs = [for az in data.aws_availability_zones.available.names : az if az != "us-west-1a"]
 }
 
+# Automatically detect the default VPC
+data "aws_default_vpc" "default" {
+  count = var.create_vpc ? 0 : 1
+}
+
+# Automatically detect the default subnets
+data "aws_subnets" "default" {
+  count = var.create_vpc ? 0 : 1
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_default_vpc.default[0].id]
+  }
+}
+
+
 # Create a new VPC if create_vpc is true
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -25,41 +40,17 @@ module "vpc" {
   }
 }
 
-# Use the existing VPC if create_vpc is false
-data "aws_vpc" "existing" {
-  count = var.create_vpc ? 0 : 1
-  id    = var.vpc_id
-}
 
-# Use the existing subnets if create_vpc is false
-data "aws_subnet" "existing_public" {
-  count = var.create_vpc ? 0 : length(var.public_subnet_ids)
-  id    = var.public_subnet_ids[count.index]
-}
-
-data "aws_subnet" "existing_private" {
-  count = var.create_vpc ? 0 : length(var.private_subnet_ids)
-  id    = var.private_subnet_ids[count.index]
-}
-
-data "aws_subnet" "existing_management" {
-  count = var.create_vpc ? 0 : length(var.management_subnet_ids)
-  id    = var.management_subnet_ids[count.index]
-}
-
-# Use the existing internet gateway (if it exists)
-data "aws_internet_gateway" "existing" {
-  count = var.create_vpc ? 0 : 1
-  filter {
-    name   = "attachment.vpc-id"
-    values = [var.vpc_id]
-  }
+# Use the default VPC if create_vpc is false
+locals {
+  vpc_id = var.create_vpc ? module.vpc.vpc_id : data.aws_default_vpc.default[0].id
+  subnet_ids = var.create_vpc ? [] : data.aws_subnets.default[0].ids
 }
 
 # Create a new internet gateway if one does not exist
 resource "aws_internet_gateway" "igw" {
-  count  = var.create_vpc ? 1 : (length(data.aws_internet_gateway.existing) == 0 ? 1 : 0)
-  vpc_id = var.create_vpc ? module.vpc.vpc_id : var.vpc_id
+  count  = var.create_vpc ? 1 : 0
+  vpc_id = local.vpc_id
   tags   = {
     Name = "${var.project_prefix}-igw-${random_id.build_suffix.hex}"
   }
