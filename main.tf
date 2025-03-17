@@ -4,25 +4,25 @@ provider "aws" {
 }
 
 module "infra" {
-  source = "./infra"
+  source = "./modules/infra"
 
   # Pass input variables to the infra module
-  project_prefix          = "aws-akash"
-  resource_owner          = "akash"
-  aws_region              = "us-east-1"
-  azs                     = ["us-east-1a", "us-east-1b"]
-  cidr                    = "10.0.0.0/16"
-  create_nat_gateway      = false
-  admin_src_addr          = "0.0.0.0/0"
-  mgmt_address_prefixes   = ["10.1.1.0/24", "10.1.100.0/24"]
-  ext_address_prefixes    = ["10.1.10.0/24", "10.1.110.0/24"]
-  int_address_prefixes    = ["10.1.20.0/24", "10.1.120.0/24"]
-  nap                     = true
-  nic                     = false
+  project_prefix          = var.project_prefix
+  resource_owner          = var.resource_owner
+  aws_region              = var.aws_region
+  azs                     = var.azs
+  cidr                    = var.cidr
+  create_nat_gateway      = var.create_nat_gateway
+  admin_src_addr          = var.admin_src_addr
+  mgmt_address_prefixes   = var.mgmt_address_prefixes
+  ext_address_prefixes    = var.ext_address_prefixes
+  int_address_prefixes    = var.int_address_prefixes
+  nap                     = var.nap
+  nic                     = var.nic
 }
 
 module "eks_cluster" {
-  source = "./eks-cluster"
+  source = "./modules/eks-cluster"
 
   # Pass outputs from the infra module as input variables
   project_prefix          = module.infra.project_prefix
@@ -36,3 +36,27 @@ module "eks_cluster" {
   eks_cidr                = module.infra.eks_cidr
   internal_sg_id          = module.infra.internal_sg_id
 }
+
+module "nap" {
+  source = "./modules/nap"
+
+  # Pass outputs from the infra and eks-cluster modules as input variables
+  project_prefix          = module.infra.project_prefix
+  build_suffix            = module.infra.build_suffix
+  aws_region              = module.infra.aws_region
+  cluster_name            = module.eks_cluster.cluster_name
+  cluster_endpoint        = module.eks_cluster.cluster_endpoint
+  cluster_ca_certificate  = module.eks_cluster.cluster_ca_certificate
+}
+module "policy" {
+    source = "./modules/policy"
+  
+    # Pass outputs from the infra and eks-cluster modules as input variables
+    project_prefix          = module.infra.project_prefix
+    build_suffix            = module.infra.build_suffix
+    aws_region              = module.infra.aws_region
+    cluster_name            = module.eks_cluster.cluster_name
+    cluster_endpoint        = module.eks_cluster.cluster_endpoint
+    cluster_ca_certificate  = module.eks_cluster.cluster_ca_certificate
+    nginx_pod_name          = var.nginx_pod_name
+  }
