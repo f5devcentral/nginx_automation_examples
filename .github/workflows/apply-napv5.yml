@@ -189,12 +189,9 @@ jobs:
       
       - name: Debug Terraform Outputs
         run: |
-          echo "Project Prefix: $(terraform output -raw project_prefix)"
-          echo "Build Suffix: $(terraform output -raw build_suffix)"
-          echo "AWS Region: $(terraform output -raw aws_region)"
           echo "Cluster Name: $(terraform output -raw cluster_name)"
-          echo "Cluster Endpoint: $(terraform output -raw host)"
-          echo "Cluster CA Certificate: $(terraform output -raw cluster_ca_certificate)"
+          echo "AWS Region: $(terraform output -raw aws_region)"
+
 
       - name: Fetch AWS Credentials from Terraform Cloud
         env:
@@ -262,6 +259,7 @@ jobs:
           if [ -n "$AWS_SESSION_TOKEN" ]; then
             aws configure set aws_session_token "$AWS_SESSION_TOKEN"
           fi
+      
 
       - name: Install kubectl
         run: |
@@ -269,11 +267,6 @@ jobs:
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
           kubectl version --client
-
-
-      - name: Update kubeconfig for EKS
-        run: |
-          aws eks update-kubeconfig --name $(terraform output -raw cluster_name) --region $(terraform output -raw aws_region)
 
       - name: Verify kubectl access
         run: |
