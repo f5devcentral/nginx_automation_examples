@@ -11,12 +11,6 @@ variable "nginx_registry" {
   default     = "private-registry.nginx.com"
 }
 
-variable "aws_region" {
-  description = "aws region"
-  type        = string
-  default     = "us-east-1"
-}
-
 variable "nginx_jwt" {
   type        = string
   description = "JWT for pulling NGINX image"
@@ -38,20 +32,8 @@ variable "ssh_key" {
   description = "Unneeded for NGINX App Protect, only used for TF Cloud variable warnings"
 }
 
-variable "aws_access_key_id" {
-  description = "AWS Access Key ID"
+variable "aws_region" {
+  description = "AWS region"
   type        = string
-  sensitive   = true
-}
-
-variable "aws_secret_access_key" {
-  description = "AWS Secret Access Key"
-  type        = string
-  sensitive   = true
-}
-
-variable "aws_session_token" {
-  description = "AWS Session Token"
-  type        = string
-  sensitive   = true
+  default     = "us-east-1"
 }
