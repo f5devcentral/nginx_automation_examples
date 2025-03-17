@@ -9,18 +9,17 @@ module "infra" {
   create_vpc = false
 
   # Pass input variables to the infra module
-  project_prefix          = var.project_prefix
-  resource_owner          = var.resource_owner
-  aws_region              = var.aws_region
-  azs                     = var.azs
-  cidr                    = var.cidr
-  create_nat_gateway      = var.create_nat_gateway
-  admin_src_addr          = var.admin_src_addr
-  mgmt_address_prefixes   = var.mgmt_address_prefixes
-  ext_address_prefixes    = var.ext_address_prefixes
-  int_address_prefixes    = var.int_address_prefixes
-  nap                     = var.nap
-  nic                     = var.nic
+  project_prefix      = var.project_prefix
+  resource_owner      = var.resource_owner
+  aws_region          = var.aws_region
+  cidr                = var.cidr
+  create_nat_gateway  = var.create_nat_gateway
+  admin_src_addr      = var.admin_src_addr
+  mgmt_address_prefixes = var.mgmt_address_prefixes
+  ext_address_prefixes  = var.ext_address_prefixes
+  int_address_prefixes  = var.int_address_prefixes
+  nap                 = var.nap
+  nic                 = var.nic
 }
 
 module "eks_cluster" {

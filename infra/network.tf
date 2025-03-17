@@ -12,7 +12,7 @@ data "aws_default_vpc" "default" {
   count = var.create_vpc ? 0 : 1
 }
 
-# Automatically detect the default subnets
+# Automatically detect the default subnets (only if create_vpc is false)
 data "aws_subnets" "default" {
   count = var.create_vpc ? 0 : 1
   filter {
@@ -20,7 +20,6 @@ data "aws_subnets" "default" {
     values = [data.aws_default_vpc.default[0].id]
   }
 }
-
 
 # Create a new VPC if create_vpc is true
 module "vpc" {
@@ -40,11 +39,10 @@ module "vpc" {
   }
 }
 
-
-# Use the default VPC if create_vpc is false
+# Use local values to handle conditional logic
 locals {
-  vpc_id = var.create_vpc ? module.vpc.vpc_id : data.aws_default_vpc.default[0].id
-  subnet_ids = var.create_vpc ? [] : data.aws_subnets.default[0].ids
+  vpc_id    = var.create_vpc ? module.vpc.vpc_id : try(data.aws_default_vpc.default[0].id, "")
+  subnet_ids = var.create_vpc ? [] : try(data.aws_subnets.default[0].ids, [])
 }
 
 # Create a new internet gateway if one does not exist
@@ -58,31 +56,19 @@ resource "aws_internet_gateway" "igw" {
 
 # Use the existing route table or create a new one
 resource "aws_route_table" "main" {
-  vpc_id = var.create_vpc ? module.vpc.vpc_id : var.vpc_id
+  vpc_id = local.vpc_id
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = var.create_vpc ? aws_internet_gateway.igw[0].id : data.aws_internet_gateway.existing[0].id
+    gateway_id = var.create_vpc ? aws_internet_gateway.igw[0].id : data.aws_default_vpc.default[0].main_route_table_id
   }
   tags = {
     Name = "${var.project_prefix}-rt-${random_id.build_suffix.hex}"
   }
 }
 
-# Associate existing subnets with the route table
-resource "aws_route_table_association" "subnet-association-internal" {
-  for_each       = var.create_vpc ? toset([]) : toset(var.private_subnet_ids)
-  subnet_id      = each.value
-  route_table_id = aws_route_table.main.id
-}
-
-resource "aws_route_table_association" "subnet-association-management" {
-  for_each       = var.create_vpc ? toset([]) : toset(var.management_subnet_ids)
-  subnet_id      = each.value
-  route_table_id = aws_route_table.main.id
-}
-
-resource "aws_route_table_association" "subnet-association-external" {
-  for_each       = var.create_vpc ? toset([]) : toset(var.public_subnet_ids)
+# Associate subnets with the route table
+resource "aws_route_table_association" "subnet-association" {
+  for_each       = var.create_vpc ? toset([]) : toset(local.subnet_ids)
   subnet_id      = each.value
   route_table_id = aws_route_table.main.id
 }
