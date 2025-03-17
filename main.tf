@@ -58,5 +58,4 @@ module "policy" {
     cluster_name            = module.eks_cluster.cluster_name
     cluster_endpoint        = module.eks_cluster.cluster_endpoint
     cluster_ca_certificate  = module.eks_cluster.cluster_ca_certificate
-    nginx_pod_name          = var.nginx_pod_name
   }
