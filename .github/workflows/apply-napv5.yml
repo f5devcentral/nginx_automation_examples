@@ -187,8 +187,8 @@ jobs:
       - name: Fetch AWS Credentials from Terraform Cloud
         env:
           TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-          TF_ORG: tf_cloud_organization
-          TF_WORKSPACE: Policy
+          TF_ORG: F5NGINX
+          TF_WORKSPACE: policy
         run: |
           # Debug: Print the workspace API request URL
           echo "Workspace API URL: https://app.terraform.io/api/v2/organizations/$TF_ORG/workspaces/$TF_WORKSPACE"
