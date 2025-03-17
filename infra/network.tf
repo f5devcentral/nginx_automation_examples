@@ -8,8 +8,9 @@ locals {
 }
 
 # Automatically detect the default VPC
-data "aws_default_vpc" "default" {
-  count = var.create_vpc ? 0 : 1
+data "aws_vpc" "default" {
+  count  = var.create_vpc ? 0 : 1
+  default = true
 }
 
 # Automatically detect the default subnets (only if create_vpc is false)
@@ -17,7 +18,7 @@ data "aws_subnets" "default" {
   count = var.create_vpc ? 0 : 1
   filter {
     name   = "vpc-id"
-    values = [data.aws_default_vpc.default[0].id]
+    values = [data.aws_vpc.default[0].id]
   }
 }
 
@@ -41,8 +42,39 @@ module "vpc" {
 
 # Use local values to handle conditional logic
 locals {
-  vpc_id    = var.create_vpc ? module.vpc.vpc_id : try(data.aws_default_vpc.default[0].id, "")
+  vpc_id    = var.create_vpc ? module.vpc.vpc_id : try(data.aws_vpc.default[0].id, "")
   subnet_ids = var.create_vpc ? [] : try(data.aws_subnets.default[0].ids, [])
+}
+
+# Create subnets
+resource "aws_subnet" "external" {
+  for_each         = toset(local.valid_azs)
+  vpc_id           = local.vpc_id
+  cidr_block       = cidrsubnet(var.cidr, 8, each.key)
+  availability_zone = each.key
+  tags = {
+    Name = format("%s-ext-subnet-%s", var.project_prefix, each.key)
+  }
+}
+
+resource "aws_subnet" "internal" {
+  for_each         = toset(local.valid_azs)
+  vpc_id           = local.vpc_id
+  cidr_block       = cidrsubnet(var.cidr, 8, each.key + 10)
+  availability_zone = each.key
+  tags = {
+    Name = format("%s-int-subnet-%s", var.project_prefix, each.key)
+  }
+}
+
+resource "aws_subnet" "management" {
+  for_each         = toset(local.valid_azs)
+  vpc_id           = local.vpc_id
+  cidr_block       = cidrsubnet(var.cidr, 8, each.key + 20)
+  availability_zone = each.key
+  tags = {
+    Name = format("%s-mgmt-subnet-%s", var.project_prefix, each.key)
+  }
 }
 
 # Create a new internet gateway if one does not exist
@@ -59,7 +91,7 @@ resource "aws_route_table" "main" {
   vpc_id = local.vpc_id
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = var.create_vpc ? aws_internet_gateway.igw[0].id : data.aws_default_vpc.default[0].main_route_table_id
+    gateway_id = var.create_vpc ? aws_internet_gateway.igw[0].id : data.aws_vpc.default[0].main_route_table_id
   }
   tags = {
     Name = "${var.project_prefix}-rt-${random_id.build_suffix.hex}"

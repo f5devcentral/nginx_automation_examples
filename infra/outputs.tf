@@ -60,12 +60,12 @@ output "management_cidr_blocks" {
 
 output "app_cidr" {
   description = "Application server(Juice Shop) CIDR block"
-  value       = values(module.subnet_addrs)[0].network_cidr_blocks.app-cidr
+  value       = try(values(module.subnet_addrs)[0].network_cidr_blocks.app-cidr, "")
 }
 
 output "eks_cidr" {
   description = "Application server(EKS) CIDR block"
-  value       = values(module.subnet_addrs)[1].network_cidr_blocks.app-cidr
+  value       = try(values(module.subnet_addrs)[1].network_cidr_blocks.app-cidr, "")
 }
 
 output "internet_gateway_id" {
