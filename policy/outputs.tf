@@ -21,10 +21,6 @@ output "aws_session_token" {
   sensitive   = true
 }
 
-output "aws_region" {
-  description = "AWS region"
-  value       = var.aws_region
-}
 
 output "copy_policy_complete" {
   description = "Indicates that the compiled policy has been copied"
