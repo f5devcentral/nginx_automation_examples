@@ -1,4 +1,4 @@
-name: "NGINX NAPV5"
+name: "NGINX NAPV5 Deployment"
 
 on:
   push:
@@ -27,46 +27,45 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 1: Configure AWS Credentials for Initial Setup
+      # ✅ Check AWS state storage before initializing Terraform
+      - name: Check S3 and DynamoDB State Storage
+        run: |
+          echo "Checking if S3 bucket exists..."
+          if aws s3 ls "s3://${{ env.TF_STATE_BUCKET }}" 2>&1 | grep -q 'NoSuchBucket'; then
+            echo "ERROR: S3 bucket does not exist!"
+            exit 1
+          else
+            echo "✅ S3 bucket exists."
+          fi
+
+          echo "Checking if DynamoDB table exists..."
+          TABLE_STATUS=$(aws dynamodb describe-table --table-name ${{ env.DYNAMODB_TABLE }} --region ${{ env.AWS_REGION }} --query 'Table.TableStatus' --output text)
+          if [[ "$TABLE_STATUS" != "ACTIVE" ]]; then
+            echo "ERROR: DynamoDB table is not active!"
+            exit 1
+          else
+            echo "✅ DynamoDB table is active."
+          fi
+
+      # ✅ Configure AWS credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          role-to-assume: arn:aws:iam::856265587682:role/TerraformCIExecutionRole
           aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-TerraformCI
 
+      # ✅ Set up Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # Step 2: Create S3 + DynamoDB Locally (Without Backend)
-      - name: Bootstrap Terraform State Backend (Local)
-        run: |
-          echo "Creating S3 Bucket and DynamoDB Table..."
-          terraform init -backend=false
-          terraform apply -auto-approve -target=aws_s3_bucket.state -target=aws_dynamodb_table.terraform_state_lock
+      # ✅ Remove any old Terraform data to force backend initialization
+      - name: Cleanup Terraform Cache
+        run: rm -rf .terraform terraform.tfstate terraform.tfstate.backup
 
-      # Step 3: Wait for AWS Resources to Be Available
-      - name: Wait for S3 and DynamoDB Readiness
+      # ✅ Reinitialize Terraform Backend (Forces Reset)
+      - name: Terraform Init with Remote Backend
         run: |
-          echo "Waiting for S3 Bucket to be ready..."
-          until aws s3api head-bucket --bucket "${{ env.TF_STATE_BUCKET }}" 2>/dev/null; do
-            echo "Waiting for S3 bucket..."
-            sleep 5
-          done
-          echo "S3 Bucket is ready."
-
-          echo "Waiting for DynamoDB Table..."
-          while [[ "$(aws dynamodb describe-table --table-name ${{ env.DYNAMODB_TABLE }} --region ${{ env.AWS_REGION }} --query 'Table.TableStatus' --output text)" != "ACTIVE" ]]; do
-            echo "Waiting for DynamoDB table..."
-            sleep 5
-          done
-          echo "DynamoDB table is ready."
-
-      # Step 4: Reinitialize Terraform Backend with S3
-      - name: Reconfigure Terraform Backend
-        run: |
-          rm -rf .terraform terraform.tfstate terraform.tfstate.backup
           terraform init -reconfigure -force-copy \
             -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
             -backend-config="key=${{ env.TF_STATE_KEY }}" \
@@ -74,32 +73,15 @@ jobs:
             -backend-config="dynamodb_table=${{ env.DYNAMODB_TABLE }}" \
             -backend-config="encrypt=true"
 
-      # Step 5: Assume Execution Role
-      - name: Assume Execution Role
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          role-to-assume: arn:aws:iam::856265587682:role/TerraformCIExecutionRole
-          aws-region: ${{ env.AWS_REGION }}
-          role-session-name: GitHubActions-TerraformCI
+      # ✅ Run Terraform Step by Step
+      - name: Terraform Validate
+        run: terraform validate
 
-      # Step 6: Terraform Plan and Apply
       - name: Terraform Plan
-        run: |
-          terraform validate
-          terraform plan -no-color -input=false -out=tfplan
-          terraform show -no-color tfplan > plan.txt
-
-      - name: Check Changes
-        id: check_changes
-        run: |
-          if grep -q "No changes." plan.txt; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          fi
+        run: terraform plan -out=tfplan
 
       - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
         run: terraform apply -auto-approve tfplan
 
   terraform_eks:
