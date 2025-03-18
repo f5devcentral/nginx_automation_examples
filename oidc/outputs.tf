@@ -4,5 +4,5 @@ output "oidc_provider_arn" {
 }
 
 output "terraform_execution_role_arn" {
-  value = aws_iam_role.terraform_execution_role.arn
+  value = length(aws_iam_role.terraform_execution_role) > 0 ? aws_iam_role.terraform_execution_role[0].arn : null
 }

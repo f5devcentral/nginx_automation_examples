@@ -27,6 +27,8 @@ resource "aws_iam_openid_connect_provider" "github_oidc" {
 
 # IAM Execution Role for Terraform CI/CD
 resource "aws_iam_role" "terraform_execution_role" {
+  count = length(aws_iam_openid_connect_provider.github_oidc) > 0 ? 1 : 0
+
   name               = "TerraformCIExecutionRole"
   description        = "Role for basic Terraform CI/CD executions"
   max_session_duration = 3600 # 1 hour maximum
@@ -51,19 +53,14 @@ resource "aws_iam_role" "terraform_execution_role" {
       }
     ]
   })
+
   lifecycle {
     prevent_destroy = true
   }
 }
 
-# Check if IAM Policy already exists
-data "aws_iam_policy" "terraform_state_access" {
-  name = "TerraformStateAccess"
-}
-
+# Minimal S3 Access Policy
 resource "aws_iam_policy" "terraform_state_access" {
-  count = length(data.aws_iam_policy.terraform_state_access) > 0 ? 0 : 1
-
   name        = "TerraformStateAccess"
   description = "Minimum permissions for S3 state management"
 
@@ -87,6 +84,8 @@ resource "aws_iam_policy" "terraform_state_access" {
 }
 
 resource "aws_iam_role_policy_attachment" "state_access" {
-  role       = aws_iam_role.terraform_execution_role.name
-  policy_arn = aws_iam_policy.terraform_state_access[0].arn
+  count = length(aws_iam_role.terraform_execution_role) > 0 ? 1 : 0
+
+  role       = aws_iam_role.terraform_execution_role[0].name
+  policy_arn = aws_iam_policy.terraform_state_access.arn
 }
