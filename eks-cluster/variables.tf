@@ -4,6 +4,11 @@ variable "admin_src_addr" {
   description = "Allowed Admin source IP prefix"
   default     = "0.0.0.0/0"
 }
+#TF Cloud
+variable "tf_cloud_organization" {
+  type = string
+  description = "TF cloud org (Value set in TF cloud)"
+}
 
 #AWS
 variable "eks_addons" {
@@ -30,48 +35,10 @@ variable "eks_addons" {
     }
   ]
 }
-# eks-cluster/variables.tf
-variable "project_prefix" {
-  type = string
+variable "ssh_key" {
+  type        = string
+  description = "Unneeded for EKS, only present for warning handling with TF cloud variable set"
 }
-
-variable "resource_owner" {
-  type = string
-}
-
-variable "build_suffix" {
-  type = string
-}
-
-variable "aws_region" {
-  type = string
-}
-
-variable "azs" {
-  type = list(string)
-}
-
-variable "vpc_id" {
-  type = string
-}
-
-variable "vpc_main_route_table_id" {
-  type = string
-}
-
-variable "public_subnet_ids" {
-  type = list(string)
-}
-
-variable "eks_cidr" {
-  type = string
-}
-
-variable "internal_sg_id" {
-  type = string
-}
-
-
 
 
 
