@@ -1,25 +1,9 @@
-variable "project_prefix" {
+#TF Cloud
+variable "tf_cloud_organization" {
   type = string
+  description = "TF cloud org (Value set in TF cloud)"
 }
 
-variable "build_suffix" {
-  type = string
-}
-variable "aws_region" {
-  type = string
-}
-
-variable "cluster_name" {
-  type = string
-}
-
-variable "cluster_endpoint" {
-  type = string
-}
-
-variable "cluster_ca_certificate" {
-  type = string
-}
 # NGINX Configuration
 variable "nginx_registry" {
   type        = string
@@ -38,24 +22,6 @@ variable "nginx_pwd" {
   default     = "none"
 }
 
-
-variable "aws_access_key_id" {
-  description = "AWS Access Key ID"
-  type        = string
-  sensitive   = true
-}
-
-variable "aws_secret_access_key" {
-  description = "AWS Secret Access Key"
-  type        = string
-  sensitive   = true
-}
-
-variable "aws_session_token" {
-  description = "AWS Session Token"
-  type        = string
-  sensitive   = true
-}
 
 variable "nginx_pod_name" {
   description = "Name of the NGINX Ingress Controller pod"
