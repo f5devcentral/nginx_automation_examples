@@ -47,18 +47,18 @@ jobs:
             -target=aws_s3_bucket.state \
             -auto-approve \
             -lock=false \
-            -refresh-only
-
-      # Phase 2: Initialize remote backend
-      - name: Configure Remote State
+            
+       # Phase 3: Initialize REMOTE backend
+      - name: Initialize Remote Backend
         run: |
-          terraform init -reconfigure \
+          terraform init -reconfigure -force-copy \
             -backend-config="bucket=$TF_STATE_BUCKET" \
             -backend-config="key=$TF_STATE_KEY" \
             -backend-config="region=$AWS_REGION" \
             -backend-config="dynamodb_table=terraform-lock-table" \
             -backend-config="encrypt=true"
 
+        
       # Phase 3: Switch to OIDC credentials
       - name: Assume Execution Role
         uses: aws-actions/configure-aws-credentials@v3
