@@ -157,55 +157,6 @@ jobs:
         run: terraform destroy -auto-approve -input=false
     
 
-  terraform_eks:
-    name: "AWS EKS"
-    runs-on: ubuntu-latest
-    needs: terraform_nap
-    defaults:
-      run:
-        working-directory: ./eks-cluster
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Setup Backend
-        run: |
-          cat <<EOF > backend.tf
-          terraform {
-            cloud {
-              organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
-              workspaces { name = "${{ secrets.TF_CLOUD_WORKSPACE_EKS }}" }
-            }
-          }
-          EOF
-
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Plan (Destroy)
-        if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: |
-          terraform plan -destroy -no-color -input=false -out=tfplan
-          terraform show -no-color tfplan > plan.txt
-
-      - name: Check Changes
-        id: check_changes
-        run: |
-          if grep -q "No changes." plan.txt; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Terraform Destroy
-        if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
-        run: terraform destroy -auto-approve -input=false
-
   terraform_infra:
     name: "AWS Infra"
     runs-on: ubuntu-latest
