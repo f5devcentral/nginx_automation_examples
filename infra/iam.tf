@@ -15,7 +15,52 @@ resource "aws_iam_openid_connect_provider" "github_oidc" {
   }
 }
 
-# IAM Execution Role (Simplified)
+# IAM Policy for OIDC Management
+resource "aws_iam_policy" "oidc_management" {
+  name        = "OIDCProviderManagement"
+  description = "Permissions to manage GitHub OIDC provider"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "iam:CreateOpenIDConnectProvider",
+          "iam:DeleteOpenIDConnectProvider",
+          "iam:ListOpenIDConnectProviders"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Admin Role for Bootstrap
+resource "aws_iam_role" "admin_role" {
+  name = "TerraformBootstrapAdminRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          AWS = "arn:aws:iam::856265587682:root" # Replace with your account ID
+        },
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+# Attach OIDC Management Policy to Admin Role
+resource "aws_iam_role_policy_attachment" "oidc_management" {
+  role       = aws_iam_role.admin_role.name
+  policy_arn = aws_iam_policy.oidc_management.arn
+}
+
+# IAM Execution Role for Terraform CI/CD
 resource "aws_iam_role" "terraform_execution_role" {
   name               = "TerraformCIExecutionRole"
   description        = "Role for basic Terraform CI/CD executions"
@@ -67,6 +112,7 @@ resource "aws_iam_policy" "terraform_state_access" {
   })
 }
 
+# Attach S3 Access Policy to Execution Role
 resource "aws_iam_role_policy_attachment" "state_access" {
   role       = aws_iam_role.terraform_execution_role.name
   policy_arn = aws_iam_policy.terraform_state_access.arn
