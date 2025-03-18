@@ -1,20 +1,18 @@
 name: "NGINX NAPV5 Deployment"
-
 on:
   push:
-    branches:
-      - apply-nap
+    branches: [apply-nap]
   pull_request:
+    branches: [apply-nap]
 
 env:
   AWS_REGION: us-east-1
   TF_STATE_BUCKET: akash-terraform-state-bucket
   TF_STATE_KEY: infra/terraform.tfstate
-  DYNAMODB_TABLE: terraform-lock-table
 
 jobs:
-  terraform_infra:
-    name: "AWS Infra"
+  bootstrap_oidc:
+    name: "Bootstrap OIDC Provider"
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -27,62 +25,56 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ✅ Configure AWS credentials FIRST before running AWS CLI commands
-      - name: Configure AWS Credentials
+      - name: Configure AWS Credentials (Admin)
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Create OIDC Provider
+        run: |
+          terraform init -backend=false
+          terraform apply -target=aws_iam_openid_connect_provider.github_oidc -auto-approve
+
+  terraform_infra:
+    name: "AWS Infra"
+    runs-on: ubuntu-latest
+    needs: bootstrap_oidc
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: ./infra
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: arn:aws:iam::856265587682:role/TerraformCIExecutionRole
           aws-region: ${{ env.AWS_REGION }}
-          role-session-name: GitHubActions-TerraformCI
+          role-session-name: github-${{ github.run_id }}
 
-      # ✅ Check S3 and DynamoDB State Storage AFTER configuring credentials
-      - name: Check S3 and DynamoDB State Storage
+      - name: Initialize Backend
         run: |
-          echo "Checking if S3 bucket exists..."
-          if aws s3 ls "s3://${{ env.TF_STATE_BUCKET }}" 2>&1 | grep -q 'NoSuchBucket'; then
-            echo "ERROR: S3 bucket does not exist!"
-            exit 1
-          else
-            echo "✅ S3 bucket exists."
-          fi
-
-          echo "Checking if DynamoDB table exists..."
-          TABLE_STATUS=$(aws dynamodb describe-table --table-name ${{ env.DYNAMODB_TABLE }} --region ${{ env.AWS_REGION }} --query 'Table.TableStatus' --output text)
-          if [[ "$TABLE_STATUS" != "ACTIVE" ]]; then
-            echo "ERROR: DynamoDB table is not active!"
-            exit 1
-          else
-            echo "✅ DynamoDB table is active."
-          fi
-
-      # ✅ Setup Terraform
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      # ✅ Remove old Terraform state files (force reinit)
-      - name: Cleanup Terraform Cache
-        run: rm -rf .terraform terraform.tfstate terraform.tfstate.backup
-
-      # ✅ Terraform Init with Remote Backend
-      - name: Terraform Init
-        run: |
-          terraform init -reconfigure -force-copy \
+          terraform init -reconfigure \
             -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
             -backend-config="key=${{ env.TF_STATE_KEY }}" \
             -backend-config="region=${{ env.AWS_REGION }}" \
-            -backend-config="dynamodb_table=${{ env.DYNAMODB_TABLE }}" \
             -backend-config="encrypt=true"
 
-      # ✅ Run Terraform Workflow
-      - name: Terraform Validate
-        run: terraform validate
-
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
-
-      - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
-        run: terraform apply -auto-approve tfplan
+      - name: Apply Infrastructure
+        run: |
+          terraform validate
+          terraform plan -out=tfplan
+          terraform apply -auto-approve tfplan
 
   terraform_eks:
     name: "AWS EKS"

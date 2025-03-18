@@ -4,6 +4,13 @@ variable "project_prefix" {
 #  default     = "demo"
   description = "This value is inserted at the beginning of each AWS object (alpha-numeric, no special character)"
 }
+
+variable "github_repository" {
+  type        = string
+  description = "GitHub repository in format owner/repo"
+  default     = "akananth/nginx_automation_examples"
+}
+
 variable "aws_region" {
   description = "aws region"
   type        = string
