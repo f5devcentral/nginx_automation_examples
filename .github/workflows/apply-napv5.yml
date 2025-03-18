@@ -38,7 +38,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         
-       # Create missing resources
+           # Phase 1: Create state resources with local backend
       - name: Bootstrap State Resources
         run: |
           terraform init -backend=false
@@ -49,30 +49,32 @@ jobs:
             -lock=false \
             -refresh-only
 
-       # Reinitialize with remote backend
-      - name: Configure Remote Backend
-        run: terraform init -reconfigure
+      # Phase 2: Initialize remote backend
+      - name: Configure Remote State
+        run: |
+          terraform init -reconfigure \
+            -backend-config="bucket=$TF_STATE_BUCKET" \
+            -backend-config="key=$TF_STATE_KEY" \
+            -backend-config="region=$AWS_REGION" \
+            -backend-config="dynamodb_table=terraform-lock-table" \
+            -backend-config="encrypt=true"
 
-      # Switch to OIDC-based credentials
-      - name: Assume Terraform Execution Role
+      # Phase 3: Switch to OIDC credentials
+      - name: Assume Execution Role
         uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: arn:aws:iam::856265587682:role/TerraformCIExecutionRole
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: GitHubActions-TerraformCI
 
-      # Initialize with remote state
-      - name: Terraform Init
-        run: terraform init -reconfigure
-
-      # Planning phase
+      # Phase 4: Full workflow
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: |
+          terraform validate
           terraform plan -no-color -input=false -out=tfplan
           terraform show -no-color tfplan > plan.txt
 
-      # Check for changes
       - name: Check Changes
         id: check_changes
         run: |
@@ -82,12 +84,10 @@ jobs:
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
 
-      # Apply changes
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
 
-      # Final deployment credentials
       - name: Assume Deployment Role
         if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
         uses: aws-actions/configure-aws-credentials@v3
