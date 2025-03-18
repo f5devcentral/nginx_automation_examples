@@ -20,7 +20,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials (Execution Role)
+     # First: Create OIDC provider using admin credentials
+      - name: Configure Admin Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_Token }}
+          aws-region: us-east-1
+
+      - name: Create OIDC Provider
+        run: |
+          terraform init
+          terraform apply -target=aws_iam_openid_connect_provider.github_oidc -auto-approve
+
+      # Then: Use OIDC role for subsequent operations
+      - name: Configure Terraform Execution Role
         uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: arn:aws:iam::856265587682:role/TerraformCIExecutionRole
@@ -32,9 +47,6 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-
-      - name: Force Create OIDC Provider First
-        run: terraform apply -target=aws_iam_openid_connect_provider.github_oidc -auto-approve
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
@@ -62,7 +74,7 @@ jobs:
           role-to-assume: arn:aws:iam::856265587682:role/GitHubActionsTerraformRole
           aws-region: us-east-1
           role-session-name: GitHubActionsDeployment
-          
+
   terraform_eks:
     name: "AWS EKS"
     runs-on: ubuntu-latest
