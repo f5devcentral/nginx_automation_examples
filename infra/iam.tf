@@ -1,14 +1,17 @@
 # OIDC Provider for GitHub Actions
 resource "aws_iam_openid_connect_provider" "github_oidc" {
-  url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["1c58a3a8518e8759bf075b76b750d4f2df264fcd"]
+  url = "https://token.actions.githubusercontent.com"
+
+  client_id_list = [
+    "sts.amazonaws.com"
+  ]
+
+  thumbprint_list = [
+    "1c58a3a8518e8759bf075b76b750d4f2df264fcd" # GitHub's current thumbprint
+  ]
 
   lifecycle {
-    precondition {
-      condition     = length(var.github_repository) > 0
-      error_message = "GitHub repository must be defined in format owner/repo"
-    }
+    prevent_destroy = true
   }
 }
 
@@ -56,8 +59,8 @@ resource "aws_iam_policy" "terraform_state_access" {
           "s3:ListBucket"
         ],
         Resource = [
-          aws_s3_bucket.state.arn,
-          "${aws_s3_bucket.state.arn}/*"
+          "arn:aws:s3:::akash-terraform-state-bucket",
+          "arn:aws:s3:::akash-terraform-state-bucket/*"
         ]
       }
     ]
