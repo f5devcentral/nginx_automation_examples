@@ -27,7 +27,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ✅ Check AWS state storage before initializing Terraform
+      # ✅ Configure AWS credentials FIRST before running AWS CLI commands
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::856265587682:role/TerraformCIExecutionRole
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-TerraformCI
+
+      # ✅ Check S3 and DynamoDB State Storage AFTER configuring credentials
       - name: Check S3 and DynamoDB State Storage
         run: |
           echo "Checking if S3 bucket exists..."
@@ -47,24 +55,16 @@ jobs:
             echo "✅ DynamoDB table is active."
           fi
 
-      # ✅ Configure AWS credentials
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          role-to-assume: arn:aws:iam::856265587682:role/TerraformCIExecutionRole
-          aws-region: ${{ env.AWS_REGION }}
-          role-session-name: GitHubActions-TerraformCI
-
-      # ✅ Set up Terraform
+      # ✅ Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # ✅ Remove any old Terraform data to force backend initialization
+      # ✅ Remove old Terraform state files (force reinit)
       - name: Cleanup Terraform Cache
         run: rm -rf .terraform terraform.tfstate terraform.tfstate.backup
 
-      # ✅ Reinitialize Terraform Backend (Forces Reset)
-      - name: Terraform Init with Remote Backend
+      # ✅ Terraform Init with Remote Backend
+      - name: Terraform Init
         run: |
           terraform init -reconfigure -force-copy \
             -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
@@ -73,7 +73,7 @@ jobs:
             -backend-config="dynamodb_table=${{ env.DYNAMODB_TABLE }}" \
             -backend-config="encrypt=true"
 
-      # ✅ Run Terraform Step by Step
+      # ✅ Run Terraform Workflow
       - name: Terraform Validate
         run: terraform validate
 
