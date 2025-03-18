@@ -38,14 +38,29 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # Bootstrap essential infrastructure
-      - name: Bootstrap Infrastructure
+      - name: Handle Existing Resources
+        run: |
+          # Check for existing S3 bucket
+          if aws s3api head-bucket --bucket $TF_STATE_BUCKET 2>/dev/null; then
+            terraform init
+            terraform import aws_s3_bucket.state $TF_STATE_BUCKET
+          fi
+          
+          # Check for existing DynamoDB table
+          if aws dynamodb describe-table --table-name terraform-lock-table 2>/dev/null; then
+            terraform init
+            terraform import aws_dynamodb_table.terraform_state_lock terraform-lock-table
+          fi
+
+       # Create missing resources
+      - name: Bootstrap State Resources
         run: |
           terraform init
           terraform apply -target=aws_dynamodb_table.terraform_state_lock \
                           -target=aws_s3_bucket.state \
                           -auto-approve \
                           -lock=false
+                          -refresh-only
 
       # Switch to OIDC-based credentials
       - name: Assume Terraform Execution Role
