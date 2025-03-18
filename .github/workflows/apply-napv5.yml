@@ -36,11 +36,6 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Clean Up Local State
-        run: |
-          rm -rf .terraform
-          rm -f terraform.tfstate terraform.tfstate.backup
-
       - name: Initialize Terraform (No Backend)
         run: terraform init -backend=false
 
