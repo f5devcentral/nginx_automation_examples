@@ -58,6 +58,10 @@ resource "aws_iam_role" "terraform_execution_role" {
     prevent_destroy = true
   }
 }
+# Check if the IAM Policy already exists
+data "aws_iam_policy" "existing_terraform_state_access" {
+  name = "TerraformStateAccess"
+}
 
 # Minimal S3 Access Policy
 resource "aws_iam_policy" "terraform_state_access" {
@@ -87,5 +91,5 @@ resource "aws_iam_role_policy_attachment" "state_access" {
   count = length(aws_iam_role.terraform_execution_role) > 0 ? 1 : 0
 
   role       = aws_iam_role.terraform_execution_role[0].name
-  policy_arn = aws_iam_policy.terraform_state_access.arn
+  policy_arn = length(data.aws_iam_policy.existing_terraform_state_access) > 0 ? data.aws_iam_policy.existing_terraform_state_access.arn : aws_iam_policy.terraform_state_access[0].arn
 }
