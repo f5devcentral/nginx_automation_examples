@@ -51,17 +51,17 @@ jobs:
             fi
           fi
   
-
        # Create missing resources
       - name: Bootstrap State Resources
         run: |
-          terraform init
-          terraform apply -target=aws_dynamodb_table.terraform_state_lock \
-                          -target=aws_s3_bucket.state \
-                          -auto-approve \
-                          -lock=false
-                          -refresh-only
-                          
+          terraform init -backend=false
+          terraform apply \
+            -target=aws_dynamodb_table.terraform_state_lock \
+            -target=aws_s3_bucket.state \
+            -auto-approve \
+            -lock=false \
+            -refresh-only
+
        # Reinitialize with remote backend
       - name: Configure Remote Backend
         run: terraform init -reconfigure
