@@ -48,6 +48,7 @@ jobs:
         run: terraform apply -auto-approve
         
 
+
   terraform_infra:
     name: "AWS Infra"
     runs-on: ubuntu-latest
@@ -66,7 +67,7 @@ jobs:
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::856265587682:role/TerraformCIExecutionRole
+          role-to-assume: ${{ steps.oidc-outputs.outputs.terraform_execution_role_arn }}
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: github-${{ github.run_id }}
 
