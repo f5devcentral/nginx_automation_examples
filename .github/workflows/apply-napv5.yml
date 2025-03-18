@@ -29,7 +29,10 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_Token }}
           aws-region: us-east-1
 
-      - name: Create OIDC Provider
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Create OIDC Provider First
         run: |
           terraform init
           terraform apply -target=aws_iam_openid_connect_provider.github_oidc -auto-approve
@@ -42,31 +45,14 @@ jobs:
           aws-region: us-east-1
           role-session-name: TerraformExecutionSession
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Plan
-        if: github.event_name == 'pull_request' || github.event_name == 'push'
+      - name: Full Terraform Apply
         run: |
-          terraform plan -no-color -input=false -out=tfplan
-          terraform show -no-color tfplan > plan.txt
+          terraform init
+          terraform plan -out=tfplan
+          terraform apply -auto-approve tfplan
 
-      - name: Check Changes
-        id: check_changes
-        run: |
-          if grep -q "No changes." plan.txt; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
-        run: terraform apply -auto-approve tfplan
-
+      # Final deployment credentials
       - name: Configure Deployment Credentials
         if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
         uses: aws-actions/configure-aws-credentials@v3
@@ -74,6 +60,7 @@ jobs:
           role-to-assume: arn:aws:iam::856265587682:role/GitHubActionsTerraformRole
           aws-region: us-east-1
           role-session-name: GitHubActionsDeployment
+
 
   terraform_eks:
     name: "AWS EKS"
