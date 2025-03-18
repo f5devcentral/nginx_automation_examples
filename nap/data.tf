@@ -1,10 +1,11 @@
 data "tfe_outputs" "infra" {
   organization = var.tf_cloud_organization
-  workspace = "infra"
+  workspace    = "infra"
 }
+
 data "tfe_outputs" "eks" {
   organization = var.tf_cloud_organization
-  workspace = "eks"
+  workspace    = "eks"
 }
 
 data "aws_eks_cluster_auth" "auth" {
@@ -16,3 +17,4 @@ data "kubernetes_service_v1" "nginx-service" {
     name      = try(format("%s-%s-controller", helm_release.nginx-plus-ingress.name, helm_release.nginx-plus-ingress.chart))
     namespace = try(helm_release.nginx-plus-ingress.namespace)
   }
+}
