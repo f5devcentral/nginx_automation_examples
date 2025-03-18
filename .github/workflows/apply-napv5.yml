@@ -20,11 +20,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Configure AWS credentials BEFORE Terraform commands
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::856265587682:role/GitHubActionsTerraformRole
+          role-session-name: GitHubActionsSession
           aws-region: us-east-1
 
       - name: Setup Terraform
