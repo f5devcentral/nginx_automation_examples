@@ -1,4 +1,4 @@
-# infra/iam.tf
+# Fetch existing IAM policy and role
 data "aws_iam_policy" "terraform_state_access" {
   name = "TerraformStateAccess"
 }

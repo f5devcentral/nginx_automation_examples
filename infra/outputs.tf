@@ -97,4 +97,15 @@ output "nap" {
 output "nic" {
   value = var.nic
 }
+output "github_actions_role_arn" {
+  value = data.aws_iam_role.terraform_execution_role.arn
+}
+
+output "state_bucket_name" {
+  value = aws_s3_bucket.state.bucket
+}
+
+output "lock_table_name" {
+  value = aws_dynamodb_table.terraform_state_lock.name
+}
 

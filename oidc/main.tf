@@ -1,3 +1,12 @@
+terraform {
+  backend "s3" {
+    bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
+    key    = "oidc/terraform.tfstate"       # Path to oidc's state file
+    region = "us-east-1"                    # AWS region
+    encrypt = true
+  }
+}
+
 provider "aws" {
   region = var.aws_region
 }
