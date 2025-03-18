@@ -10,12 +10,21 @@ jobs:
   terraform_infra:
     name: "AWS Infra"
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # Required for OIDC authentication
+      contents: read   # Required for checkout
     defaults:
       run:
         working-directory: ./infra
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::856265587682:role/GitHubActionsTerraformRole
+          aws-region: us-east-1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -28,10 +37,6 @@ jobs:
         run: |
           terraform plan -no-color -input=false -out=tfplan
           terraform show -no-color tfplan > plan.txt
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN}}
 
       - name: Check Changes
         id: check_changes
@@ -45,6 +50,7 @@ jobs:
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
+
 
   terraform_eks:
     name: "AWS EKS"
