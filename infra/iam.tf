@@ -1,70 +1,94 @@
-# 1️⃣ Create OIDC Provider for GitHub Actions
+# OIDC Provider with current GitHub thumbprint and validation
 resource "aws_iam_openid_connect_provider" "github_oidc" {
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["74F3A68F16524F15424927704C9506F55A9316BD"]
+  thumbprint_list = ["1c58a3a8518e8759bf075b76b750d4f2df264fcd"] # Updated 2024-02 thumbprint
+
+  lifecycle {
+    precondition {
+      condition     = length(var.github_repository) > 0
+      error_message = "GitHub repository must be defined"
+    }
+  }
 }
 
-# 2️⃣ IAM Execution Role for Terraform GitHub Actions
+# Enhanced Execution Role with session controls
 resource "aws_iam_role" "terraform_execution_role" {
-  name = "TerraformCIExecutionRole"
+  name               = "TerraformCIExecutionRole"
+  description        = "Role for Terraform CI/CD executions"
+  assume_role_policy = data.aws_iam_policy_document.oidc_assume.json
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Principal = {
-          Federated = aws_iam_openid_connect_provider.github_oidc.arn
-        },
-        Action = "sts:AssumeRoleWithWebIdentity",
-        Condition = {
-          StringEquals = {
-            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-          },
-          StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:akananth/nginx_automation_examples:*"
-          }
-        }
-      }
-    ]
-  })
-
-  depends_on = [aws_iam_openid_connect_provider.github_oidc]
+  max_session_duration = 3600 # 1 hour maximum
+  permissions_boundary = "arn:aws:iam::aws:policy/PowerUserAccess"
 }
 
-# 3️⃣ IAM Policy for Terraform State Access
+data "aws_iam_policy_document" "oidc_assume" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.github_oidc.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = ["repo:akananth/nginx_automation_examples:ref:refs/heads/apply-nap"]
+    }
+  }
+}
+
+# Enhanced State Access Policy with least privilege
 resource "aws_iam_policy" "terraform_state_access" {
   name        = "TerraformStateAccess"
-  description = "Allow access to Terraform state in S3 and DynamoDB"
+  description = "Granular access to state resources"
+  policy      = data.aws_iam_policy_document.state_access.json
+}
 
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject",
-          "s3:ListBucket",
-          "dynamodb:GetItem",
-          "dynamodb:PutItem",
-          "dynamodb:DeleteItem"
-        ],
-        Resource = [
-          aws_s3_bucket.state.arn,
-          "${aws_s3_bucket.state.arn}/*",
-          aws_dynamodb_table.terraform_state_lock.arn
-        ]
-      }
+data "aws_iam_policy_document" "state_access" {
+  statement {
+    sid    = "S3StateAccess"
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:ListBucket"
     ]
-  })
+    resources = [
+      aws_s3_bucket.state.arn,
+      "${aws_s3_bucket.state.arn}/infra/*" # Restrict to specific path
+    ]
+  }
 
-  depends_on = [aws_iam_openid_connect_provider.github_oidc, aws_s3_bucket.state, aws_dynamodb_table.terraform_state_lock]
+  statement {
+    sid    = "DynamoDBLocking"
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:DescribeTable"
+    ]
+    resources = [aws_dynamodb_table.terraform_state_lock.arn]
+  }
+
+  statement {
+    sid    = "KMSDecrypt"
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:Encrypt",
+      "kms:GenerateDataKey"
+    ]
+    resources = [aws_kms_key.terraform_state.arn]
+  }
 }
 
-# 4️⃣ Attach Policy to Role
-resource "aws_iam_role_policy_attachment" "state_access" {
-  role       = aws_iam_role.terraform_execution_role.name
-  policy_arn = aws_iam_policy.terraform_state_access.arn
-}

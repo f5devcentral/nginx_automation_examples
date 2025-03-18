@@ -7,3 +7,8 @@ provider "aws" {
 resource "random_id" "build_suffix" {
   byte_length = 2
 }
+terraform {
+  backend "s3" {
+    # Empty block to be configured via CLI
+  }
+}
