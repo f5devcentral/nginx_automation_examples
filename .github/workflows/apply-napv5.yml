@@ -47,8 +47,8 @@ jobs:
             -target=aws_s3_bucket.state \
             -auto-approve \
             -lock=false \
-            
-       # Phase 3: Initialize REMOTE backend
+
+      
       - name: Initialize Remote Backend
         run: |
           terraform init -reconfigure -force-copy \
