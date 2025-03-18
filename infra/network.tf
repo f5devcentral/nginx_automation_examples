@@ -3,36 +3,14 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-locals {
-  valid_azs = [for az in data.aws_availability_zones.available.names : az if az != "us-west-1a"]
-}
-
-# Automatically detect the default VPC
-data "aws_vpc" "default" {
-  count  = var.create_vpc ? 0 : 1
-  default = true
-}
-
-# Automatically detect the default subnets (only if create_vpc is false)
-data "aws_subnets" "default" {
-  count = var.create_vpc ? 0 : 1
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default[0].id]
-  }
-}
-
-# Create a new VPC if create_vpc is true
+# Create VPC, subnets, route tables, and IGW
 module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = ">= 5.0"
-
-  create_vpc = var.create_vpc
-
+  source               = "terraform-aws-modules/vpc/aws"
+  version              = ">= 5.0"
   name                 = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
   cidr                 = var.cidr
-  azs                  = local.valid_azs
-  enable_dns_support   = true
+  azs                  = var.azs
+  enable_dns_support = true
   enable_dns_hostnames = true
   tags = {
     resource_owner = var.resource_owner
@@ -40,67 +18,101 @@ module "vpc" {
   }
 }
 
-# Use local values to handle conditional logic
-locals {
-  vpc_id    = var.create_vpc ? module.vpc.vpc_id : try(data.aws_vpc.default[0].id, "")
-  subnet_ids = var.create_vpc ? [] : try(data.aws_subnets.default[0].ids, [])
-}
-
-# Create subnets
-resource "aws_subnet" "external" {
-  for_each         = toset(local.valid_azs)
-  vpc_id           = local.vpc_id
-  cidr_block       = cidrsubnet(var.cidr, 8, each.key)
-  availability_zone = each.key
-  tags = {
-    Name = format("%s-ext-subnet-%s", var.project_prefix, each.key)
-  }
-}
-
-resource "aws_subnet" "internal" {
-  for_each         = toset(local.valid_azs)
-  vpc_id           = local.vpc_id
-  cidr_block       = cidrsubnet(var.cidr, 8, each.key + 10)
-  availability_zone = each.key
-  tags = {
-    Name = format("%s-int-subnet-%s", var.project_prefix, each.key)
-  }
-}
-
-resource "aws_subnet" "management" {
-  for_each         = toset(local.valid_azs)
-  vpc_id           = local.vpc_id
-  cidr_block       = cidrsubnet(var.cidr, 8, each.key + 20)
-  availability_zone = each.key
-  tags = {
-    Name = format("%s-mgmt-subnet-%s", var.project_prefix, each.key)
-  }
-}
-
-# Create a new internet gateway if one does not exist
 resource "aws_internet_gateway" "igw" {
-  count  = var.create_vpc ? 1 : 0
-  vpc_id = local.vpc_id
+  vpc_id = module.vpc.vpc_id
   tags   = {
     Name = "${var.project_prefix}-igw-${random_id.build_suffix.hex}"
   }
 }
 
-# Use the existing route table or create a new one
+module subnet_addrs {
+  for_each = toset(var.azs)
+  source          = "hashicorp/subnets/cidr"
+  version         = ">= 1.0.0"
+  base_cidr_block = cidrsubnet(module.vpc.vpc_cidr_block,4,index(var.azs,each.key))
+  /*
+VPC CIDR = 10.0.0.0/16
+AZ1 = 10.0.0.0/20
+AZ2 = 10.0.16.0/20
+*/
+  networks        = [
+    {
+      name     = "management"
+      new_bits = 8
+      #10.0.0.0/28
+      #10.0.16.0/28
+    },
+    {
+      name     = "internal"
+      new_bits = 6
+      #10.0.0.64/26
+      #10.0.16.64/26
+    },
+    {
+      name     = "external"
+      new_bits = 6
+      #10.0.0.128/26
+      #10.0.16.128/26
+    },
+    {
+      name     = "app-cidr"
+      new_bits = 4
+      #10.0.1.0/24 EC2
+      #10.0.17.0/24 EKS
+    }
+  ]
+}
+
+resource "aws_subnet" "internal" {
+  for_each = toset(var.azs)
+  vpc_id            = module.vpc.vpc_id
+  cidr_block        = module.subnet_addrs[each.key].network_cidr_blocks["internal"]
+  availability_zone = each.key
+  tags              = {
+    Name = format("%s-int-subnet-%s",var.project_prefix,each.key)
+  }
+}
+resource "aws_subnet" "management" {
+  for_each = toset(var.azs)
+  vpc_id            = module.vpc.vpc_id
+  cidr_block        = module.subnet_addrs[each.key].network_cidr_blocks["management"]
+  availability_zone = each.key
+  tags              = {
+    Name = format("%s-mgmt-subnet-%s",var.project_prefix,each.key)
+  }
+}
+resource "aws_subnet" "external" {
+  for_each = toset(var.azs)
+  vpc_id            = module.vpc.vpc_id
+  cidr_block        = module.subnet_addrs[each.key].network_cidr_blocks["external"]
+  map_public_ip_on_launch = true
+  availability_zone = each.key
+  tags              = {
+    Name = format("%s-ext-subnet-%s",var.project_prefix,each.key)
+  }
+}
 resource "aws_route_table" "main" {
-  vpc_id = local.vpc_id
+  vpc_id = module.vpc.vpc_id
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = var.create_vpc ? aws_internet_gateway.igw[0].id : data.aws_vpc.default[0].main_route_table_id
+    gateway_id = aws_internet_gateway.igw.id
   }
   tags = {
     Name = "${var.project_prefix}-rt-${random_id.build_suffix.hex}"
   }
 }
-
-# Associate subnets with the route table
-resource "aws_route_table_association" "subnet-association" {
-  for_each       = var.create_vpc ? toset([]) : toset(local.subnet_ids)
-  subnet_id      = each.value
+resource "aws_route_table_association" "subnet-association-internal" {
+  for_each       = toset(var.azs)
+  subnet_id      = aws_subnet.internal[each.key].id
+  route_table_id = aws_route_table.main.id
+}
+resource "aws_route_table_association" "subnet-association-management" {
+  for_each       = toset(var.azs)
+  subnet_id      = aws_subnet.management[each.key].id
+  route_table_id = aws_route_table.main.id
+}
+resource "aws_route_table_association" "subnet-association-external" {
+  for_each       = toset(var.azs)
+  subnet_id      = aws_subnet.external[each.key].id
   route_table_id = aws_route_table.main.id
 }

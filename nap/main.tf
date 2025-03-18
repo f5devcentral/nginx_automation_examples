@@ -1,7 +1,6 @@
 provider "aws" {
-    region = var.aws_region
+    region     = local.aws_region
 }
-
 provider "kubernetes" {
     host = local.host
     cluster_ca_certificate = base64decode(local.cluster_ca_certificate)
