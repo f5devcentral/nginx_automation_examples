@@ -7,10 +7,10 @@ output "external_port" {
 output "origin_source" {
     value = "nap"
 }
+
 output "nap_deployment_name" {
-    value = try(helm_release.nginx-plus-ingress.name, null)
+    value = try (helm_release.nginx-plus-ingress[0].name, helm_release.nginx-plus-ingresslink[0].name)
     sensitive = true
 }
-
 
 
