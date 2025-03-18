@@ -12,8 +12,8 @@ env:
   TF_STATE_KEY: infra/terraform.tfstate
 
 jobs:
-  terraform:
-    name: "Terraform Plan/Apply"
+  terraform_infra:
+    name: "AWS Infra"
     runs-on: ubuntu-latest
     permissions:
       id-token: write
