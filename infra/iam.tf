@@ -2,10 +2,10 @@
 resource "aws_iam_openid_connect_provider" "github_oidc" {
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["74F3A68F16524F15424927704C9506F55A9316BD"]
+  thumbprint_list = ["<DYNAMICALLY_FETCHED_THUMBPRINT>"]
 }
 
-# IAM Execution Role for Terraform
+# IAM Execution Role
 resource "aws_iam_role" "terraform_execution_role" {
   name = "TerraformCIExecutionRole"
 
@@ -29,12 +29,14 @@ resource "aws_iam_role" "terraform_execution_role" {
       }
     ]
   })
+  
+  depends_on = [aws_iam_openid_connect_provider.github_oidc]
 }
 
-# IAM Policy for State Management
+# IAM Policy for Terraform State Management
 resource "aws_iam_policy" "terraform_state_access" {
   name        = "TerraformStateAccess"
-  description = "Access to Terraform state resources"
+  description = "Allow access to Terraform state in S3 and DynamoDB"
 
   policy = jsonencode({
     Version = "2012-10-17",
@@ -57,32 +59,45 @@ resource "aws_iam_policy" "terraform_state_access" {
       }
     ]
   })
+  
+  depends_on = [aws_s3_bucket.state, aws_dynamodb_table.terraform_state_lock]
 }
 
-# IAM Policy Attachment
+# Attach Policies
 resource "aws_iam_role_policy_attachment" "state_access" {
   role       = aws_iam_role.terraform_execution_role.name
   policy_arn = aws_iam_policy.terraform_state_access.arn
 }
 
-# Allow Terraform Execution Role to Assume GitHub Actions Role
-resource "aws_iam_policy" "assume_role_policy" {
-  name        = "AssumeRolePolicy"
-  description = "Allow Terraform Execution Role to assume GitHub Actions Role"
+# GitHub Actions Deployment Role
+resource "aws_iam_role" "github_actions" {
+  name = "GitHubActionsTerraformRole"
 
-  policy = jsonencode({
+  assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
       {
         Effect = "Allow",
-        Action = "sts:AssumeRole",
-        Resource = aws_iam_role.github_actions.arn
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.github_oidc.arn
+        },
+        Action = "sts:AssumeRoleWithWebIdentity",
+        Condition = {
+          StringEquals = {
+            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+          },
+          StringLike = {
+            "token.actions.githubusercontent.com:sub" = "repo:akananth/nginx_automation_examples:*"
+          }
+        }
       }
     ]
   })
+  
+  depends_on = [aws_iam_openid_connect_provider.github_oidc]
 }
 
-resource "aws_iam_role_policy_attachment" "assume_role" {
-  role       = aws_iam_role.terraform_execution_role.name
-  policy_arn = aws_iam_policy.assume_role_policy.arn
+resource "aws_iam_role_policy_attachment" "github_actions_state_access" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.terraform_state_access.arn
 }
