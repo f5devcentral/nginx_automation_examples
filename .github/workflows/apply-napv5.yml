@@ -36,8 +36,8 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Initialize Terraform (No Backend)
-        run: terraform init -backend=false
+      - name: Initialize Terraform
+        run: terraform init
 
       - name: Create OIDC Provider
         run: terraform apply -auto-approve
