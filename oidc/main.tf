@@ -51,7 +51,6 @@ resource "aws_iam_role" "terraform_execution_role" {
       }
     ]
   })
-
   lifecycle {
     prevent_destroy = true
   }
