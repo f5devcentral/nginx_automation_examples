@@ -19,19 +19,6 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Setup Backend
-        run: |
-          cat <<EOF > backend.tf
-          terraform {
-            cloud {
-              organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
-              workspaces { name = "${{ secrets.TF_CLOUD_WORKSPACE_INFRA }}" }
-            }
-          }
-          EOF
 
       - name: Terraform Init
         run: terraform init
@@ -41,6 +28,10 @@ jobs:
         run: |
           terraform plan -no-color -input=false -out=tfplan
           terraform show -no-color tfplan > plan.txt
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN}}
 
       - name: Check Changes
         id: check_changes
@@ -68,19 +59,6 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Setup Backend
-        run: |
-          cat <<EOF > backend.tf
-          terraform {
-            cloud {
-              organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
-              workspaces { name = "${{ secrets.TF_CLOUD_WORKSPACE_EKS }}" }
-            }
-          }
-          EOF
 
       - name: Terraform Init
         run: terraform init
@@ -90,6 +68,10 @@ jobs:
         run: |
           terraform plan -no-color -input=false -out=tfplan
           terraform show -no-color tfplan > plan.txt
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN}}
 
       - name: Check Changes
         id: check_changes
@@ -117,19 +99,6 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Setup Backend
-        run: |
-          cat <<EOF > backend.tf
-          terraform {
-            cloud {
-              organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
-              workspaces { name = "${{ secrets.TF_CLOUD_WORKSPACE_NAP }}" }
-            }
-          }
-          EOF
 
       - name: Terraform Init
         run: terraform init
@@ -139,6 +108,11 @@ jobs:
         run: |
           terraform plan -no-color -input=false -out=tfplan
           terraform show -no-color tfplan > plan.txt
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN}}
+          NGINX_JWT: ${{ secrets.NGINX_JWT}}
 
       - name: Check Changes
         id: check_changes
@@ -166,11 +140,6 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-          cli_config_credentials_hostname: app.terraform.io
-          terraform_version: latest
-          terraform_wrapper: true
 
       - name: Terraform Init
         run: terraform init
@@ -274,7 +243,6 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
 
-        
   terraform_arcadia:
     name: "Arcadia WebApp"
     runs-on: ubuntu-latest
@@ -288,19 +256,6 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Setup Backend
-        run: |
-          cat <<EOF > backend.tf
-          terraform {
-            cloud {
-              organization = "${{ secrets.TF_CLOUD_ORGANIZATION }}"
-              workspaces { name = "${{ secrets.TF_CLOUD_WORKSPACE_ARCADIA }}" }
-            }
-          }
-          EOF
 
       - name: Terraform Init
         run: terraform init
@@ -313,6 +268,10 @@ jobs:
         run: |
           terraform plan -no-color -input=false -out=tfplan
           terraform show -no-color tfplan > plan.txt
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN}}
 
       - name: Check Changes
         id: check_changes
