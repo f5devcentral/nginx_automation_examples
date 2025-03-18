@@ -20,12 +20,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: arn:aws:iam::856265587682:role/GitHubActionsTerraformRole
-          aws-region: us-east-1
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
@@ -37,6 +31,12 @@ jobs:
         run: |
           terraform plan -no-color -input=false -out=tfplan
           terraform show -no-color tfplan > plan.txt
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::856265587682:role/GitHubActionsTerraformRole
+          aws-region: us-east-1
 
       - name: Check Changes
         id: check_changes
