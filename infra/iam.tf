@@ -17,7 +17,7 @@ resource "aws_iam_role" "terraform_execution_role" {
       {
         Effect = "Allow",
         Principal = {
-          Federated = "arn:aws:iam::856265587682:oidc-provider/token.actions.githubusercontent.com"
+          Federated = aws_iam_openid_connect_provider.github_oidc.arn
         },
         Action = "sts:AssumeRoleWithWebIdentity",
         Condition = {
@@ -71,7 +71,7 @@ resource "aws_iam_role" "github_actions" {
       {
         Effect = "Allow",
         Principal = {
-          Federated = "arn:aws:iam::856265587682:oidc-provider/token.actions.githubusercontent.com"
+          Federated = aws_iam_openid_connect_provider.github_oidc.arn
         },
         Action = "sts:AssumeRoleWithWebIdentity",
         Condition = {
@@ -118,7 +118,7 @@ resource "aws_iam_policy" "terraform_state_access" {
 }
 
 # Attach state policy to GitHub Actions role
-resource "aws_iam_role_policy_attachment" "terraform_state_access" {
+resource "aws_iam_role_policy_attachment" "github_state_access" {
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.terraform_state_access.arn
 }
@@ -127,4 +127,32 @@ resource "aws_iam_role_policy_attachment" "terraform_state_access" {
 resource "aws_iam_role_policy_attachment" "execution_state_access" {
   role       = aws_iam_role.terraform_execution_role.name
   policy_arn = aws_iam_policy.terraform_state_access.arn
+}
+
+# Add additional permissions for state locking
+resource "aws_iam_policy" "state_lock_management" {
+  name        = "StateLockManagement"
+  description = "Permissions for Terraform state locking"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = [
+          "dynamodb:DescribeTable",
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem"
+        ],
+        Resource = [aws_dynamodb_table.terraform_state_lock.arn]
+      }
+    ]
+  })
+}
+
+# Attach lock management policy to execution role
+resource "aws_iam_role_policy_attachment" "lock_management" {
+  role       = aws_iam_role.terraform_execution_role.name
+  policy_arn = aws_iam_policy.state_lock_management.arn
 }
