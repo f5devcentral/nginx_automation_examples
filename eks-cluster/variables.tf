@@ -4,11 +4,6 @@ variable "admin_src_addr" {
   description = "Allowed Admin source IP prefix"
   default     = "0.0.0.0/0"
 }
-#TF Cloud
-variable "tf_cloud_organization" {
-  type = string
-  description = "TF cloud org (Value set in TF cloud)"
-}
 
 #AWS
 variable "eks_addons" {

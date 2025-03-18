@@ -20,8 +20,4 @@ variable "workspace_path" {
   default = ""  # Provide a default value or leave it empty
 }
 
-#TF Cloud
-variable "tf_cloud_organization" {
-  type = string
-  description = "TF cloud org (Value set in TF cloud)"
-}
+

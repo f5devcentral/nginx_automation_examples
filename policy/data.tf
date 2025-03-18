@@ -1,21 +1,41 @@
-data "tfe_outputs" "infra" {
-  organization = var.tf_cloud_organization
-  workspace = "infra"
+# Read infra state from S3
+data "terraform_remote_state" "infra" {
+  backend = "s3"
+  config = {
+    bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
+    key    = "infra/terraform.tfstate"       # Path to infra's state file
+    region = "us-east-1"                     # AWS region
+  }
 }
-data "tfe_outputs" "eks" {
-  organization = var.tf_cloud_organization
-  workspace = "eks"
+
+# Read eks state from S3
+data "terraform_remote_state" "eks" {
+  backend = "s3"
+  config = {
+    bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
+    key    = "eks-cluster/terraform.tfstate" # Path to EKS state file
+    region = "us-east-1"                     # AWS region
+  }
 }
-data "tfe_outputs" "nap" {
-  organization = var.tf_cloud_organization
-  workspace = "nap"
+
+# Read nap state from S3
+data "terraform_remote_state" "nap" {
+  backend = "s3"
+  config = {
+    bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
+    key    = "nap/terraform.tfstate"         # Path to NAP state file
+    region = "us-east-1"                     # AWS region
+  }
 }
+
+# Keep existing data sources for Kubernetes
+data "aws_eks_cluster_auth" "auth" {
+  name = data.terraform_remote_state.eks.outputs.cluster_name
+}
+
 data "kubernetes_service_v1" "nginx-service" {
   metadata {
     name      = try(format("%s-%s-controller", helm_release.nginx-plus-ingress.name, helm_release.nginx-plus-ingress.chart))
     namespace = try(helm_release.nginx-plus-ingress.namespace)
   }
-}
-data "aws_eks_cluster_auth" "auth" {
-  name = data.tfe_outputs.eks.values.cluster_name
 }

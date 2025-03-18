@@ -1,15 +1,24 @@
-data "tfe_outputs" "infra" {
-  organization = var.tf_cloud_organization
-  workspace    = "infra"
+data "terraform_remote_state" "infra" {
+  backend = "s3"
+  config = {
+    bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
+    key    = "infra/terraform.tfstate"       # Path to infra's state file
+    region = "us-east-1"                     # AWS region
+  }
 }
 
-data "tfe_outputs" "eks" {
-  organization = var.tf_cloud_organization
-  workspace    = "eks"
+# Read eks state from S3
+data "terraform_remote_state" "eks" {
+  backend = "s3"
+  config = {
+    bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
+    key    = "eks-cluster/terraform.tfstate" # Path to EKS state file
+    region = "us-east-1"                     # AWS region
+  }
 }
 
 data "aws_eks_cluster_auth" "auth" {
-  name = data.tfe_outputs.eks.values.cluster_name
+  name = data.terraform_remote_state.eks.outputs.cluster_name
 }
 
 data "kubernetes_service_v1" "nginx-service" {
