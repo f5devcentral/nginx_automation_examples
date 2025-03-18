@@ -1,5 +1,3 @@
-# infra/iam.tf
-
 # Create OIDC provider for GitHub Actions
 resource "aws_iam_openid_connect_provider" "github_oidc" {
   url             = "https://token.actions.githubusercontent.com"
@@ -20,7 +18,8 @@ resource "aws_iam_role" "github_actions" {
       {
         Effect = "Allow",
         Principal = {
-          Federated = aws_iam_openid_connect_provider.github_oidc.arn
+          # Hardcode the ARN to prevent race conditions
+          Federated = "arn:aws:iam::856265587682:oidc-provider/token.actions.githubusercontent.com"
         },
         Action = "sts:AssumeRoleWithWebIdentity",
         Condition = {
@@ -35,6 +34,7 @@ resource "aws_iam_role" "github_actions" {
     ]
   })
 }
+
 
 # Define Terraform state access policy (least privilege)
 resource "aws_iam_policy" "terraform_state_access" {
