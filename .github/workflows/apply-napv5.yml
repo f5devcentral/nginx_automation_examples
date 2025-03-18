@@ -27,8 +27,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Setup AWS Credentials for Initial Bootstrap
-      - name: Configure AWS Admin Credentials
+      # Step 1: Configure AWS Credentials for Initial Setup
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -39,16 +39,32 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # Phase 1: Bootstrap S3 + DynamoDB Backend Resources
+      # Step 2: Create S3 + DynamoDB Locally (Without Backend)
       - name: Bootstrap Terraform State Backend (Local)
         run: |
+          echo "Creating S3 Bucket and DynamoDB Table..."
           terraform init -backend=false
-          terraform apply -auto-approve -lock=false \
-            -target=aws_s3_bucket.state \
-            -target=aws_dynamodb_table.terraform_state_lock
+          terraform apply -auto-approve -target=aws_s3_bucket.state -target=aws_dynamodb_table.terraform_state_lock
 
-      # Phase 2: Force Reinitialize Backend to Use S3
-      - name: Initialize Terraform with S3 Backend
+      # Step 3: Wait for AWS Resources to Be Available
+      - name: Wait for S3 and DynamoDB Readiness
+        run: |
+          echo "Waiting for S3 Bucket to be ready..."
+          until aws s3api head-bucket --bucket "${{ env.TF_STATE_BUCKET }}" 2>/dev/null; do
+            echo "Waiting for S3 bucket..."
+            sleep 5
+          done
+          echo "S3 Bucket is ready."
+
+          echo "Waiting for DynamoDB Table..."
+          while [[ "$(aws dynamodb describe-table --table-name ${{ env.DYNAMODB_TABLE }} --region ${{ env.AWS_REGION }} --query 'Table.TableStatus' --output text)" != "ACTIVE" ]]; do
+            echo "Waiting for DynamoDB table..."
+            sleep 5
+          done
+          echo "DynamoDB table is ready."
+
+      # Step 4: Reinitialize Terraform Backend with S3
+      - name: Reconfigure Terraform Backend
         run: |
           rm -rf .terraform terraform.tfstate terraform.tfstate.backup
           terraform init -reconfigure -force-copy \
@@ -58,7 +74,7 @@ jobs:
             -backend-config="dynamodb_table=${{ env.DYNAMODB_TABLE }}" \
             -backend-config="encrypt=true"
 
-      # Phase 3: Assume Role for Execution
+      # Step 5: Assume Execution Role
       - name: Assume Execution Role
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -66,7 +82,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: GitHubActions-TerraformCI
 
-      # Phase 4: Terraform Plan and Apply
+      # Step 6: Terraform Plan and Apply
       - name: Terraform Plan
         run: |
           terraform validate
