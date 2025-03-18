@@ -41,42 +41,54 @@ jobs:
 
       - name: Create OIDC Provider
         run: terraform apply -auto-approve
+      
+      - name: Fetch IAM Role ARN
+        id: fetch_role_arn
+        run: |
+          ROLE_ARN=$(terraform output -raw terraform_execution_role_arn)
+          echo "IAM Role ARN: $ROLE_ARN"
+          echo "role_arn=$ROLE_ARN" >> $GITHUB_OUTPUT
         
 
-
   terraform_infra:
-    name: "AWS Infra"
-    runs-on: ubuntu-latest
-    needs: bootstrap_oidc
-    permissions:
-      id-token: write
-      contents: read
-    defaults:
-      run:
-        working-directory: ./infra
+   name: "AWS Infra"
+   runs-on: ubuntu-latest
+   needs: bootstrap_oidc
+   permissions:
+    id-token: write
+    contents: read
+   defaults:
+    run:
+      working-directory: ./infra
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+   steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          role-to-assume: ${{ steps.oidc-outputs.outputs.terraform_execution_role_arn }}
-          aws-region: ${{ env.AWS_REGION }}
-          role-session-name: github-${{ github.run_id }}
+    - name: Debug OIDC Token
+      run: |
+        echo "OIDC Token:"
+        curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+          -H "Accept: application/json; api-version=2.0" \
+          "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq .
 
-      - name: Initialize Backend
-        run: |
-          terraform init -reconfigure \
-            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
-            -backend-config="key=${{ env.TF_STATE_KEY }}" \
-            -backend-config="region=${{ env.AWS_REGION }}" \
-            -backend-config="encrypt=true"
-          terraform validate
-          terraform plan -out=tfplan
-          terraform apply -auto-approve tfplan
-          
+    - name: Configure AWS Credentials (OIDC)
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        role-to-assume: ${{ needs.bootstrap_oidc.outputs.fetch_role_arn.role_arn }}   # Ensure this matches the role ARN
+        aws-region: ${{ env.AWS_REGION }}
+        role-session-name: github-${{ github.run_id }}
+
+    - name: Initialize Backend
+      run: |
+        terraform init -reconfigure \
+          -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
+          -backend-config="key=${{ env.TF_STATE_KEY }}" \
+          -backend-config="region=${{ env.AWS_REGION }}" \
+          -backend-config="encrypt=true"
+        terraform validate
+        terraform plan -out=tfplan
+        terraform apply -auto-approve tfplan
 
   terraform_eks:
     name: "AWS EKS"
