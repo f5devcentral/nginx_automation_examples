@@ -6,3 +6,8 @@ data "terraform_remote_state" "infra" {
     region = "us-east-1"                     # AWS region
   }
 }
+
+# Use the role ARN from infra
+locals {
+  github_actions_role_arn = data.terraform_remote_state.infra.outputs.github_actions_role_arn
+}
