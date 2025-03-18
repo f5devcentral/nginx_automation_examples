@@ -1,10 +1,15 @@
-# oidc/main.tf
 provider "aws" {
   region = var.aws_region
 }
 
-# OIDC Provider for GitHub Actions
+# Check if OIDC Provider already exists
+data "aws_iam_openid_connect_provider" "github_oidc" {
+  url = "https://token.actions.githubusercontent.com"
+}
+
 resource "aws_iam_openid_connect_provider" "github_oidc" {
+  count = length(data.aws_iam_openid_connect_provider.github_oidc) > 0 ? 0 : 1
+
   url = "https://token.actions.githubusercontent.com"
 
   client_id_list = [
@@ -12,7 +17,7 @@ resource "aws_iam_openid_connect_provider" "github_oidc" {
   ]
 
   thumbprint_list = [
-    "1c58a3a8518e8759bf075b76b750d4f2df264fcd" # GitHub's current thumbprint
+    "1c58a3a8518e8759bf075b76b750d4f2df264fcd"
   ]
 
   lifecycle {
@@ -32,7 +37,7 @@ resource "aws_iam_role" "terraform_execution_role" {
       {
         Effect = "Allow",
         Principal = {
-          Federated = aws_iam_openid_connect_provider.github_oidc.arn
+          Federated = aws_iam_openid_connect_provider.github_oidc[0].arn
         },
         Action = "sts:AssumeRoleWithWebIdentity",
         Condition = {
@@ -46,10 +51,20 @@ resource "aws_iam_role" "terraform_execution_role" {
       }
     ]
   })
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
-# Minimal S3 Access Policy
+# Check if IAM Policy already exists
+data "aws_iam_policy" "terraform_state_access" {
+  name = "TerraformStateAccess"
+}
+
 resource "aws_iam_policy" "terraform_state_access" {
+  count = length(data.aws_iam_policy.terraform_state_access) > 0 ? 0 : 1
+
   name        = "TerraformStateAccess"
   description = "Minimum permissions for S3 state management"
 
@@ -74,5 +89,5 @@ resource "aws_iam_policy" "terraform_state_access" {
 
 resource "aws_iam_role_policy_attachment" "state_access" {
   role       = aws_iam_role.terraform_execution_role.name
-  policy_arn = aws_iam_policy.terraform_state_access.arn
+  policy_arn = aws_iam_policy.terraform_state_access[0].arn
 }
