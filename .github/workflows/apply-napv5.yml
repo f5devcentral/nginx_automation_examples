@@ -19,7 +19,7 @@ jobs:
       contents: read
     defaults:
       run:
-        working-directory: ./infra
+        working-directory: ./oidc
 
     steps:
       - name: Checkout code
@@ -35,7 +35,7 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        
+
       - name: Clean Up Local State
         run: |
           rm -rf .terraform
@@ -45,7 +45,7 @@ jobs:
         run: terraform init -backend=false
 
       - name: Create OIDC Provider
-        run: terraform apply -target=aws_iam_openid_connect_provider.github_oidc -auto-approve
+        run: terraform apply -auto-approve
         
 
   terraform_infra:
