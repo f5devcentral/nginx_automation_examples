@@ -108,11 +108,13 @@ resource "aws_iam_policy" "terraform_state_access" {
         Resource = [
           "arn:aws:s3:::akash-terraform-state-bucket",
           "arn:aws:s3:::akash-terraform-state-bucket/*",
-          "arn:aws:dynamodb:us-east-1:*:table/terraform-lock-table"
+          aws_dynamodb_table.terraform_state_lock.arn
         ]
       }
     ]
   })
+
+  depends_on = [aws_dynamodb_table.terraform_state_lock]
 }
 
 # Attach state policy to GitHub Actions role
