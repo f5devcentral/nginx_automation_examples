@@ -78,12 +78,10 @@ jobs:
             -backend-config="key=${{ env.TF_STATE_KEY }}" \
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="encrypt=true"
-
-      - name: Apply Infrastructure
-        run: |
           terraform validate
           terraform plan -out=tfplan
           terraform apply -auto-approve tfplan
+          
 
   terraform_eks:
     name: "AWS EKS"
