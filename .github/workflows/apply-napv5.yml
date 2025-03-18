@@ -1,4 +1,4 @@
-name: "NGINX v5-NAP Apply"
+name: "NGINX NAPV5"
 
 on:
   push:
@@ -6,9 +6,14 @@ on:
       - apply-nap
   pull_request:
 
+env:
+  AWS_REGION: us-east-1
+  TF_STATE_BUCKET: akash-terraform-state-bucket
+  TF_STATE_KEY: infra/terraform.tfstate
+
 jobs:
-  terraform_infra:
-    name: "AWS Infra"
+  terraform:
+    name: "Terraform Plan/Apply"
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -16,46 +21,52 @@ jobs:
     defaults:
       run:
         working-directory: ./infra
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       # Initial bootstrap with admin credentials
       - name: Configure Admin Credentials
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
         uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_Token }}
-          aws-region: us-east-1
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      # Bootstrap essential resources first
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Initialize Terraform
-        run: terraform init
+      # Bootstrap essential infrastructure
+      - name: Bootstrap Infrastructure
+        run: |
+          terraform init
+          terraform apply -target=aws_dynamodb_table.terraform_state_lock \
+                          -target=aws_s3_bucket.state \
+                          -auto-approve \
+                          -lock=false
 
-      - name: Create OIDC Provider
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
-        run: terraform apply -target=aws_iam_openid_connect_provider.github_oidc -auto-approve
-
-      # Switch to OIDC authentication for subsequent operations
-      - name: Configure Terraform Execution Role
+      # Switch to OIDC-based credentials
+      - name: Assume Terraform Execution Role
         uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: arn:aws:iam::856265587682:role/TerraformCIExecutionRole
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
           role-session-name: GitHubActions-TerraformCI
 
+      # Initialize with remote state
+      - name: Terraform Init
+        run: terraform init -reconfigure
+
+      # Planning phase
       - name: Terraform Plan
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: |
-          terraform init -reconfigure
-          terraform validate
-          terraform plan -no-color -out=tfplan
+          terraform plan -no-color -input=false -out=tfplan
           terraform show -no-color tfplan > plan.txt
 
+      # Check for changes
       - name: Check Changes
         id: check_changes
         run: |
@@ -65,17 +76,18 @@ jobs:
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
 
+      # Apply changes
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
 
-      # Final deployment configuration
-      - name: Configure Deployment Credentials
+      # Final deployment credentials
+      - name: Assume Deployment Role
         if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap'
         uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: arn:aws:iam::856265587682:role/GitHubActionsTerraformRole
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
           role-session-name: GitHubActions-Deployment
 
   terraform_eks:
