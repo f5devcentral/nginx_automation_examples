@@ -61,6 +61,10 @@ jobs:
                           -auto-approve \
                           -lock=false
                           -refresh-only
+                          
+       # Reinitialize with remote backend
+      - name: Configure Remote Backend
+        run: terraform init -reconfigure
 
       # Switch to OIDC-based credentials
       - name: Assume Terraform Execution Role
