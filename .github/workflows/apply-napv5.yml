@@ -37,20 +37,7 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-
-      - name: Handle Existing Resources
-        run: |
-          # Check if resource exists in state
-          if terraform state list | grep -q 'aws_dynamodb_table.terraform_state_lock'; then
-             echo "Resource already managed by Terraform"
-             terraform apply -refresh-only -auto-approve
-          else
-            # Import if exists in AWS but not in state
-            if aws dynamodb describe-table --table-name terraform-lock-table --region $AWS_REGION; then
-              terraform import aws_dynamodb_table.terraform_state_lock terraform-lock-table
-            fi
-          fi
-  
+        
        # Create missing resources
       - name: Bootstrap State Resources
         run: |
