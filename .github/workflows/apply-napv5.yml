@@ -35,28 +35,50 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # Step 1: Initialize Terraform with Local Backend
+      # Step 1: Check if S3 bucket exists
+      - name: Check if S3 bucket exists
+        id: check_s3_bucket
+        run: |
+          if aws s3api head-bucket --bucket ${{ env.TF_STATE_BUCKET }} --region ${{ env.AWS_REGION }} 2>/dev/null; then
+            echo "S3 bucket already exists."
+            echo "CREATE_S3_BUCKET=false" >> $GITHUB_ENV
+          else
+            echo "S3 bucket does not exist."
+            echo "CREATE_S3_BUCKET=true" >> $GITHUB_ENV
+          fi
+
+      # Step 2: Check if DynamoDB table exists
+      - name: Check if DynamoDB table exists
+        id: check_dynamodb_table
+        run: |
+          if aws dynamodb describe-table --table-name terraform-lock-table --region ${{ env.AWS_REGION }} 2>/dev/null; then
+            echo "DynamoDB table already exists."
+            echo "CREATE_DYNAMODB_TABLE=false" >> $GITHUB_ENV
+          else
+            echo "DynamoDB table does not exist."
+            echo "CREATE_DYNAMODB_TABLE=true" >> $GITHUB_ENV
+          fi
+
+      # Step 3: Initialize Terraform with Local Backend
       - name: Initialize Terraform (Local Backend)
         run: terraform init
 
-      # Step 2: Create S3 Bucket and DynamoDB Table
-      - name: Create S3 Bucket and DynamoDB Table
-        run: terraform apply -auto-approve -target=aws_s3_bucket.terraform_state_bucket -target=aws_dynamodb_table.terraform_state_lock
-
-      # Step 3: Replace Backend Configuration
-      - name: Replace Backend Configuration
+      # Step 4: Apply Terraform Configuration
+      - name: Apply Terraform Configuration
         run: |
-          chmod +x ./replace-backend-config.sh
-          ./replace-backend-config.sh "$TF_STATE_BUCKET" "$TF_STATE_KEY" "$AWS_REGION" "terraform-lock-table"
+          terraform apply -auto-approve \
+            -var="create_s3_bucket=${{ env.CREATE_S3_BUCKET }}" \
+            -var="create_dynamodb_table=${{ env.CREATE_DYNAMODB_TABLE }}"
 
-      # Step 4: Migrate to S3 Backend
+      # Step 5: Migrate to S3 Backend
       - name: Migrate to S3 Backend
-        run: terraform init -migrate-state
-
-      # Step 5: Apply Full Terraform Configuration
-      - name: Apply Full Terraform Configuration
-        run: terraform apply -auto-approve
-
+        run: |
+          terraform init -migrate-state \
+            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
+            -backend-config="key=${{ env.TF_STATE_KEY }}" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=terraform-lock-table"
+            
   terraform_infra:
     name: "AWS Infra"
     runs-on: ubuntu-latest
