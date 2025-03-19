@@ -60,12 +60,46 @@ output "management_cidr_blocks" {
   value = [for subnet in aws_subnet.management : subnet.cidr_block]  # Directly reference management subnets CIDR
 }
 
+# Specific AZ Subnet CIDR Blocks
 output "public_az1_cidr_block" {
   value = aws_subnet.external[0].cidr_block  # Directly reference AZ1's public CIDR
 }
 
 output "private_az1_cidr_block" {
   value = aws_subnet.internal[0].cidr_block  # Directly reference AZ1's private CIDR
+}
+
+output "public_az2_cidr_block" {
+  value = aws_subnet.external[1].cidr_block  # Directly reference AZ2's public CIDR
+}
+
+output "private_az2_cidr_block" {
+  value = aws_subnet.internal[1].cidr_block  # Directly reference AZ2's private CIDR
+}
+
+# Subnet IDs for specific AZs
+output "ext_subnet_az1" {
+  value = aws_subnet.external[0].id  # Reference AZ1's external subnet ID
+}
+
+output "ext_subnet_az2" {
+  value = aws_subnet.external[1].id  # Reference AZ2's external subnet ID
+}
+
+output "int_subnet_az1" {
+  value = aws_subnet.internal[0].id  # Reference AZ1's internal subnet ID
+}
+
+output "int_subnet_az2" {
+  value = aws_subnet.internal[1].id  # Reference AZ2's internal subnet ID
+}
+
+output "mgmt_subnet_az1" {
+  value = aws_subnet.management[0].id  # Reference AZ1's management subnet ID
+}
+
+output "mgmt_subnet_az2" {
+  value = aws_subnet.management[1].id  # Reference AZ2's management subnet ID
 }
 
 # CIDR Block for Application and EKS Subnets
@@ -77,37 +111,6 @@ output "app_cidr" {
 output "eks_cidr" {
   description = "EKS server CIDR block"
   value       = [for subnet in aws_subnet.internal : subnet.cidr_block]  # Direct reference to EKS subnets
-}
-
-# External, Internal, Management Subnet AZ Information
-output "ext_subnet_az1" {
-  description = "ID of External subnet AZ1"
-  value       = aws_subnet.external[0].id  # Direct reference to external AZ1 subnet ID
-}
-
-output "ext_subnet_az2" {
-  description = "ID of External subnet AZ2"
-  value       = aws_subnet.external[1].id  # Direct reference to external AZ2 subnet ID
-}
-
-output "int_subnet_az1" {
-  description = "ID of Internal subnet AZ1"
-  value       = aws_subnet.internal[0].id  # Direct reference to internal AZ1 subnet ID
-}
-
-output "int_subnet_az2" {
-  description = "ID of Internal subnet AZ2"
-  value       = aws_subnet.internal[1].id  # Direct reference to internal AZ2 subnet ID
-}
-
-output "mgmt_subnet_az1" {
-  description = "ID of Management subnet AZ1"
-  value       = aws_subnet.management[0].id  # Direct reference to management AZ1 subnet ID
-}
-
-output "mgmt_subnet_az2" {
-  description = "ID of Management subnet AZ2"
-  value       = aws_subnet.management[1].id  # Direct reference to management AZ2 subnet ID
 }
 
 # Security Groups
@@ -123,6 +126,7 @@ output "internal_sg_id" {
   value = aws_security_group.internal.id
 }
 
+# S3 Bucket Details
 output "s3_bucket_created" {
   description = "Whether the S3 bucket was created."
   value       = length(data.aws_s3_bucket.existing_state_bucket.bucket) > 0 ? true : false
@@ -133,6 +137,7 @@ output "s3_bucket_name" {
   value       = data.aws_s3_bucket.existing_state_bucket.bucket
 }
 
+# DynamoDB Table Details
 output "dynamodb_table_created" {
   description = "Whether the DynamoDB table was created."
   value       = length(data.aws_dynamodb_table.existing_terraform_state_lock.name) > 0 ? true : false
