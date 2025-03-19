@@ -1,6 +1,3 @@
-provider "aws" {
-  region = var.aws_region
-}
 
 # Check if the S3 bucket already exists
 data "aws_s3_bucket" "existing_state_bucket" {
