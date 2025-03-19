@@ -1,4 +1,4 @@
-name: "NGINX v5-NAP Destroy"
+name: "NGINX 5-NAP Destroy"
 on:
   push:
     branches:
