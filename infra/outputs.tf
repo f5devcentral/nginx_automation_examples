@@ -101,7 +101,7 @@ output "nic" {
 
 output "s3_bucket_created" {
   description = "Whether the S3 bucket was created."
-  value       = length(aws_s3_bucket.state) > 0
+  value       = length(aws_s3_bucket.state) > 0 ? true : false
 }
 
 output "s3_bucket_name" {
@@ -111,7 +111,7 @@ output "s3_bucket_name" {
 
 output "dynamodb_table_created" {
   description = "Whether the DynamoDB table was created."
-  value       = length(aws_dynamodb_table.terraform_state_lock) > 0
+  value       = length(aws_dynamodb_table.terraform_state_lock) > 0 ? true : false
 }
 
 output "dynamodb_table_name" {
@@ -119,12 +119,11 @@ output "dynamodb_table_name" {
   value       = length(aws_dynamodb_table.terraform_state_lock) > 0 ? aws_dynamodb_table.terraform_state_lock[0].name : data.aws_dynamodb_table.existing_terraform_state_lock.name
 }
 
-# Outputs
+# Outputs for IAM Role and Policy
 output "iam_role_created" {
   description = "Whether the IAM role was created."
-  value       = length(aws_iam_role.terraform_execution_role) > 0
+  value       = length(aws_iam_role.terraform_execution_role) > 0 ? true : false
 }
-
 
 output "iam_role_name" {
   description = "The name of the IAM role."
@@ -133,9 +132,8 @@ output "iam_role_name" {
 
 output "iam_policy_created" {
   description = "Whether the IAM policy was created."
-  value       = length(aws_iam_policy.terraform_state_access) > 0
+  value       = length(aws_iam_policy.terraform_state_access) > 0 ? true : false
 }
-
 
 output "iam_policy_name" {
   description = "The name of the IAM policy."

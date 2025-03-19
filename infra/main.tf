@@ -5,44 +5,17 @@ provider "aws" {
 # Fetch the current AWS account ID
 data "aws_caller_identity" "current" {}
 
-# Data resource to check for existing IAM role
+# Fetch the existing IAM role for Terraform CI/CD if it exists
 data "aws_iam_role" "existing_terraform_execution_role" {
   name = "TerraformCIExecutionRole"
 }
 
-# Data resource to check for existing IAM policy
+# Fetch the existing IAM policy for Terraform state access
 data "aws_iam_policy" "existing_terraform_state_access" {
   arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/TerraformStateAccess"
 }
 
-# Data resource to check for existing DynamoDB table
-data "aws_dynamodb_table" "terraform_state_lock" {
-  name = "terraform-lock-table"
-}
-
-# Create DynamoDB table for Terraform state locking (if it doesn't exist)
-resource "aws_dynamodb_table" "terraform_state_lock" {
-  count = length(data.aws_dynamodb_table.terraform_state_lock) == 0 ? 1 : 0
-
-  name         = "terraform-lock-table"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LockID"
-
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-
-  tags = {
-    Name = "Terraform State Lock"
-  }
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
-# Create IAM Role for Terraform CI/CD (only if it doesn't exist)
+# IAM Role for Terraform CI/CD execution (if it doesn't exist)
 resource "aws_iam_role" "terraform_execution_role" {
   count = length(data.aws_iam_role.existing_terraform_execution_role) == 0 ? 1 : 0
 
@@ -56,7 +29,7 @@ resource "aws_iam_role" "terraform_execution_role" {
       {
         Effect = "Allow",
         Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"  # Allow the root user to assume this role
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
         },
         Action = "sts:AssumeRole"
       }
@@ -68,7 +41,7 @@ resource "aws_iam_role" "terraform_execution_role" {
   }
 }
 
-# Create IAM Policy for Terraform state access (only if it doesn't exist)
+# IAM Policy for Terraform state access (if it doesn't exist)
 resource "aws_iam_policy" "terraform_state_access" {
   count = length(data.aws_iam_policy.existing_terraform_state_access) == 0 ? 1 : 0
 
@@ -94,7 +67,7 @@ resource "aws_iam_policy" "terraform_state_access" {
   })
 }
 
-# Attach the policy to the IAM role (only if both the role and policy are created)
+# Attach the policy to the IAM role if both role and policy exist
 resource "aws_iam_role_policy_attachment" "state_access" {
   count = length(aws_iam_role.terraform_execution_role) > 0 && length(aws_iam_policy.terraform_state_access) > 0 ? 1 : 0
 
@@ -102,60 +75,23 @@ resource "aws_iam_role_policy_attachment" "state_access" {
   policy_arn = aws_iam_policy.terraform_state_access[0].arn
 }
 
-# Create S3 bucket for Terraform state (only if it doesn't exist)
-resource "aws_s3_bucket" "state" {
-  count = length(data.aws_s3_bucket.existing_state_bucket) == 0 ? 1 : 0
+# S3 Bucket Versioning and Public Access Block resources (only if needed)
 
-  bucket = "akash-terraform-state-bucket"
-
-  lifecycle {
-    prevent_destroy = true
-  }
-
-  versioning {
-    enabled = true
-  }
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-}
-
-# Enable versioning for the S3 bucket (only if the bucket is created)
 resource "aws_s3_bucket_versioning" "state" {
-  count = length(aws_s3_bucket.state) > 0 ? 1 : 0
+  count = length(data.aws_s3_bucket.existing_state_bucket) > 0 ? 1 : 0
 
-  bucket = aws_s3_bucket.state[0].id
+  bucket = data.aws_s3_bucket.existing_state_bucket.id
   versioning_configuration {
     status = "Enabled"
   }
 }
 
-# Configure public access block for the S3 bucket (only if the bucket is created)
 resource "aws_s3_bucket_public_access_block" "state" {
-  count = length(aws_s3_bucket.state) > 0 ? 1 : 0
+  count = length(data.aws_s3_bucket.existing_state_bucket) > 0 ? 1 : 0
 
-  bucket = aws_s3_bucket.state[0].id
+  bucket = data.aws_s3_bucket.existing_state_bucket.id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
-}
-
-# Create the S3 bucket for state management (if it doesn't exist)
-data "aws_s3_bucket" "existing_state_bucket" {
-  bucket = "akash-terraform-state-bucket"
-}
-
-
-# Attach the policy to the IAM role (only if both the role and policy are created)
-resource "aws_iam_role_policy_attachment" "state_access" {
-  count = length(aws_iam_role.terraform_execution_role) > 0 && length(aws_iam_policy.terraform_state_access) > 0 ? 1 : 0
-
-  role       = aws_iam_role.terraform_execution_role[0].name
-  policy_arn = aws_iam_policy.terraform_state_access[0].arn
 }

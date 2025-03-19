@@ -13,12 +13,17 @@ data "aws_s3_bucket" "existing_state_bucket" {
   bucket = "akash-terraform-state-bucket"
 }
 
-# DynamoDB table for Terraform state locking
+# DynamoDB table for Terraform state locking (use existing table if present)
 data "aws_dynamodb_table" "existing_terraform_state_lock" {
   name = "terraform-lock-table"
 }
 
-# Create DynamoDB table for state locking (if it doesn't exist)
+# Declare the random_id resource to generate a suffix (if needed for naming)
+resource "random_id" "build_suffix" {
+  byte_length = 8
+}
+
+# Create DynamoDB table for state locking if not already present
 resource "aws_dynamodb_table" "terraform_state_lock" {
   count = length(data.aws_dynamodb_table.existing_terraform_state_lock) == 0 ? 1 : 0
 
@@ -38,30 +43,4 @@ resource "aws_dynamodb_table" "terraform_state_lock" {
   lifecycle {
     prevent_destroy = true
   }
-}
-
-# Declare the random_id resource to generate a suffix (remove if not used)
-resource "random_id" "build_suffix" {
-  byte_length = 8
-}
-
-# Enable versioning for the S3 bucket (only if needed)
-resource "aws_s3_bucket_versioning" "state" {
-  count = length(data.aws_s3_bucket.existing_state_bucket) > 0 ? 1 : 0
-
-  bucket = data.aws_s3_bucket.existing_state_bucket.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-# Configure public access block for the S3 bucket (only if needed)
-resource "aws_s3_bucket_public_access_block" "state" {
-  count = length(data.aws_s3_bucket.existing_state_bucket) > 0 ? 1 : 0
-
-  bucket = data.aws_s3_bucket.existing_state_bucket.id
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
 }
