@@ -23,9 +23,9 @@ resource "kubernetes_secret" "docker-registry" {
     ".dockerconfigjson" = jsonencode({
       auths = {
         "${var.nginx_registry}" = {
-          "username" = var.nginx_jwt,
-          "password" = "",  # Set password to an empty string
-          "auth"     = base64encode("${var.nginx_jwt}:")  # Only JWT token is used
+          "username" = var.nginx_jwt,  # Use the JWT token as the username
+          "password" = "none",  # Set password to "none"
+          "auth"     = base64encode("${var.nginx_jwt}:none")  # Encode "<jwt-token>:none"
         }
       }
     })
