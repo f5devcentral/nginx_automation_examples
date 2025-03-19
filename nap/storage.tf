@@ -12,5 +12,5 @@ resource "kubernetes_storage_class_v1" "aws_csi" {
     fsType = "ext4"
   }
   allow_volume_expansion = true
-  volume_binding_mode = ""WaitForFirstConsumer"
+  volume_binding_mode = "WaitForFirstConsumer"
 }
