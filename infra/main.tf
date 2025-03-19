@@ -10,7 +10,7 @@ terraform {
   backend "s3" {
     bucket         = "akash-terraform-state-bucket"
     key            = "path/to/terraform.tfstate"
-    region         = var.aws_region
+    region         = "us-east-1"
     encrypt        = true
     dynamodb_table = "terraform-lock-table"
     acl            = "private"
