@@ -11,8 +11,8 @@ env:
   TF_STATE_KEY: infra/terraform.tfstate
 
 jobs:
-  bootstrap:
-    name: "Bootstrap S3 and DynamoDB"
+  terraform_infra:
+    name: "AWS Infra"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -63,8 +63,8 @@ jobs:
       - name: Initialize Terraform (Local Backend)
         run: terraform init
 
-      # Step 4: Apply Terraform Configuration
-      - name: Apply Terraform Configuration
+      # Step 4: Create S3 Bucket and DynamoDB Table (if they don't exist)
+      - name: Create S3 Bucket and DynamoDB Table
         run: |
           terraform apply -auto-approve \
             -var="create_s3_bucket=${{ env.CREATE_S3_BUCKET }}" \
@@ -78,39 +78,11 @@ jobs:
             -backend-config="key=${{ env.TF_STATE_KEY }}" \
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="dynamodb_table=terraform-lock-table"
-            
-  terraform_infra:
-    name: "AWS Infra"
-    runs-on: ubuntu-latest
-    needs:  bootstrap 
-    permissions:
-      contents: read
-    defaults:
-      run:
-        working-directory: ./infra
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-    
-
-      - name: Initialize Terraform
-        run: terraform init
-
-      - name: Apply Terraform Configuration
+      # Step 6: Apply Full Terraform Configuration
+      - name: Apply Full Terraform Configuration
         run: terraform apply -auto-approve
-
+        
   terraform_eks:
     name: "AWS EKS"
     runs-on: ubuntu-latest
