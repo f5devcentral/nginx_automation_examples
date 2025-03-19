@@ -1,3 +1,8 @@
+# Declare the random_id resource to generate a suffix
+resource "random_id" "build_suffix" {
+  byte_length = 8
+}
+
 # VPC Module Configuration
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"

@@ -7,7 +7,7 @@ data "aws_iam_role" "existing_terraform_execution_role" {
   name  = "TerraformCIExecutionRole"
 }
 
-# Fetch the existing IAM policy for Terraform state access
+# Fetch the existing IAM policy for Terraform state access if it exists
 data "aws_iam_policy" "existing_terraform_state_access" {
   count = var.create_iam_resources ? 1 : 0
   arn   = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/TerraformStateAccess"
