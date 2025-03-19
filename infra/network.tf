@@ -13,13 +13,13 @@ module "vpc" {
   source               = "terraform-aws-modules/vpc/aws"
   version              = "5.19.0"
   name                 = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
-  cidr                 = var.cidr
-  azs                  = var.azs
+  cidr_block           = var.cidr
+  azs                  = data.aws_availability_zones.available.names
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
-    resource_owner = var.resource_owner
-    Name           = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
+    "Name" = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
+    "resource_owner" = var.resource_owner
   }
 }
 
@@ -33,9 +33,9 @@ resource "aws_internet_gateway" "igw" {
 
 # Calculate subnet CIDR blocks using manual CIDR block splitting (instead of using the subnet_addrs module)
 resource "aws_subnet" "internal" {
-  for_each = toset(var.azs)
+  for_each = toset(data.aws_availability_zones.available.names)
   vpc_id            = module.vpc.vpc_id
-  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 3)
+  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(data.aws_availability_zones.available.names, each.key) * 3)
   availability_zone = each.key
   tags = {
     Name = format("%s-int-subnet-%s", var.project_prefix, each.key)
@@ -43,9 +43,9 @@ resource "aws_subnet" "internal" {
 }
 
 resource "aws_subnet" "management" {
-  for_each = toset(var.azs)
+  for_each = toset(data.aws_availability_zones.available.names)
   vpc_id            = module.vpc.vpc_id
-  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 3 + 1)
+  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(data.aws_availability_zones.available.names, each.key) * 3 + 1)
   availability_zone = each.key
   tags = {
     Name = format("%s-mgmt-subnet-%s", var.project_prefix, each.key)
@@ -53,9 +53,9 @@ resource "aws_subnet" "management" {
 }
 
 resource "aws_subnet" "external" {
-  for_each = toset(var.azs)
+  for_each = toset(data.aws_availability_zones.available.names)
   vpc_id            = module.vpc.vpc_id
-  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 3 + 2)
+  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(data.aws_availability_zones.available.names, each.key) * 3 + 2)
   map_public_ip_on_launch = true
   availability_zone = each.key
   tags = {
@@ -77,19 +77,19 @@ resource "aws_route_table" "main" {
 
 # Associate Subnets with Route Table
 resource "aws_route_table_association" "subnet-association-internal" {
-  for_each       = toset(var.azs)
+  for_each       = toset(data.aws_availability_zones.available.names)
   subnet_id      = aws_subnet.internal[each.key].id
   route_table_id = aws_route_table.main.id
 }
 
 resource "aws_route_table_association" "subnet-association-management" {
-  for_each       = toset(var.azs)
+  for_each       = toset(data.aws_availability_zones.available.names)
   subnet_id      = aws_subnet.management[each.key].id
   route_table_id = aws_route_table.main.id
 }
 
 resource "aws_route_table_association" "subnet-association-external" {
-  for_each       = toset(var.azs)
+  for_each       = toset(data.aws_availability_zones.available.names)
   subnet_id      = aws_subnet.external[each.key].id
   route_table_id = aws_route_table.main.id
 }
