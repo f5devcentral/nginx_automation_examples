@@ -1,7 +1,7 @@
 # VPC Module Configuration
 module "vpc" {
   source              = "terraform-aws-modules/vpc/aws"
-  version             = "5.91.0" # Compatible with v5.91.0
+  version             = "5.19" # Compatible with v5.91.0
   name                = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
   cidr                = var.cidr
   azs                 = var.azs
