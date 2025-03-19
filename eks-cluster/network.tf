@@ -18,11 +18,12 @@ resource "aws_nat_gateway" "main" {
   }
 }
 
+
 module "subnet_addrs" {
-  for_each        = toset(local.azs) # Removed nonsensitive() if not needed
+  for_each        = toset(local.azs)
   source          = "hashicorp/subnets/cidr"
   version         = "1.0.0"
-  base_cidr_block = cidrsubnet(local.eks_cidr, 2, index(local.azs, each.key)) # Use local.eks_cidr directly
+  base_cidr_block = cidrsubnet(local.eks_cidr, 2, index(local.azs, each.key))  # Use the dedicated EKS CIDR block
   networks        = [
     {
       name     = "eks-internal"
