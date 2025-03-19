@@ -1,13 +1,5 @@
-terraform {
-  
-  backend "s3" {
-    bucket         = "akash-terraform-state-bucket"  # Your S3 bucket name
-    key            = "infra/terraform.tfstate"      # Path to infra's state file
-    region         = "us-east-1"                    # AWS region
-    encrypt        = true                           # Encrypt the state file at rest
-    use_lockfile   = true                           # Enable state locking with DynamoDB
-    dynamodb_table = "terraform-lock-table"         # DynamoDB table for state locking
-  }
+provider "aws" {
+  region = var.aws_region
 }
 
 # Check if the S3 bucket already exists
@@ -37,7 +29,7 @@ resource "aws_s3_bucket" "state" {
     }
   }
 
-  # Add dependency to ensure DynamoDB table is created before S3
+  # Ensure DynamoDB table is created before the S3 bucket
   depends_on = [aws_dynamodb_table.terraform_state_lock]
 }
 
@@ -69,6 +61,7 @@ resource "aws_s3_bucket_public_access_block" "state" {
   depends_on = [aws_s3_bucket.state]
 }
 
+# Check if the DynamoDB table exists
 data "aws_dynamodb_table" "existing_terraform_state_lock" {
   name = "terraform-lock-table"
 }
