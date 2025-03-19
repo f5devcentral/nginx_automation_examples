@@ -32,6 +32,23 @@ variable "create_iam_resources" {
   type        = bool
   default     = true
 }
+variable "create_s3_bucket" {
+  description = "Whether to create the S3 bucket for Terraform state."
+  type        = bool
+  default     = true
+}
+
+variable "create_dynamodb_table" {
+  description = "Whether to create the DynamoDB table for state locking."
+  type        = bool
+  default     = true
+}
+
+variable "tf_state_bucket" {
+  description = "Name of the S3 bucket for Terraform state."
+  type        = string
+  default     = "akash-terraform-state-bucket"
+}
 
 
 variable cidr {

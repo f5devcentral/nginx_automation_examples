@@ -1,6 +1,8 @@
-# Create S3 bucket for Terraform state if not already present
+# Create S3 bucket for Terraform state if it doesn't already exist
 resource "aws_s3_bucket" "terraform_state_bucket" {
-  bucket = "akash-terraform-state-bucket"
+  count = var.create_s3_bucket ? 1 : 0
+
+  bucket = var.tf_state_bucket
   acl    = "private"
 
   versioning {
@@ -24,8 +26,10 @@ resource "aws_s3_bucket" "terraform_state_bucket" {
   }
 }
 
-# Create DynamoDB table for state locking if not already present
+# Create DynamoDB table for state locking if it doesn't already exist
 resource "aws_dynamodb_table" "terraform_state_lock" {
+  count = var.create_dynamodb_table ? 1 : 0
+
   name         = "terraform-lock-table"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
@@ -43,4 +47,3 @@ resource "aws_dynamodb_table" "terraform_state_lock" {
     prevent_destroy = true
   }
 }
-
