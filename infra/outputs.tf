@@ -1,3 +1,4 @@
+#Global
 output "project_prefix" {
   value = var.project_prefix
 }
@@ -48,10 +49,8 @@ value  =  values(aws_subnet.internal)[0].cidr_block
 }
 output "app_cidr" {
   description = "Application server(Juice Shop) CIDR block"
-
-  value       = aws_subnet.internal[0].cidr_block  # Directly reference the internal subnet
+  value       = values(module.subnet_addrs)[0].network_cidr_blocks.app-cidr
 }
-
 output "eks_cidr" {
   description = "Application server(EKS) CIDR block"
   value       = values(module.subnet_addrs)[1].network_cidr_blocks.app-cidr
@@ -98,6 +97,7 @@ output "nap" {
 output "nic" {
   value = var.nic
 }
+
 
 output "s3_bucket_created" {
   description = "Whether the S3 bucket was created."
