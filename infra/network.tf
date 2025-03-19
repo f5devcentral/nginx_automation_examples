@@ -31,37 +31,11 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
-# Calculate subnet CIDR blocks
-module "subnet_addrs" {
-  for_each = toset(var.azs)
-  source   = "hashicorp/subnets/cidr"
-  version  = "1.0.0"
-  base_cidr_block = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key))
-  networks = [
-    {
-      name     = "management"
-      new_bits = 8
-    },
-    {
-      name     = "internal"
-      new_bits = 6
-    },
-    {
-      name     = "external"
-      new_bits = 6
-    },
-    {
-      name     = "app-cidr"
-      new_bits = 4
-    }
-  ]
-}
-
-# Create Subnets
+# Calculate subnet CIDR blocks using manual CIDR block splitting (instead of using the subnet_addrs module)
 resource "aws_subnet" "internal" {
   for_each = toset(var.azs)
   vpc_id            = module.vpc.vpc_id
-  cidr_block        = module.subnet_addrs[each.key].network_cidr_blocks["internal"]
+  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 3)
   availability_zone = each.key
   tags = {
     Name = format("%s-int-subnet-%s", var.project_prefix, each.key)
@@ -71,7 +45,7 @@ resource "aws_subnet" "internal" {
 resource "aws_subnet" "management" {
   for_each = toset(var.azs)
   vpc_id            = module.vpc.vpc_id
-  cidr_block        = module.subnet_addrs[each.key].network_cidr_blocks["management"]
+  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 3 + 1)
   availability_zone = each.key
   tags = {
     Name = format("%s-mgmt-subnet-%s", var.project_prefix, each.key)
@@ -81,7 +55,7 @@ resource "aws_subnet" "management" {
 resource "aws_subnet" "external" {
   for_each = toset(var.azs)
   vpc_id            = module.vpc.vpc_id
-  cidr_block        = module.subnet_addrs[each.key].network_cidr_blocks["external"]
+  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 3 + 2)
   map_public_ip_on_launch = true
   availability_zone = each.key
   tags = {
