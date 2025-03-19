@@ -7,7 +7,3 @@ data "terraform_remote_state" "infra" {
   }
 }
 
-# Use the role ARN from infra
-locals {
-  github_actions_role_arn = data.terraform_remote_state.infra.outputs.github_actions_role_arn
-}
