@@ -1,6 +1,3 @@
-# Fetch the current AWS account ID
-data "aws_caller_identity" "current" {}
-
 # Fetch the existing IAM role for Terraform CI/CD if it exists
 data "aws_iam_role" "existing_terraform_execution_role" {
   count = var.create_iam_resources ? 1 : 0
