@@ -11,7 +11,7 @@ data "aws_availability_zones" "available" {
 # Create VPC using module version 5.x
 module "vpc" {
   source               = "terraform-aws-modules/vpc/aws"
-  version              = "5.x"  # Ensure you are using the latest version
+  version              = "5.0.0"  # Ensure you are using the latest version
   name                 = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
   cidr                 = var.cidr   # This should be the correct argument name
   azs                  = data.aws_availability_zones.available.names  # Correct usage of availability zones
