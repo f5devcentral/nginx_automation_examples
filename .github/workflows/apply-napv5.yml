@@ -38,11 +38,17 @@ jobs:
       - name: Initialize Terraform (Bootstrap)
         run: terraform init
 
+        - name: Create S3 Bucket (if not exists)
+        id: create-s3-bucket
+        run: |
+          if terraform apply -auto-approve -target=aws_s3_bucket.terraform_state_bucket; then
+            echo "S3 bucket created or already exists."
+          else
+            echo "S3 bucket creation failed. It may already exist."
+          fi
+
       - name: Create DynamoDB Table (Disable Locking)
         run: terraform apply -auto-approve -target=aws_dynamodb_table.terraform_state_lock -lock=false
-
-      - name: Create S3 Bucket
-        run: terraform apply -auto-approve -target=aws_s3_bucket.terraform_state_bucket
 
 
   terraform_infra:
