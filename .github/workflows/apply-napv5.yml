@@ -35,20 +35,23 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Initialize Terraform (Bootstrap)
+      # Step 1: Initialize Terraform with Local Backend
+      - name: Initialize Terraform (Local Backend)
         run: terraform init
 
-      - name: Create S3 Bucket (if not exists)
-        id: create-s3-bucket
-        run: |
-          if terraform apply -auto-approve -target=aws_s3_bucket.terraform_state_bucket; then
-            echo "S3 bucket created or already exists."
-          else
-            echo "S3 bucket creation failed. It may already exist."
-          fi
+      # Step 2: Create S3 Bucket and DynamoDB Table
+      - name: Create S3 Bucket and DynamoDB Table
+        run: terraform apply -auto-approve -target=aws_s3_bucket.terraform_state_bucket -target=aws_dynamodb_table.terraform_state_lock
 
-      - name: Create DynamoDB Table (Disable Locking)
-        run: terraform apply -auto-approve -target=aws_dynamodb_table.terraform_state_lock -lock=false
+      # Step 3: Migrate to S3 Backend
+      - name: Migrate to S3 Backend
+        run: |
+          echo "Migrating Terraform state to S3 backend..."
+          terraform init -migrate-state -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" -backend-config="key=${{ env.TF_STATE_KEY }}" -backend-config="region=${{ env.AWS_REGION }}" -backend-config="dynamodb_table=terraform-lock-table"
+
+      # Step 4: Apply Full Terraform Configuration
+      - name: Apply Full Terraform Configuration
+        run: terraform apply -auto-approve
 
 
   terraform_infra:
