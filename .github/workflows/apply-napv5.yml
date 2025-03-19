@@ -38,8 +38,11 @@ jobs:
       - name: Initialize Terraform (Bootstrap)
         run: terraform init
 
-      - name: Apply Bootstrap Configuration
-        run: terraform apply -auto-approve -target=aws_s3_bucket.terraform_state_bucket -target=aws_dynamodb_table.terraform_state_lock
+      - name: Create DynamoDB Table (Disable Locking)
+        run: terraform apply -auto-approve -target=aws_dynamodb_table.terraform_state_lock -lock=false
+
+      - name: Create S3 Bucket
+        run: terraform apply -auto-approve -target=aws_s3_bucket.terraform_state_bucket
 
 
   terraform_infra:
