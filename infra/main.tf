@@ -9,10 +9,10 @@ data "aws_caller_identity" "current" {}
 terraform {
   backend "s3" {
     bucket         = "akash-terraform-state-bucket"
-    key            = "path/to/terraform.tfstate"
+    key            = "terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
-    dynamodb_table = "terraform-lock-table"
+    use_lockfile   = true
     acl            = "private"
   }
 }
