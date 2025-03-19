@@ -38,7 +38,35 @@ resource "aws_dynamodb_table" "terraform_state_lock" {
   }
 
   tags = {
-    Name = "Terraform State Lock"
+    Name = "Terraform State Lock Table"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+# Create S3 bucket for Terraform state if not already present
+resource "aws_s3_bucket" "terraform_state_bucket" {
+  count = length(data.aws_s3_bucket.existing_state_bucket.*.id) == 0 ? 1 : 0
+
+  bucket = "akash-terraform-state-bucket"
+  acl    = "private"
+
+  versioning {
+    enabled = true
+  }
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
+  tags = {
+    Name = "Terraform State Bucket"
   }
 
   lifecycle {
