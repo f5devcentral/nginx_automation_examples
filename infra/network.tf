@@ -20,63 +20,45 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
-# Subnet modules
-module "subnet_addrs" {
-  for_each = toset(var.azs)
-  source   = "hashicorp/subnets/cidr"
-  version  = "1.0.0"
-
-  # Remove base_cidr_block and use cidrsubnet within the module
-  base_cidr_block = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key))
-  networks = [
-    {
-      name     = "management"
-      new_bits = 8
-    },
-    {
-      name     = "internal"
-      new_bits = 6
-    },
-    {
-      name     = "external"
-      new_bits = 6
-    },
-    {
-      name     = "app-cidr"
-      new_bits = 4
-    }
-  ]
-}
-
 # Subnet resources for different networks
-resource "aws_subnet" "internal" {
-  for_each           = toset(var.azs)
-  vpc_id             = module.vpc.vpc_id
-  cidr_block         = module.subnet_addrs[each.key].network_cidr_blocks["internal"]
-  availability_zone  = each.key
-  tags               = {
-    Name = format("%s-int-subnet-%s", var.project_prefix, each.key)
-  }
-}
-
 resource "aws_subnet" "management" {
   for_each           = toset(var.azs)
   vpc_id             = module.vpc.vpc_id
-  cidr_block         = module.subnet_addrs[each.key].network_cidr_blocks["management"]
+  cidr_block         = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 4) # Calculate subnet CIDR for management
   availability_zone  = each.key
   tags               = {
     Name = format("%s-mgmt-subnet-%s", var.project_prefix, each.key)
   }
 }
 
+resource "aws_subnet" "internal" {
+  for_each           = toset(var.azs)
+  vpc_id             = module.vpc.vpc_id
+  cidr_block         = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 4 + 1) # Calculate subnet CIDR for internal
+  availability_zone  = each.key
+  tags               = {
+    Name = format("%s-int-subnet-%s", var.project_prefix, each.key)
+  }
+}
+
 resource "aws_subnet" "external" {
   for_each               = toset(var.azs)
   vpc_id                 = module.vpc.vpc_id
-  cidr_block             = module.subnet_addrs[each.key].network_cidr_blocks["external"]
+  cidr_block             = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 4 + 2) # Calculate subnet CIDR for external
   map_public_ip_on_launch = true
   availability_zone      = each.key
   tags                   = {
     Name = format("%s-ext-subnet-%s", var.project_prefix, each.key)
+  }
+}
+
+resource "aws_subnet" "app_cidr" {
+  for_each           = toset(var.azs)
+  vpc_id             = module.vpc.vpc_id
+  cidr_block         = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 4 + 3) # Calculate subnet CIDR for app-cidr
+  availability_zone  = each.key
+  tags               = {
+    Name = format("%s-app-subnet-%s", var.project_prefix, each.key)
   }
 }
 
@@ -107,5 +89,11 @@ resource "aws_route_table_association" "subnet-association-management" {
 resource "aws_route_table_association" "subnet-association-external" {
   for_each       = toset(var.azs)
   subnet_id      = aws_subnet.external[each.key].id
+  route_table_id = aws_route_table.main.id
+}
+
+resource "aws_route_table_association" "subnet-association-app-cidr" {
+  for_each       = toset(var.azs)
+  subnet_id      = aws_subnet.app_cidr[each.key].id
   route_table_id = aws_route_table.main.id
 }
