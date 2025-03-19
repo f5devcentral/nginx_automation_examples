@@ -5,24 +5,14 @@ provider "aws" {
 # Fetch the current AWS account ID
 data "aws_caller_identity" "current" {}
 
-# Check if the S3 bucket already exists
-data "aws_s3_bucket" "existing_state_bucket" {
-  bucket = "akash-terraform-state-bucket"
-}
-
-# Check if the DynamoDB table already exists
-data "aws_dynamodb_table" "existing_terraform_state_lock" {
-  name = "terraform-lock-table"
-}
-
 # Terraform Backend Configuration (only after the S3 bucket and DynamoDB table are created)
 terraform {
   backend "s3" {
-    bucket         = data.aws_s3_bucket.existing_state_bucket.id
+    bucket         = "akash-terraform-state-bucket"
     key            = "path/to/terraform.tfstate"
     region         = var.aws_region
     encrypt        = true
-    dynamodb_table = data.aws_dynamodb_table.existing_terraform_state_lock.name
+    dynamodb_table = "terraform-lock-table"
     acl            = "private"
   }
 }
