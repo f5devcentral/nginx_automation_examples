@@ -143,7 +143,6 @@ output "dynamodb_table_name" {
   value       = data.aws_dynamodb_table.existing_terraform_state_lock.name
 }
 
-
 # IAM Role Output
 output "iam_role_created" {
   description = "Whether the IAM role was created."
