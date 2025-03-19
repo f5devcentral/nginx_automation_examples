@@ -17,13 +17,6 @@ resource "aws_s3_bucket" "state" {
       }
     }
   }
-
-  public_access_block {
-    block_public_acls       = true
-    block_public_policy     = true
-    ignore_public_acls      = true
-    restrict_public_buckets = true
-  }
 }
 
 # Enable versioning for the S3 bucket
@@ -32,6 +25,16 @@ resource "aws_s3_bucket_versioning" "state" {
   versioning_configuration {
     status = "Enabled"
   }
+}
+
+# Configure public access block for the S3 bucket
+resource "aws_s3_bucket_public_access_block" "state" {
+  bucket = aws_s3_bucket.state.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 
 # Create DynamoDB table for Terraform state locking
