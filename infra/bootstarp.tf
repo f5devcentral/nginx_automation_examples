@@ -9,7 +9,7 @@ terraform {
   }
 }
 
-<<<<<<< HEAD
+# Fetch existing S3 bucket for Terraform state
 data "aws_s3_bucket" "existing_state_bucket" {
   bucket = "akash-terraform-state-bucket"
 }
@@ -52,34 +52,17 @@ resource "aws_s3_bucket_public_access_block" "state" {
   count = length(aws_s3_bucket.state) > 0 ? 1 : 0
 
   bucket = aws_s3_bucket.state[0].id
-=======
-# The following resources can be used for versioning and access controls if needed
-resource "aws_s3_bucket_versioning" "state" {
-  bucket = "akash-terraform-state-bucket"
-
-  versioning_configuration {
-    status = "Enabled"
-  }
-
-  depends_on = [aws_s3_bucket.state]
-}
-
-resource "aws_s3_bucket_public_access_block" "state" {
-  bucket = "akash-terraform-state-bucket"
->>>>>>> origin/apply-nap
-
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
-<<<<<<< HEAD
 
+# Create DynamoDB table for Terraform state locking (only if it doesn't exist)
 data "aws_dynamodb_table" "existing_terraform_state_lock" {
   name = "terraform-lock-table"
 }
 
-# Create DynamoDB table for Terraform state locking (only if it doesn't exist)
 resource "aws_dynamodb_table" "terraform_state_lock" {
   count = length(data.aws_dynamodb_table.existing_terraform_state_lock) == 0 ? 1 : 0
 
@@ -100,5 +83,3 @@ resource "aws_dynamodb_table" "terraform_state_lock" {
     prevent_destroy = true
   }
 }
-=======
->>>>>>> origin/apply-nap
