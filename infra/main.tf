@@ -1,21 +1,8 @@
-provider "aws" {
-  region = var.aws_region
-}
 
 # Fetch the current AWS account ID
 data "aws_caller_identity" "current" {}
 
-# Terraform Backend Configuration (only after the S3 bucket and DynamoDB table are created)
-terraform {
-  backend "s3" {
-    bucket         = "akash-terraform-state-bucket"
-    key            = "terraform.tfstate"
-    region         = "us-east-1"
-    encrypt        = true
-    use_lockfile   = true
-    acl            = "private"
-  }
-}
+
 
 # IAM Role and Policy Configuration (existing)
 resource "aws_iam_role" "terraform_execution_role" {

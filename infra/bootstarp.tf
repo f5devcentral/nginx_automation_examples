@@ -25,7 +25,7 @@ terraform {
   backend "s3" {
     bucket         = "akash-terraform-state-bucket" # The bucket must already exist
     key            = "terraform.tfstate"
-    region         = "us-west-2"
+    region         = "us-east-1"
     encrypt        = true
     use_lockfile   = true
   }
