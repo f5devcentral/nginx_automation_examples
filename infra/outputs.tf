@@ -37,80 +37,80 @@ output "vpc_main_route_table_id" {
 
 # Subnet Information
 output "public_subnet_ids" {
-  value = [for subnet in aws_subnet.external : subnet.id]  # Reference the external subnets directly
+  value = [for k, subnet in aws_subnet.external : subnet.id]  # Reference the external subnets directly
 }
 
 output "private_subnet_ids" {
-  value = [for subnet in aws_subnet.internal : subnet.id]  # Reference the internal subnets directly
+  value = [for k, subnet in aws_subnet.internal : subnet.id]  # Reference the internal subnets directly
 }
 
 output "management_subnet_ids" {
-  value = [for subnet in aws_subnet.management : subnet.id]  # Reference the management subnets directly
+  value = [for k, subnet in aws_subnet.management : subnet.id]  # Reference the management subnets directly
 }
 
 output "public_cidr_blocks" {
-  value = [for subnet in aws_subnet.external : subnet.cidr_block]  # Directly reference external subnets CIDR
+  value = [for k, subnet in aws_subnet.external : subnet.cidr_block]  # Directly reference external subnets CIDR
 }
 
 output "private_cidr_blocks" {
-  value = [for subnet in aws_subnet.internal : subnet.cidr_block]  # Directly reference internal subnets CIDR
+  value = [for k, subnet in aws_subnet.internal : subnet.cidr_block]  # Directly reference internal subnets CIDR
 }
 
 output "management_cidr_blocks" {
-  value = [for subnet in aws_subnet.management : subnet.cidr_block]  # Directly reference management subnets CIDR
+  value = [for k, subnet in aws_subnet.management : subnet.cidr_block]  # Directly reference management subnets CIDR
 }
 
 # Specific AZ Subnet CIDR Blocks
 output "public_az1_cidr_block" {
-  value = aws_subnet.external[0].cidr_block  # Directly reference AZ1's public CIDR
+  value = aws_subnet.external[element(tolist(var.azs), 0)].cidr_block  # Reference AZ1's public CIDR
 }
 
 output "private_az1_cidr_block" {
-  value = aws_subnet.internal[0].cidr_block  # Directly reference AZ1's private CIDR
+  value = aws_subnet.internal[element(tolist(var.azs), 0)].cidr_block  # Reference AZ1's private CIDR
 }
 
 output "public_az2_cidr_block" {
-  value = aws_subnet.external[1].cidr_block  # Directly reference AZ2's public CIDR
+  value = aws_subnet.external[element(tolist(var.azs), 1)].cidr_block  # Reference AZ2's public CIDR
 }
 
 output "private_az2_cidr_block" {
-  value = aws_subnet.internal[1].cidr_block  # Directly reference AZ2's private CIDR
+  value = aws_subnet.internal[element(tolist(var.azs), 1)].cidr_block  # Reference AZ2's private CIDR
 }
 
 # Subnet IDs for specific AZs
 output "ext_subnet_az1" {
-  value = aws_subnet.external[0].id  # Reference AZ1's external subnet ID
+  value = aws_subnet.external[element(tolist(var.azs), 0)].id  # Reference AZ1's external subnet ID
 }
 
 output "ext_subnet_az2" {
-  value = aws_subnet.external[1].id  # Reference AZ2's external subnet ID
+  value = aws_subnet.external[element(tolist(var.azs), 1)].id  # Reference AZ2's external subnet ID
 }
 
 output "int_subnet_az1" {
-  value = aws_subnet.internal[0].id  # Reference AZ1's internal subnet ID
+  value = aws_subnet.internal[element(tolist(var.azs), 0)].id  # Reference AZ1's internal subnet ID
 }
 
 output "int_subnet_az2" {
-  value = aws_subnet.internal[1].id  # Reference AZ2's internal subnet ID
+  value = aws_subnet.internal[element(tolist(var.azs), 1)].id  # Reference AZ2's internal subnet ID
 }
 
 output "mgmt_subnet_az1" {
-  value = aws_subnet.management[0].id  # Reference AZ1's management subnet ID
+  value = aws_subnet.management[element(tolist(var.azs), 0)].id  # Reference AZ1's management subnet ID
 }
 
 output "mgmt_subnet_az2" {
-  value = aws_subnet.management[1].id  # Reference AZ2's management subnet ID
+  value = aws_subnet.management[element(tolist(var.azs), 1)].id  # Reference AZ2's management subnet ID
 }
 
 # CIDR Block for Application and EKS Subnets
 output "app_cidr" {
   description = "Application server (Juice Shop) CIDR block"
-  value       = [for subnet in aws_subnet.app_cidr : subnet.cidr_block]  # Direct reference to app subnets
+  value       = [for k, subnet in aws_subnet.app_cidr : subnet.cidr_block]  # Direct reference to app subnets
 }
 
 output "eks_cidr" {
   description = "EKS server CIDR block"
-  value       = [for subnet in aws_subnet.internal : subnet.cidr_block]  # Direct reference to EKS subnets
+  value       = [for k, subnet in aws_subnet.internal : subnet.cidr_block]  # Direct reference to EKS subnets
 }
 
 # Security Groups
