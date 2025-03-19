@@ -11,16 +11,15 @@ data "aws_availability_zones" "available" {
 # Create VPC using module version 5.x
 module "vpc" {
   source               = "terraform-aws-modules/vpc/aws"
-  version              = "5.0.0"  # Use version 5.x (latest stable)
+  version              = "5.x"  # Ensure you are using the latest version
   name                 = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
-  vpc_cidr             = var.cidr   # Correct argument name for version 5.x
-  azs                  = data.aws_availability_zones.available.names
+  cidr                 = var.cidr   # This should be the correct argument name
+  azs                  = data.aws_availability_zones.available.names  # Correct usage of availability zones
   enable_dns_support   = true
   enable_dns_hostnames = true
-
   tags = {
-    "Name"            = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
-    "resource_owner"  = var.resource_owner
+    resource_owner = var.resource_owner
+    Name           = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
   }
 }
 
