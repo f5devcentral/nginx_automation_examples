@@ -113,10 +113,13 @@ jobs:
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: |
-          terraform plan -no-color -input=false -out=tfplan
-          terraform show -no-color tfplan > plan.txt
-        env:
-          NGINX_JWT: ${{ secrets.NGINX_JWT }}
+         terraform plan -no-color -input=false -out=tfplan \
+           -var="workspace_path=${{ env.WORKSPACE_PATH }}" \
+           -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
+           -var="nginx_pwd=${{ secrets.NGINX_PWD }}"
+         terraform show -no-color tfplan > plan.txt
+         env:
+           WORKSPACE_PATH: "./nap" 
 
       - name: Check Changes
         id: check_changes
