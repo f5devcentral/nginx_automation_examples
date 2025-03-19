@@ -16,6 +16,7 @@ data "aws_iam_openid_connect_provider" "github_oidc" {
   url = "https://token.actions.githubusercontent.com"
 }
 
+# Create OIDC Provider if it doesn't exist
 resource "aws_iam_openid_connect_provider" "github_oidc" {
   count = length(data.aws_iam_openid_connect_provider.github_oidc) > 0 ? 0 : 1
 
@@ -26,7 +27,7 @@ resource "aws_iam_openid_connect_provider" "github_oidc" {
   ]
 
   thumbprint_list = [
-    "1c58a3a8518e8759bf075b76b750d4f2df264fcd"
+    "1c58a3a8518e8759bf075b76b750d4f2df264fcd" # GitHub's current thumbprint
   ]
 
   lifecycle {
@@ -34,9 +35,15 @@ resource "aws_iam_openid_connect_provider" "github_oidc" {
   }
 }
 
-# IAM Execution Role for Terraform CI/CD
+# Fetch existing IAM role
+data "aws_iam_role" "existing_terraform_execution_role" {
+  count = var.create_role ? 0 : 1  # Fetch the role only if `var.create_role` is false
+  name  = "TerraformCIExecutionRole"
+}
+
+# Create IAM Execution Role for Terraform CI/CD if it doesn't exist
 resource "aws_iam_role" "terraform_execution_role" {
-  count = length(aws_iam_openid_connect_provider.github_oidc) > 0 ? 1 : 0
+  count = var.create_role ? 1 : 0  # Create the role only if `var.create_role` is true
 
   name               = "TerraformCIExecutionRole"
   description        = "Role for basic Terraform CI/CD executions"
@@ -68,14 +75,15 @@ resource "aws_iam_role" "terraform_execution_role" {
   }
 }
 
-# Check if the IAM Policy already exists
+# Fetch existing IAM policy
 data "aws_iam_policy" "existing_terraform_state_access" {
-  name = "TerraformStateAccess"
+  count = var.create_policy ? 0 : 1  # Fetch the policy only if `var.create_policy` is false
+  name  = "TerraformStateAccess"
 }
 
-# Conditionally create the IAM Policy if it doesn't exist
+# Create IAM Policy if it doesn't exist
 resource "aws_iam_policy" "terraform_state_access" {
-  count = length(data.aws_iam_policy.existing_terraform_state_access) > 0 ? 0 : 1
+  count = var.create_policy ? 1 : 0  # Create the policy only if `var.create_policy` is true
 
   name        = "TerraformStateAccess"
   description = "Minimum permissions for S3 state management"
@@ -104,5 +112,5 @@ resource "aws_iam_role_policy_attachment" "state_access" {
   count = length(aws_iam_role.terraform_execution_role) > 0 ? 1 : 0
 
   role       = aws_iam_role.terraform_execution_role[0].name
-  policy_arn = length(data.aws_iam_policy.existing_terraform_state_access) > 0 ? data.aws_iam_policy.existing_terraform_state_access.arn : aws_iam_policy.terraform_state_access[0].arn
+  policy_arn = var.create_policy ? aws_iam_policy.terraform_state_access[0].arn : data.aws_iam_policy.existing_terraform_state_access[0].arn
 }

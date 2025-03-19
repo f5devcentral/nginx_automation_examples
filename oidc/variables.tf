@@ -16,3 +16,15 @@ variable "tf_state_bucket" {
   description = "S3 bucket for Terraform state"
   default     = "akash-terraform-state-bucket"
 }
+
+variable "create_role" {
+  type        = bool
+  description = "Whether to create the IAM role"
+  default     = true
+}
+
+variable "create_policy" {
+  type        = bool
+  description = "Whether to create the IAM policy"
+  default     = true
+}
