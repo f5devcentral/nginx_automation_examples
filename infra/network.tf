@@ -11,15 +11,16 @@ data "aws_availability_zones" "available" {
 # Create VPC, subnets, route tables, and IGW
 module "vpc" {
   source               = "terraform-aws-modules/vpc/aws"
-  version              = "5.19.0"
-  name                 = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
-  cidr_block           = var.cidr
+  version              = "5.19.0" # Ensure this is the correct version that you want
+  project_name         = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
+  cidr                 = var.cidr
   azs                  = data.aws_availability_zones.available.names
   enable_dns_support   = true
   enable_dns_hostnames = true
+
   tags = {
-    "Name" = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
-    "resource_owner" = var.resource_owner
+    "Name"            = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
+    "resource_owner"  = var.resource_owner
   }
 }
 
