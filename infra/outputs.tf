@@ -102,10 +102,6 @@ output "bucket_name" {
   value = aws_s3_bucket.state.bucket
 }
 
-output "dynamodb_table_name" {
-  value = aws_dynamodb_table.terraform_state_lock.name
-}
-
 
 # Outputs
 output "iam_role_created" {
@@ -113,17 +109,22 @@ output "iam_role_created" {
   value       = length(aws_iam_role.terraform_execution_role) > 0
 }
 
-output "iam_role_name" {
-  description = "The name of the IAM role."
-  value       = length(aws_iam_role.terraform_execution_role) > 0 ? aws_iam_role.terraform_execution_role[0].name : data.aws_iam_role.existing_terraform_execution_role.name
-}
-
 output "iam_policy_created" {
   description = "Whether the IAM policy was created."
   value       = length(aws_iam_policy.terraform_state_access) > 0
 }
 
+
+output "iam_role_name" {
+  description = "The name of the IAM role."
+  value = length(aws_iam_role.terraform_execution_role) > 0 ? aws_iam_role.terraform_execution_role[0].name : data.aws_iam_role.existing_terraform_execution_role.name
+}
+
 output "iam_policy_name" {
   description = "The name of the IAM policy."
-  value       = length(aws_iam_policy.terraform_state_access) > 0 ? aws_iam_policy.terraform_state_access[0].name : data.aws_iam_policy.existing_terraform_state_access.name
+  value = length(aws_iam_policy.terraform_state_access) > 0 ? aws_iam_policy.terraform_state_access[0].name : data.aws_iam_policy.existing_terraform_state_access.name
+}
+
+output "dynamodb_table_name" {
+  value = aws_dynamodb_table.terraform_state_lock.name
 }

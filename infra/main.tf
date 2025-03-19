@@ -1,8 +1,20 @@
-
 # Fetch the current AWS account ID
 data "aws_caller_identity" "current" {}
 
+# Data resource to check for existing IAM role
+data "aws_iam_role" "existing_terraform_execution_role" {
+  name = "TerraformCIExecutionRole"
+}
 
+# Data resource to check for existing IAM policy
+data "aws_iam_policy" "existing_terraform_state_access" {
+  arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/TerraformStateAccess"
+}
+
+# Data resource to check for existing DynamoDB table
+data "aws_dynamodb_table" "terraform_state_lock" {
+  name = "terraform-lock-table"
+}
 
 # IAM Role and Policy Configuration (existing)
 resource "aws_iam_role" "terraform_execution_role" {
@@ -61,3 +73,4 @@ resource "aws_iam_role_policy_attachment" "state_access" {
   role       = aws_iam_role.terraform_execution_role[0].name
   policy_arn = aws_iam_policy.terraform_state_access[0].arn
 }
+
