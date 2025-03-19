@@ -116,7 +116,7 @@ jobs:
           terraform plan -no-color -input=false -out=tfplan \
             -var="workspace_path=${{ env.WORKSPACE_PATH }}" \
             -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
-            -var="nginx_pwd=none
+            -var="nginx_pwd=none"
           terraform show -no-color tfplan > plan.txt
         env:
            WORKSPACE_PATH: "./nap"
