@@ -3,7 +3,8 @@ terraform {
     bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
     key    = "infra/terraform.tfstate"      # Path to infra's state file
     region = "us-east-1"                    # AWS region
-    encrypt = true                          # Encrypt the state file at rest
+    encrypt = true   
+    dynamodb_table = "terraform-lock-table"                        # Encrypt the state file at rest
   }
 }
 
