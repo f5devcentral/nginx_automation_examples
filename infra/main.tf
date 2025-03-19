@@ -11,6 +11,9 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Fetch the current AWS account ID
+data "aws_caller_identity" "current" {}
+
 # Check if the IAM role already exists
 data "aws_iam_role" "existing_terraform_execution_role" {
   name = "TerraformCIExecutionRole"
