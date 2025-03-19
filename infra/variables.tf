@@ -44,13 +44,6 @@ variable "create_dynamodb_table" {
   default     = true
 }
 
-variable "tf_state_bucket" {
-  description = "Name of the S3 bucket for Terraform state."
-  type        = string
-  default     = "akash-terraform-state-bucket"
-}
-
-
 variable cidr {
   description = "the CIDR block for the Virtual Private Cloud (VPC) of the deployment"
   default = "10.0.0.0/16"
