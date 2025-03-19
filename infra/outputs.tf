@@ -97,13 +97,26 @@ output "nic" {
   value = var.nic
 }
 
-output "bucket_name" {
-  value = aws_s3_bucket.state.bucket
+output "s3_bucket_created" {
+  description = "Whether the S3 bucket was created."
+  value       = length(aws_s3_bucket.state) > 0
+}
+
+output "s3_bucket_name" {
+  description = "The name of the S3 bucket."
+  value       = length(aws_s3_bucket.state) > 0 ? aws_s3_bucket.state[0].bucket : data.aws_s3_bucket.existing_state_bucket.bucket
+}
+
+output "dynamodb_table_created" {
+  description = "Whether the DynamoDB table was created."
+  value       = length(aws_dynamodb_table.terraform_state_lock) > 0
 }
 
 output "dynamodb_table_name" {
-  value = aws_dynamodb_table.terraform_state_lock.name
+  description = "The name of the DynamoDB table."
+  value       = length(aws_dynamodb_table.terraform_state_lock) > 0 ? aws_dynamodb_table.terraform_state_lock[0].name : data.aws_dynamodb_table.existing_terraform_state_lock.name
 }
+
 
 
 # Outputs
