@@ -129,23 +129,23 @@ output "internal_sg_id" {
 # S3 Bucket Details
 output "s3_bucket_created" {
   description = "Whether the S3 bucket was created."
-  value       = length(data.aws_s3_bucket.existing_state_bucket.bucket) > 0 ? true : false
+  value       = length(aws_s3_bucket.terraform_state_bucket.*.id) > 0 ? true : false
 }
 
 output "s3_bucket_name" {
   description = "The name of the S3 bucket."
-  value       = data.aws_s3_bucket.existing_state_bucket.bucket
+  value       = aws_s3_bucket.terraform_state_bucket.bucket
 }
 
 # DynamoDB Table Details
 output "dynamodb_table_created" {
   description = "Whether the DynamoDB table was created."
-  value       = length(data.aws_dynamodb_table.existing_terraform_state_lock.name) > 0 ? true : false
+  value       = length(aws_dynamodb_table.terraform_state_lock.*.id) > 0 ? true : false
 }
 
 output "dynamodb_table_name" {
   description = "The name of the DynamoDB table."
-  value       = data.aws_dynamodb_table.existing_terraform_state_lock.name
+  value       = aws_dynamodb_table.terraform_state_lock.name
 }
 
 # IAM Role Output
