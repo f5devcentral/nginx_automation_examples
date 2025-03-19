@@ -154,10 +154,6 @@ output "iam_role_created" {
   value       = length(aws_iam_role.terraform_execution_role) > 0 ? true : false
 }
 
-output "iam_role_name" {
-  description = "The name of the IAM role."
-  value       = length(aws_iam_role.terraform_execution_role) > 0 ? aws_iam_role.terraform_execution_role[0].name : data.aws_iam_role.existing_terraform_execution_role.name
-}
 
 # IAM Policy Output
 output "iam_policy_created" {
@@ -165,7 +161,13 @@ output "iam_policy_created" {
   value       = length(aws_iam_policy.terraform_state_access) > 0 ? true : false
 }
 
+
+output "iam_role_name" {
+  description = "The name of the IAM role."
+  value = length(aws_iam_role.terraform_execution_role) > 0 ? aws_iam_role.terraform_execution_role[0].name : data.aws_iam_role.existing_terraform_execution_role[0].name
+}
+
 output "iam_policy_name" {
   description = "The name of the IAM policy."
-  value       = length(aws_iam_policy.terraform_state_access) > 0 ? aws_iam_policy.terraform_state_access[0].name : data.aws_iam_policy.existing_terraform_state_access.name
+  value = length(aws_iam_policy.terraform_state_access) > 0 ? aws_iam_policy.terraform_state_access[0].name : data.aws_iam_policy.existing_terraform_state_access[0].name
 }
