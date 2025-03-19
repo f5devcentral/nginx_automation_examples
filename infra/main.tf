@@ -1,19 +1,3 @@
-terraform {
-  backend "s3" {
-    bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
-    key    = "infra/terraform.tfstate"      # Path to infra's state file
-    region = "us-east-1"                    # AWS region
-    encrypt = true   
-    use_lockfile   = true                      # Encrypt the state file at rest
-  }
-}
-  # Explicit dependency to ensure S3 and DynamoDB table are created first
-  depends_on = [
-    aws_s3_bucket.state,
-    aws_dynamodb_table.terraform_state_lock
-  ]
-
-
 provider "aws" {
   region = var.aws_region
 }
