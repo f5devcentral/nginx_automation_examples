@@ -32,17 +32,7 @@ variable "create_iam_resources" {
   type        = bool
   default     = true
 }
-variable "create_s3_bucket" {
-  description = "Whether to create the S3 bucket for Terraform state."
-  type        = bool
-  default     = true
-}
 
-variable "create_dynamodb_table" {
-  description = "Whether to create the DynamoDB table for state locking."
-  type        = bool
-  default     = true
-}
 
 variable cidr {
   description = "the CIDR block for the Virtual Private Cloud (VPC) of the deployment"
