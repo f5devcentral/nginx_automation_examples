@@ -35,6 +35,16 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      - name: Unlock Terraform State if Locked
+        continue-on-error: true
+        run: |
+          terraform force-unlock -force $(aws dynamodb scan \
+            --table-name $DYNAMODB_TABLE \
+            --filter-expression "LockID = :id" \
+            --expression-attribute-values '{":id": {"S": "${{ env.TF_STATE_BUCKET }}/${{ env.TF_STATE_KEY }}"}}' \
+            --query "Items[0].ID.S" \
+            --output text)
+
       - name: Initialize Terraform
         run: terraform init
 
@@ -62,6 +72,16 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+      
+      - name: Unlock Terraform State if Locked
+        continue-on-error: true
+        run: |
+          terraform force-unlock -force $(aws dynamodb scan \
+            --table-name $DYNAMODB_TABLE \
+            --filter-expression "LockID = :id" \
+            --expression-attribute-values '{":id": {"S": "${{ env.TF_STATE_BUCKET }}/${{ env.TF_STATE_KEY }}"}}' \
+            --query "Items[0].ID.S" \
+            --output text)
 
       - name: Terraform Init
         run: terraform init
@@ -106,6 +126,16 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+
+      - name: Unlock Terraform State if Locked
+        continue-on-error: true
+        run: |
+          terraform force-unlock -force $(aws dynamodb scan \
+            --table-name $DYNAMODB_TABLE \
+            --filter-expression "LockID = :id" \
+            --expression-attribute-values '{":id": {"S": "${{ env.TF_STATE_BUCKET }}/${{ env.TF_STATE_KEY }}"}}' \
+            --query "Items[0].ID.S" \
+            --output text)
 
       - name: Terraform Init
         run: terraform init
