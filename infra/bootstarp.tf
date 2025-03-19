@@ -1,19 +1,20 @@
+# Configure the S3 backend for Terraform state
 terraform {
   backend "s3" {
     bucket         = "akash-terraform-state-bucket" # The bucket must already exist
     key            = "terraform.tfstate"
     region         = "us-east-1"
     encrypt        = true
-    use_lockfile   = true
+    dynamodb_table = "terraform-lock-table" # Use DynamoDB for state locking
   }
 }
 
-# Fetch existing S3 bucket for Terraform state (use existing bucket)
+# Fetch existing S3 bucket for Terraform state
 data "aws_s3_bucket" "existing_state_bucket" {
   bucket = "akash-terraform-state-bucket"
 }
 
-# DynamoDB table for Terraform state locking (use existing table if present)
+# Fetch existing DynamoDB table for Terraform state locking
 data "aws_dynamodb_table" "existing_terraform_state_lock" {
   name = "terraform-lock-table"
 }
@@ -25,7 +26,7 @@ resource "random_id" "build_suffix" {
 
 # Create DynamoDB table for state locking if not already present
 resource "aws_dynamodb_table" "terraform_state_lock" {
-  count = length(data.aws_dynamodb_table.existing_terraform_state_lock) == 0 ? 1 : 0
+  count = length(data.aws_dynamodb_table.existing_terraform_state_lock.*.id) == 0 ? 1 : 0
 
   name         = "terraform-lock-table"
   billing_mode = "PAY_PER_REQUEST"
