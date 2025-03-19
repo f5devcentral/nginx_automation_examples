@@ -7,7 +7,7 @@ locals {
   vpc_id                  = data.terraform_remote_state.infra.outputs.vpc_id
   vpc_main_route_table_id = data.terraform_remote_state.infra.outputs.vpc_main_route_table_id
   public_subnet_ids       = data.terraform_remote_state.infra.outputs.public_subnet_ids
-  eks_cidr                = data.terraform_remote_state.infra.outputs.eks_cidr
+  eks_cidr                = data.terraform_remote_state.infra.outputs.eks_cidr[0] # Use the first CIDR block if eks_cidr is a list
   internal_sg_id          = data.terraform_remote_state.infra.outputs.internal_sg_id
   cluster_name            = format("%s-eks-cluster-%s", local.project_prefix, local.build_suffix)
 }
