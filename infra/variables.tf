@@ -36,7 +36,7 @@ variable "create_iam_resources" {
 
 variable "cidr" {
   description = "The CIDR block for the Virtual Private Cloud (VPC) of the deployment"
-  default     = "10.0.0.0/15"  # Updated to a larger CIDR block
+  default     = "10.0.0.0/16"  # Updated to a larger CIDR block
   type        = string
   validation {
     condition     = can(regex("^([0-9]{1,3}.){3}[0-9]{1,3}($|/(15|16|24))$", var.cidr))
