@@ -110,7 +110,7 @@ output "app_cidr" {
 
 output "eks_cidr" {
   description = "EKS server CIDR block"
-  value       = [for k, subnet in aws_subnet.internal : subnet.cidr_block]  # Direct reference to EKS subnets
+  value       = [cidrsubnet(module.vpc.vpc_cidr_block, 4, 15)]  # Dedicated CIDR block for EKS
 }
 
 # Security Groups
@@ -169,3 +169,16 @@ output "iam_policy_name" {
   description = "The name of the IAM policy."
   value = length(aws_iam_policy.terraform_state_access) > 0 ? aws_iam_policy.terraform_state_access[0].name : data.aws_iam_policy.existing_terraform_state_access[0].name
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
