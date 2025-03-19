@@ -1,4 +1,3 @@
-# Configure the S3 backend for Terraform state
 terraform {
   backend "s3" {
     bucket         = "akash-terraform-state-bucket" # The bucket must already exist
