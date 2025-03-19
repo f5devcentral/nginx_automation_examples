@@ -1,9 +1,4 @@
-# Random ID resource to generate a unique suffix
-resource "random_id" "build_suffix" {
-  byte_length = 8
-}
 
-# VPC module
 module "vpc" {
   source               = "terraform-aws-modules/vpc/aws"
   version              = "~> 4.0"
