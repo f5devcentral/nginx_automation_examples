@@ -123,7 +123,7 @@ output "internal_sg_id" {
   value = aws_security_group.internal.id
 }
 
-# Other Outputs (S3, DynamoDB, IAM, etc.)
+# S3 Bucket Output
 output "s3_bucket_created" {
   description = "Whether the S3 bucket was created."
   value       = length(aws_s3_bucket.state) > 0 ? true : false
@@ -134,6 +134,7 @@ output "s3_bucket_name" {
   value       = length(aws_s3_bucket.state) > 0 ? aws_s3_bucket.state[0].bucket : data.aws_s3_bucket.existing_state_bucket.bucket
 }
 
+# DynamoDB Output
 output "dynamodb_table_created" {
   description = "Whether the DynamoDB table was created."
   value       = length(aws_dynamodb_table.terraform_state_lock) > 0 ? true : false
@@ -144,6 +145,7 @@ output "dynamodb_table_name" {
   value       = length(aws_dynamodb_table.terraform_state_lock) > 0 ? aws_dynamodb_table.terraform_state_lock[0].name : data.aws_dynamodb_table.existing_terraform_state_lock.name
 }
 
+# IAM Role Output
 output "iam_role_created" {
   description = "Whether the IAM role was created."
   value       = length(aws_iam_role.terraform_execution_role) > 0 ? true : false
@@ -154,6 +156,7 @@ output "iam_role_name" {
   value       = length(aws_iam_role.terraform_execution_role) > 0 ? aws_iam_role.terraform_execution_role[0].name : data.aws_iam_role.existing_terraform_execution_role.name
 }
 
+# IAM Policy Output
 output "iam_policy_created" {
   description = "Whether the IAM policy was created."
   value       = length(aws_iam_policy.terraform_state_access) > 0 ? true : false
