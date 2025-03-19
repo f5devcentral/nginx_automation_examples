@@ -13,13 +13,17 @@ provider "aws" {
 
 # Check if the IAM role already exists
 data "aws_iam_role" "existing_terraform_execution_role" {
-  count = var.create_iam_role ? 1 : 0
-  name  = "TerraformCIExecutionRole"
+  name = "TerraformCIExecutionRole"
+}
+
+# Check if the IAM policy already exists
+data "aws_iam_policy" "existing_terraform_state_access" {
+  name = "TerraformStateAccess"
 }
 
 # Create IAM Role for Terraform CI/CD (only if it doesn't exist)
 resource "aws_iam_role" "terraform_execution_role" {
-  count = var.create_iam_role && length(data.aws_iam_role.existing_terraform_execution_role) == 0 ? 1 : 0
+  count = length(data.aws_iam_role.existing_terraform_execution_role) == 0 ? 1 : 0
 
   name               = "TerraformCIExecutionRole"
   description        = "Role for basic Terraform CI/CD executions"
@@ -43,15 +47,9 @@ resource "aws_iam_role" "terraform_execution_role" {
   }
 }
 
-# Check if the IAM policy already exists
-data "aws_iam_policy" "existing_terraform_state_access" {
-  count = var.create_iam_policy ? 1 : 0
-  name  = "TerraformStateAccess"
-}
-
 # Create IAM Policy for Terraform state access (only if it doesn't exist)
 resource "aws_iam_policy" "terraform_state_access" {
-  count = var.create_iam_policy && length(data.aws_iam_policy.existing_terraform_state_access) == 0 ? 1 : 0
+  count = length(data.aws_iam_policy.existing_terraform_state_access) == 0 ? 1 : 0
 
   name        = "TerraformStateAccess"
   description = "Minimum permissions for S3 state management"
@@ -83,23 +81,3 @@ resource "aws_iam_role_policy_attachment" "state_access" {
   policy_arn = aws_iam_policy.terraform_state_access[0].arn
 }
 
-# Outputs
-output "iam_role_created" {
-  description = "Whether the IAM role was created."
-  value       = length(aws_iam_role.terraform_execution_role) > 0
-}
-
-output "iam_role_name" {
-  description = "The name of the IAM role."
-  value       = length(aws_iam_role.terraform_execution_role) > 0 ? aws_iam_role.terraform_execution_role[0].name : data.aws_iam_role.existing_terraform_execution_role[0].name
-}
-
-output "iam_policy_created" {
-  description = "Whether the IAM policy was created."
-  value       = length(aws_iam_policy.terraform_state_access) > 0
-}
-
-output "iam_policy_name" {
-  description = "The name of the IAM policy."
-  value       = length(aws_iam_policy.terraform_state_access) > 0 ? aws_iam_policy.terraform_state_access[0].name : data.aws_iam_policy.existing_terraform_state_access[0].name
-}
