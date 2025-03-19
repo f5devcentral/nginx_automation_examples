@@ -1,12 +1,12 @@
-
-# Check if the S3 bucket already exists
-data "aws_s3_bucket" "existing_state_bucket" {
+# Check if the S3 bucket exists by using the "aws_s3_bucket_object" data source
+data "aws_s3_bucket_object" "state_check" {
   bucket = "akash-terraform-state-bucket"
+  key    = "dummy-key"  # Placeholder key to check existence
 }
 
-# Create S3 bucket for Terraform state (only if it doesn't exist)
+# Create the S3 bucket for Terraform state if it doesn't exist
 resource "aws_s3_bucket" "state" {
-  count = length(data.aws_s3_bucket.existing_state_bucket) == 0 ? 1 : 0
+  count = length(data.aws_s3_bucket_object.state_check) == 0 ? 1 : 0
 
   bucket = "akash-terraform-state-bucket"
 
