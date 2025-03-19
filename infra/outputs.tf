@@ -48,11 +48,12 @@ value  =  values(aws_subnet.internal)[0].cidr_block
 }
 output "app_cidr" {
   description = "Application server(Juice Shop) CIDR block"
-  value       = values(module.subnet_addrs)[0].network_cidr_blocks.app-cidr
+  value       = aws_subnet.internal[0].cidr_block  # Directly reference the internal subnet
 }
+
 output "eks_cidr" {
   description = "Application server(EKS) CIDR block"
-  value       = values(module.subnet_addrs)[1].network_cidr_blocks.app-cidr
+  value       = aws_subnet.management[1].cidr_block  # Directly reference the management subnet
 }
 
 output "ext_subnet_az1" {
