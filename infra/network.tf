@@ -1,4 +1,3 @@
-
 module "vpc" {
   source               = "terraform-aws-modules/vpc/aws"
   version              = "~> 4.0"
@@ -22,10 +21,12 @@ resource "aws_internet_gateway" "igw" {
 }
 
 # Subnet modules
-module subnet_addrs {
+module "subnet_addrs" {
   for_each = toset(var.azs)
   source   = "hashicorp/subnets/cidr"
   version  = "1.0.0"
+
+  # Remove base_cidr_block and use cidrsubnet within the module
   base_cidr_block = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key))
   networks = [
     {
