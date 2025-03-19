@@ -1,11 +1,10 @@
 module "vpc" {
   source              = "terraform-aws-modules/vpc/aws"
-  version             = "~> 4.0" # Make sure this is correct and compatible
+  version             = "~> 4.0" # Ensure this is correct and compatible with v5.91.0
   name                = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
   cidr                = var.cidr
   azs                 = var.azs
   enable_dns_support  = true
-  enable_dns_hostnames = true
   tags = {
     Name          = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
     resource_owner = var.resource_owner
