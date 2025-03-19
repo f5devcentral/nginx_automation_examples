@@ -40,45 +40,26 @@ resource "aws_dynamodb_table" "terraform_state_lock" {
   }
 }
 
-# Declare the random_id resource to generate a suffix
+# Declare the random_id resource to generate a suffix (remove if not used)
 resource "random_id" "build_suffix" {
   byte_length = 8
 }
 
-# S3 Bucket Configuration (for versioning and encryption)
-resource "aws_s3_bucket" "state" {
-  count = length(data.aws_s3_bucket.existing_state_bucket) == 0 ? 1 : 0
-
-  bucket = "akash-terraform-state-bucket"
-
-  lifecycle {
-    prevent_destroy = true
-  }
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-}
-
-# Enable versioning for the S3 bucket using the aws_s3_bucket_versioning resource
+# Enable versioning for the S3 bucket (only if needed)
 resource "aws_s3_bucket_versioning" "state" {
-  count = length(aws_s3_bucket.state) > 0 ? 1 : 0
+  count = length(data.aws_s3_bucket.existing_state_bucket) > 0 ? 1 : 0
 
-  bucket = aws_s3_bucket.state[0].id
+  bucket = data.aws_s3_bucket.existing_state_bucket.id
   versioning_configuration {
     status = "Enabled"
   }
 }
 
-# Configure public access block for the S3 bucket (only if the bucket is created)
+# Configure public access block for the S3 bucket (only if needed)
 resource "aws_s3_bucket_public_access_block" "state" {
-  count = length(aws_s3_bucket.state) > 0 ? 1 : 0
+  count = length(data.aws_s3_bucket.existing_state_bucket) > 0 ? 1 : 0
 
-  bucket = aws_s3_bucket.state[0].id
+  bucket = data.aws_s3_bucket.existing_state_bucket.id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
