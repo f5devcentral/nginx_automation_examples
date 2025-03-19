@@ -6,18 +6,10 @@ controller:
   mgmt:
     licenseTokenSecretName: "license-token"
     sslVerify: false
-  nginxReloadTimeout: 60000  # Fixed: Changed from string to integer
+  nginxReloadTimeout: 60000
   appprotect:
     enable: true
     v5: true
-    volumes:
-      - name: app-protect-bd-config
-        emptyDir: {}
-      - name: app-protect-config
-        emptyDir: {}
-      - name: app-protect-bundles  # Volume name
-        persistentVolumeClaim:
-          claimName: policy-claim  # Reference the PVC
     enforcer:
       host: "127.0.0.1"
       port: 50000
@@ -25,18 +17,19 @@ controller:
         repository: private-registry.nginx.com/nap/waf-enforcer
         tag: "5.4.0"
         pullPolicy: IfNotPresent
-      securityContext: 
-        readOnlyRootFilesystem: true
+      securityContext:
+        readOnlyRootFilesystem: false  # Temporarily disabled for debugging
+        allowPrivilegeEscalation: true
+        runAsNonRoot: false
     configManager:
       image:
         repository: private-registry.nginx.com/nap/waf-config-mgr
         tag: "5.4.0"
         pullPolicy: IfNotPresent
       securityContext:
-        readOnlyRootFilesystem: true
-        allowPrivilegeEscalation: false
-        runAsUser: 101
-        runAsNonRoot: true
+        readOnlyRootFilesystem: false  # Temporarily disabled for debugging
+        allowPrivilegeEscalation: true
+        runAsNonRoot: false
         capabilities:
           drop:
             - all
@@ -53,14 +46,14 @@ controller:
     tag: "4.0.1"
     pullPolicy: IfNotPresent
   securityContext:
-        readOnlyRootFilesystem: true
-        allowPrivilegeEscalation: false
-  logLevel: "error"  # Fixed: Changed to a valid value
+    readOnlyRootFilesystem: false  # Temporarily disabled for debugging
+    allowPrivilegeEscalation: true
+  logLevel: "debug"  # Increased for debugging
   nginxStatus:
-    allowCidrs: "0.0.0.0/0"  # Fixed: Converted from array to string
+    allowCidrs: "0.0.0.0/0"
     port: 9000
   readyStatus:
-    initialDelaySeconds: 30  # Fixed: Changed from string to integer
+    initialDelaySeconds: 30
   serviceAccount:
     imagePullSecretName: regcred
 prometheus:
