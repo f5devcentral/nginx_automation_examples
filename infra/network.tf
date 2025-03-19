@@ -8,6 +8,7 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
+<<<<<<< HEAD
 # Create VPC using module version 5.x
 module "vpc" {
   source               = "terraform-aws-modules/vpc/aws"
@@ -20,6 +21,21 @@ module "vpc" {
   tags = {
     resource_owner = var.resource_owner
     Name           = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
+=======
+# Create VPC, subnets, route tables, and IGW using module version 4.x
+module "vpc" {
+  source               = "terraform-aws-modules/vpc/aws"
+  version              = "4.0.0"  # Use version 4.x
+  name                 = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
+  cidr_block           = var.cidr   # Use cidr_block, which is the correct argument for version 4.x
+  azs                  = data.aws_availability_zones.available.names
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  tags = {
+    "Name"            = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
+    "resource_owner"  = var.resource_owner
+>>>>>>> origin/apply-nap
   }
 }
 
@@ -31,7 +47,11 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
+<<<<<<< HEAD
 # Calculate subnet CIDR blocks
+=======
+# Calculate subnet CIDR blocks using manual CIDR block splitting (instead of using the subnet_addrs module)
+>>>>>>> origin/apply-nap
 resource "aws_subnet" "internal" {
   for_each = toset(data.aws_availability_zones.available.names)
   vpc_id            = module.vpc.vpc_id

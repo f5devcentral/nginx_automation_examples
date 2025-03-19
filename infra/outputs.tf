@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+#Global
+>>>>>>> origin/apply-nap
 output "project_prefix" {
   value = var.project_prefix
 }
@@ -48,12 +52,20 @@ value  =  values(aws_subnet.internal)[0].cidr_block
 }
 output "app_cidr" {
   description = "Application server(Juice Shop) CIDR block"
+<<<<<<< HEAD
   value       = aws_subnet.internal[0].cidr_block  # Directly reference the internal subnet
 }
 
 output "eks_cidr" {
   description = "Application server(EKS) CIDR block"
   value       = aws_subnet.management[1].cidr_block  # Directly reference the management subnet
+=======
+  value       = values(module.subnet_addrs)[0].network_cidr_blocks.app-cidr
+}
+output "eks_cidr" {
+  description = "Application server(EKS) CIDR block"
+  value       = values(module.subnet_addrs)[1].network_cidr_blocks.app-cidr
+>>>>>>> origin/apply-nap
 }
 
 output "ext_subnet_az1" {
@@ -98,6 +110,7 @@ output "nic" {
   value = var.nic
 }
 
+<<<<<<< HEAD
 output "s3_bucket_created" {
   description = "Whether the S3 bucket was created."
   value       = length(aws_s3_bucket.state) > 0
@@ -119,6 +132,12 @@ output "dynamodb_table_name" {
 }
 
 
+=======
+output "bucket_name" {
+  value = aws_s3_bucket.state.bucket
+}
+
+>>>>>>> origin/apply-nap
 
 # Outputs
 output "iam_role_created" {
@@ -126,17 +145,37 @@ output "iam_role_created" {
   value       = length(aws_iam_role.terraform_execution_role) > 0
 }
 
+<<<<<<< HEAD
 output "iam_role_name" {
   description = "The name of the IAM role."
   value       = length(aws_iam_role.terraform_execution_role) > 0 ? aws_iam_role.terraform_execution_role[0].name : data.aws_iam_role.existing_terraform_execution_role.name
 }
 
+=======
+>>>>>>> origin/apply-nap
 output "iam_policy_created" {
   description = "Whether the IAM policy was created."
   value       = length(aws_iam_policy.terraform_state_access) > 0
 }
 
+<<<<<<< HEAD
 output "iam_policy_name" {
   description = "The name of the IAM policy."
   value       = length(aws_iam_policy.terraform_state_access) > 0 ? aws_iam_policy.terraform_state_access[0].name : data.aws_iam_policy.existing_terraform_state_access.name
 }
+=======
+
+output "iam_role_name" {
+  description = "The name of the IAM role."
+  value = length(aws_iam_role.terraform_execution_role) > 0 ? aws_iam_role.terraform_execution_role[0].name : data.aws_iam_role.existing_terraform_execution_role.name
+}
+
+output "iam_policy_name" {
+  description = "The name of the IAM policy."
+  value = length(aws_iam_policy.terraform_state_access) > 0 ? aws_iam_policy.terraform_state_access[0].name : data.aws_iam_policy.existing_terraform_state_access.name
+}
+
+output "dynamodb_table_name" {
+  value = aws_dynamodb_table.terraform_state_lock.name
+}
+>>>>>>> origin/apply-nap
