@@ -32,82 +32,82 @@ output "vpc_id" {
 }
 
 output "vpc_main_route_table_id" {
-  value = module.vpc.main_route_table_id
+  value = aws_route_table.main.id  # Reference the route table directly created
 }
 
 # Subnet Information
 output "public_subnet_ids" {
-  value = module.vpc.public_subnets
+  value = [for subnet in aws_subnet.external : subnet.id]  # Reference the external subnets directly
 }
 
 output "private_subnet_ids" {
-  value = module.vpc.private_subnets
+  value = [for subnet in aws_subnet.internal : subnet.id]  # Reference the internal subnets directly
 }
 
 output "management_subnet_ids" {
-  value = module.vpc.management_subnets
+  value = [for subnet in aws_subnet.management : subnet.id]  # Reference the management subnets directly
 }
 
 output "public_cidr_blocks" {
-  value = module.vpc.public_subnets_cidr_blocks
+  value = [for subnet in aws_subnet.external : subnet.cidr_block]  # Directly reference external subnets CIDR
 }
 
 output "private_cidr_blocks" {
-  value = module.vpc.private_subnets_cidr_blocks
+  value = [for subnet in aws_subnet.internal : subnet.cidr_block]  # Directly reference internal subnets CIDR
 }
 
 output "management_cidr_blocks" {
-  value = module.vpc.management_subnets_cidr_blocks
+  value = [for subnet in aws_subnet.management : subnet.cidr_block]  # Directly reference management subnets CIDR
 }
 
 output "public_az1_cidr_block" {
-  value = module.vpc.public_subnets_cidr_blocks[0]
+  value = aws_subnet.external[0].cidr_block  # Directly reference AZ1's public CIDR
 }
 
 output "private_az1_cidr_block" {
-  value = module.vpc.private_subnets_cidr_blocks[0]
+  value = aws_subnet.internal[0].cidr_block  # Directly reference AZ1's private CIDR
 }
 
 # CIDR Block for Application and EKS Subnets
 output "app_cidr" {
   description = "Application server (Juice Shop) CIDR block"
-  value       = module.vpc.subnet_addrs["app-cidr"].network_cidr_blocks
+  value       = [for subnet in aws_subnet.app_cidr : subnet.cidr_block]  # Direct reference to app subnets
 }
 
 output "eks_cidr" {
   description = "EKS server CIDR block"
-  value       = module.vpc.subnet_addrs["eks-cidr"].network_cidr_blocks
+  value       = [for subnet in aws_subnet.internal : subnet.cidr_block]  # Direct reference to EKS subnets
 }
 
 # External, Internal, Management Subnet AZ Information
 output "ext_subnet_az1" {
   description = "ID of External subnet AZ1"
-  value       = module.vpc.public_subnets[0]
+  value       = aws_subnet.external[0].id  # Direct reference to external AZ1 subnet ID
 }
 
 output "ext_subnet_az2" {
   description = "ID of External subnet AZ2"
-  value       = module.vpc.public_subnets[1]
+  value       = aws_subnet.external[1].id  # Direct reference to external AZ2 subnet ID
 }
 
 output "int_subnet_az1" {
   description = "ID of Internal subnet AZ1"
-  value       = module.vpc.private_subnets[0]
+  value       = aws_subnet.internal[0].id  # Direct reference to internal AZ1 subnet ID
 }
 
 output "int_subnet_az2" {
   description = "ID of Internal subnet AZ2"
-  value       = module.vpc.private_subnets[1]
+  value       = aws_subnet.internal[1].id  # Direct reference to internal AZ2 subnet ID
 }
 
 output "mgmt_subnet_az1" {
   description = "ID of Management subnet AZ1"
-  value       = module.vpc.management_subnets[0]
+  value       = aws_subnet.management[0].id  # Direct reference to management AZ1 subnet ID
 }
 
 output "mgmt_subnet_az2" {
   description = "ID of Management subnet AZ2"
-  value       = module.vpc.management_subnets[1]
+  value       = aws_subnet.management[1].id  # Direct reference to management AZ2 subnet ID
 }
 
 # Security Groups
