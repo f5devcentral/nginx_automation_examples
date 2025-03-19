@@ -101,12 +101,7 @@ resource "aws_route_table_association" "subnet-association-app-cidr" {
   route_table_id = aws_route_table.main.id
 }
 
-  enable_dns_support  = true
-  tags = {
-    Name          = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
-    resource_owner = var.resource_owner
-  }
-}
+
 
 # Create an internet gateway
 resource "aws_internet_gateway" "igw" {
