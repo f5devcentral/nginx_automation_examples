@@ -71,12 +71,12 @@ output "private_az1_cidr_block" {
 # CIDR Block for Application and EKS Subnets
 output "app_cidr" {
   description = "Application server (Juice Shop) CIDR block"
-  value       = module.vpc.subnet_addrs[0].network_cidr_blocks["app-cidr"]
+  value       = module.vpc.subnet_addrs["app-cidr"].network_cidr_blocks
 }
 
 output "eks_cidr" {
   description = "EKS server CIDR block"
-  value       = module.vpc.subnet_addrs[1].network_cidr_blocks["app-cidr"]
+  value       = module.vpc.subnet_addrs["eks-cidr"].network_cidr_blocks
 }
 
 # External, Internal, Management Subnet AZ Information
