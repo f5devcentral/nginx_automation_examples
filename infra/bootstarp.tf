@@ -9,7 +9,7 @@ terraform {
   }
 }
 
-#data "aws_s3_bucket" "existing_state_bucket" {
+data "aws_s3_bucket" "existing_state_bucket" {
   bucket = "akash-terraform-state-bucket"
 }
 
