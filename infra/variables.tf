@@ -22,6 +22,24 @@ variable "resource_owner" {
   default     = "myName"
 }
 
+variable "tf_state_bucket" {
+  type        = string
+  description = "S3 bucket for Terraform state"
+  default     = "akash-terraform-state-bucket"
+}
+
+variable "create_role" {
+  type        = bool
+  description = "Whether to create the IAM role"
+  default     = true
+}
+
+variable "create_policy" {
+  type        = bool
+  description = "Whether to create the IAM policy"
+  default     = true
+}
+
 variable cidr {
   description = "the CIDR block for the Virtual Private Cloud (VPC) of the deployment"
   default = "10.0.0.0/16"
