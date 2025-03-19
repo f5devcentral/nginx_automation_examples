@@ -14,7 +14,7 @@ variable "github_repository" {
 variable "aws_region" {
   description = "aws region"
   type        = string
-  default     = "us-east-2"
+  default     = "us-east-1"
 }
 variable "resource_owner" {
   type        = string
