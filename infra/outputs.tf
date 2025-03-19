@@ -98,14 +98,42 @@ output "nic" {
   value = var.nic
 }
 
-output "state_bucket_name" {
-  value = aws_s3_bucket.state.bucket
+output "s3_bucket_created" {
+  description = "Whether the S3 bucket was created."
+  value       = length(aws_s3_bucket.state) > 0
 }
 
-output "terraform_execution_role_arn" {
-  value = var.create_role ? aws_iam_role.terraform_execution_role[0].arn : data.aws_iam_role.existing_terraform_execution_role[0].arn
+output "s3_bucket_name" {
+  description = "The name of the S3 bucket."
+  value       = length(aws_s3_bucket.state) > 0 ? aws_s3_bucket.state[0].bucket : data.aws_s3_bucket.existing_state_bucket[0].bucket
 }
 
-output "terraform_state_access_policy_arn" {
-  value = var.create_policy ? aws_iam_policy.terraform_state_access[0].arn : data.aws_iam_policy.existing_terraform_state_access[0].arn
+output "dynamodb_table_created" {
+  description = "Whether the DynamoDB table was created."
+  value       = length(aws_dynamodb_table.terraform_state_lock) > 0
+}
+
+output "dynamodb_table_name" {
+  description = "The name of the DynamoDB table."
+  value       = length(aws_dynamodb_table.terraform_state_lock) > 0 ? aws_dynamodb_table.terraform_state_lock[0].name : data.aws_dynamodb_table.existing_terraform_state_lock[0].name
+}
+
+output "iam_role_created" {
+  description = "Whether the IAM role was created."
+  value       = length(aws_iam_role.terraform_execution_role) > 0
+}
+
+output "iam_role_name" {
+  description = "The name of the IAM role."
+  value       = length(aws_iam_role.terraform_execution_role) > 0 ? aws_iam_role.terraform_execution_role[0].name : data.aws_iam_role.existing_terraform_execution_role[0].name
+}
+
+output "iam_policy_created" {
+  description = "Whether the IAM policy was created."
+  value       = length(aws_iam_policy.terraform_state_access) > 0
+}
+
+output "iam_policy_name" {
+  description = "The name of the IAM policy."
+  value       = length(aws_iam_policy.terraform_state_access) > 0 ? aws_iam_policy.terraform_state_access[0].name : data.aws_iam_policy.existing_terraform_state_access[0].name
 }

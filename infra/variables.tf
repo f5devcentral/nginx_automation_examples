@@ -84,4 +84,27 @@ variable "nap" {
 variable "nic" {
   type = bool
 }
+variable "create_dynamodb_table" {
+  description = "Whether to create the DynamoDB table for Terraform state locking."
+  type        = bool
+  default     = true
+}
+
+variable "create_s3_bucket" {
+  description = "Whether to create the S3 bucket for Terraform state."
+  type        = bool
+  default     = true
+}
+
+variable "create_iam_role" {
+  description = "Whether to create the IAM role for Terraform CI/CD."
+  type        = bool
+  default     = true
+}
+
+variable "create_iam_policy" {
+  description = "Whether to create the IAM policy for Terraform state access."
+  type        = bool
+  default     = true
+}
 
