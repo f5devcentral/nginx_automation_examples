@@ -35,16 +35,11 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Initialize Backend
-        run: |
-          terraform init -reconfigure \
-            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
-            -backend-config="key=${{ env.TF_STATE_KEY }}" \
-            -backend-config="region=${{ env.AWS_REGION }}" \
-            -backend-config="encrypt=true"
-          terraform validate
-          terraform plan -out=tfplan
-          terraform apply -auto-approve tfplan
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Apply Terraform Configuration
+        run: terraform apply -auto-approve
 
   terraform_eks:
     name: "AWS EKS"
