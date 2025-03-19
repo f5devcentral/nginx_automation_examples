@@ -38,7 +38,7 @@ jobs:
       - name: Initialize Terraform (Bootstrap)
         run: terraform init
 
-        - name: Create S3 Bucket (if not exists)
+      - name: Create S3 Bucket (if not exists)
         id: create-s3-bucket
         run: |
           if terraform apply -auto-approve -target=aws_s3_bucket.terraform_state_bucket; then
