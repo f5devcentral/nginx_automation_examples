@@ -5,6 +5,12 @@ variable "admin_src_addr" {
   default     = "0.0.0.0/0"
 }
 
+variable "aws_region" {
+  description = "The AWS region to deploy the EKS cluster"
+  type        = string
+  default     = "us-east-1"
+}
+
 #AWS
 variable "eks_addons" {
   type = list(object({
