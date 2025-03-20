@@ -22,7 +22,7 @@ data "terraform_remote_state" "eks" {
   backend = "s3"
   config = {
     bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
-    key    = "eks/terraform.tfstate"  # Path to EKS state file
+    key    = "eks-cluster/terraform.tfstate"  # Path to EKS state file
     region = "us-east-1"                     # AWS region
   }
 }
