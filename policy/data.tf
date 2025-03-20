@@ -27,10 +27,7 @@ data "terraform_remote_state" "nap" {
     region = "us-east-1"                     # AWS region
   }
 }
-# Use the role ARN from infra
-locals {
-  github_actions_role_arn = data.terraform_remote_state.infra.outputs.github_actions_role_arn
-}
+
 # Keep existing data sources for Kubernetes
 data "aws_eks_cluster_auth" "auth" {
   name = data.terraform_remote_state.eks.outputs.cluster_name
