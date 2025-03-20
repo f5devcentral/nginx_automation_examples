@@ -31,15 +31,8 @@ data "terraform_remote_state" "nap" {
 locals {
   github_actions_role_arn = data.terraform_remote_state.infra.outputs.github_actions_role_arn
 }
-
 # Keep existing data sources for Kubernetes
 data "aws_eks_cluster_auth" "auth" {
   name = data.terraform_remote_state.eks.outputs.cluster_name
 }
 
-data "kubernetes_service_v1" "nginx-service" {
-  metadata {
-    name      = try(format("%s-%s-controller", helm_release.nginx-plus-ingress.name, helm_release.nginx-plus-ingress.chart))
-    namespace = try(helm_release.nginx-plus-ingress.namespace)
-  }
-}
