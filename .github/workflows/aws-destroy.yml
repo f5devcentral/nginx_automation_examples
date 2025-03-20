@@ -1,4 +1,4 @@
-name: "NGINX v5-NAP Destroy"
+name: "NGINX v5-NIC/NAP Destroy"
 on:
   push:
     branches:
@@ -122,14 +122,6 @@ jobs:
           env:
             WORKSPACE_PATH: "./nap"
 
-      - name: Check Changes
-        id: check_changes
-        run: |
-         if grep -q "No changes." plan.txt; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-         else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-         fi
 
       - name: Terraform Destroy
         if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
