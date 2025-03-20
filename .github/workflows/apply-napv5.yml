@@ -123,25 +123,6 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Unlock Terraform State if Locked
-        continue-on-error: true
-        run: |
-         LOCK_ID=$(aws dynamodb scan \
-          --table-name $DYNAMODB_TABLE \
-          --filter-expression "LockID = :id" \
-          --expression-attribute-values '{":id": {"S": "'"${TF_STATE_BUCKET}/${TF_STATE_KEY}"'"}}' \
-          --query "Items[0].ID.S" \
-          --output text)
-
-         # Check if LOCK_ID is valid before unlocking
-         if [[ $LOCK_ID != "None" && $LOCK_ID != "" ]]; then
-           echo "Unlocking Terraform state with LOCK_ID: $LOCK_ID"
-           terraform force-unlock -force $LOCK_ID
-         else
-          echo "No active lock found. Proceeding..."
-         fi
-
-
       - name: Terraform Init
         run: terraform init
 
