@@ -283,7 +283,11 @@ jobs:
     - name: Copy Compiled Policy to NGINX Ingress Controller
       run: |
         NGINX_POD=$(kubectl get pods -n nginx-ingress -l app=nginx-ingress -o jsonpath='{.items[0].metadata.name}')
-        kubectl cp ${{ github.workspace }}/policy/compiled_policy.tgz $NGINX_POD:/etc/app_protect/bundles/compiled_policy.tgz -n nginx-ingress -c nginx-plus-ingress
+        if [ -z "$NGINX_POD" ]; then
+           echo "Error: NGINX Ingress Controller pod not found!"
+           exit 1
+        fi
+        kubectl cp ${{ github.workspace }}/policy/compiled_policy.tgz $NGINX_POD:/etc/app_protect/bundles/compiled_policy.tgz -n nginx-ingress 
 
     - name: Terraform Init
       run: terraform init
