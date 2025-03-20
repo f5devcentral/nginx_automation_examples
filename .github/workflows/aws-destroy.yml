@@ -149,7 +149,7 @@ jobs:
     - name: Terraform Plan (Destroy)
       if: github.event_name == 'pull_request' || github.event_name == 'push'
       run: |
-        terraform plan -destroy -no-color -input=false -out=tfplan
+        terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
         terraform show -no-color tfplan > plan.txt
 
     - name: Check Changes
@@ -193,7 +193,7 @@ jobs:
     - name: Terraform Plan (Destroy)
       if: github.event_name == 'pull_request' || github.event_name == 'push'
       run: |
-        terraform plan -destroy -no-color -input=false -out=tfplan
+        terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
         terraform show -no-color tfplan > plan.txt
 
     - name: Check Changes
