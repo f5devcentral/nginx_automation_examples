@@ -28,13 +28,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
-
-
-      - name: Setup Backend
-        run: |
-          cat <<EOF > backend.tf
-          terraform {
-         
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
         run: terraform init
@@ -93,7 +89,7 @@ jobs:
   terraform_nap:
     name: "NGINX App Protect"
     runs-on: ubuntu-latest
-    needs: terraform_arcadia
+    needs: terraform_policy
     defaults:
       run:
         working-directory: ./nap
@@ -108,7 +104,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
-            
+       
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3   
 
       - name: Terraform Init
         run: terraform init
@@ -151,7 +149,8 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
-         
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3  
 
       - name: Terraform Init
         run: terraform init
@@ -195,7 +194,9 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
       - name: Terraform Init
         run: terraform init
 
