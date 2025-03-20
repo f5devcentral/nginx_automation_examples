@@ -1,13 +1,4 @@
 terraform {
-  backend "s3" {
-    bucket         = "akash-terraform-state-bucket"  # Your S3 bucket name
-    key            = "policy/terraform.tfstate"       # Path to state file
-    region         = "us-east-1"                     # AWS region
-    dynamodb_table = "terraform-lock-table"          # DynamoDB table for state locking
-    encrypt        = true                            # Encrypt state file at rest
-  }
-}
-terraform {
   required_version = ">= 1.6.0"
 
   required_providers {
@@ -36,12 +27,5 @@ terraform {
       version = ">= 3.0.2"
     }
     
-  }
-  backend "s3" {
-    bucket         = "akash-terraform-state-bucket"  # Your S3 bucket name
-    key            = "nap/terraform.tfstate"       # Path to state file
-    region         = "us-east-1"                     # AWS region
-    dynamodb_table = "terraform-lock-table"          # DynamoDB table for state locking
-    encrypt        = true                            # Encrypt state file at rest
   }
 }
