@@ -10,7 +10,6 @@ data "terraform_remote_state" "infra" {
 
 
 data "terraform_remote_state" "nap" {
-  count = data.terraform_remote_state.infra.outputs.nap ? 1 : 0
   backend = "s3"
   config = {
     bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
