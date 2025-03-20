@@ -111,18 +111,6 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Terraform Plan (Destroy)
-        if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: |
-          terraform plan -destroy -no-color -input=false -out=tfplan \
-            -var="workspace_path=${{ env.WORKSPACE_PATH }}" \
-            -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
-            -var="nginx_pwd=none"
-          terraform show -no-color tfplan > plan.txt
-          env:
-            WORKSPACE_PATH: "./nap"
-
-
       - name: Terraform Destroy
         if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: |
