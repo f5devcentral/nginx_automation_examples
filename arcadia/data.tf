@@ -18,12 +18,11 @@ data "terraform_remote_state" "nap" {
   }
 }
 
-# Read policy state from S3 (replace Terraform Cloud reference)
 data "terraform_remote_state" "eks" {
   backend = "s3"
   config = {
     bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
-    key    = "policy/terraform.tfstate"  # Path to EKS state file
+    key    = "eks/terraform.tfstate"  # Path to EKS state file
     region = "us-east-1"                     # AWS region
   }
 }
