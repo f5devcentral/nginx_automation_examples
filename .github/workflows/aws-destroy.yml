@@ -146,10 +146,17 @@ jobs:
     - name: Terraform Init
       run: terraform init
 
+    - name: Force Unlock State (if needed)
+      run: |
+        if terraform plan -destroy -no-color -input=false -out=tfplan 2>&1 | grep -q "Error acquiring the state lock"; then
+          echo "State lock detected. Attempting to force unlock..."
+          terraform force-unlock <lock-id>
+        fi
+
     - name: Terraform Plan (Destroy)
       if: github.event_name == 'pull_request' || github.event_name == 'push'
       run: |
-        terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
+        terraform plan -destroy -no-color -input=false -out=tfplan -lock-timeout=5m
         terraform show -no-color tfplan > plan.txt
 
     - name: Check Changes
