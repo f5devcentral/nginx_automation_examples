@@ -1,19 +1,8 @@
-# Terraform Cloud Organization
-variable "tf_cloud_organization" {
-  type        = string
-  description = "Terraform Cloud Organization (set in GitHub secrets)"
-}
-
 # NGINX Configuration
 variable "nginx_registry" {
   type        = string
   description = "NGINX Docker registry"
   default     = "private-registry.nginx.com"
-}
-
-variable "nginx_jwt" {
-  type        = string
-  description = "JWT for pulling NGINX image"
 }
 
 variable "nginx_pwd" {
@@ -22,8 +11,14 @@ variable "nginx_pwd" {
   default     = "none"
 }
 
-# SSH Key (for potential SSH-based configurations)
-variable "ssh_key" {
+variable "workspace_path" {
+  description = "The path to the workspace directory"
   type        = string
-  description = "Unneeded for NGINX App Protect, only used for TF Cloud variable warnings"
 }
+
+variable "nginx_jwt" {
+  description = "The JWT token for NGINX"
+  type        = string
+  sensitive   = true  # Mark as sensitive to avoid exposing it in logs
+}
+

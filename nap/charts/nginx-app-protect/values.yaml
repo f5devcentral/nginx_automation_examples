@@ -1,69 +1,60 @@
 ---
 controller:
+  name: controller
+  kind: deployment
+  nginxplus: true
+  mgmt:
+    licenseTokenSecretName: "license-token"
+    sslVerify: false
+  nginxReloadTimeout: 60000
   appprotect:
     enable: true
     v5: true
-    volumes:
-      - name: app-protect-bd-config
-        emptyDir: {}
-      - name: app-protect-config
-        emptyDir: {}
-      - name: app-protect-bundles
-        emptyDir: {}
-        
-    volumeMounts:
-      - name: app-protect-bd-config
-        mountPath: /etc/app_protect/bd-config
-      - name: app-protect-config
-        mountPath: /etc/app_protect/config
-      - name: app-protect-bundles
-        mountPath: /etc/app_protect/bundles
-     ## Configuration for App Protect WAF v5 Enforcer
     enforcer:
-      # Host that the App Protect WAF v5 Enforcer runs on.
-      # This will normally be "127.0.0.1" as the Enforcer container
-      # will run in the same pod as the Ingress Controller container.
       host: "127.0.0.1"
-      # Port that the App Protect WAF v5 Enforcer runs on.
-      port: 50000 
+      port: 50000
       image:
-        ## The image repository of the App Protect WAF v5 Enforcer.
-        repository:  private-registry.nginx.com/nap/waf-enforcer
-        tag: "3.6.1"
-        ## The pull policy for the App Protect WAF v5 Enforcer image.
-        pullPolicy: IfNotPresent
-      securityContext: 
-        readOnlyRootFilesystem: true
-    configManager:
-      image:
-        ## The image repository of the App Protect WAF v5 Configuration Manager.
-        repository: private-registry.nginx.com/nap/waf-config-mgr
-        ## The tag of the App Protect WAF v5 Configuration Manager image.
-        tag: "3.6.1"
-        ## The pull policy for the App Protect WAF v5 Configuration Manager image.
+        repository: private-registry.nginx.com/nap/waf-enforcer
+        tag: "5.4.0"
         pullPolicy: IfNotPresent
       securityContext:
-        readOnlyRootFilesystem: true
-        allowPrivilegeEscalation: false
-        runAsUser: 101 #nginx
-        runAsNonRoot: true
+        readOnlyRootFilesystem: false  # Temporarily disabled for debugging
+        allowPrivilegeEscalation: true
+        runAsNonRoot: false
+    configManager:
+      image:
+        repository: private-registry.nginx.com/nap/waf-config-mgr
+        tag: "5.4.0"
+        pullPolicy: IfNotPresent
+      securityContext:
+        readOnlyRootFilesystem: false  # Temporarily disabled for debugging
+        allowPrivilegeEscalation: true
+        runAsNonRoot: false
         capabilities:
           drop:
             - all
-  appprotectdos:
-    enable: true
+      volumeMounts:
+        - name: app-protect-bd-config
+          mountPath: /opt/app_protect/bd_config
+        - name: app-protect-config
+          mountPath: /opt/app_protect/config
+        - name: app-protect-bundles
+          mountPath: /etc/app_protect/bundles
   enableSnippets: true
   image:
-    repository: private-registry.nginx.com/nginx-ic-dos/nginx-plus-ingress
-    tag: "3.6.1"
-    pullPolicy: Always
-  nginxplus: true
+    repository: private-registry.nginx.com/nginx-ic-nap-v5/nginx-plus-ingress
+    tag: "4.0.1"
+    pullPolicy: IfNotPresent
+  securityContext:
+    readOnlyRootFilesystem: false  # Temporarily disabled for debugging
+    allowPrivilegeEscalation: true
+  logLevel: "debug"  # Increased for debugging
   nginxStatus:
-    allowCidrs: 0.0.0.0/0
+    allowCidrs: "0.0.0.0/0"
     port: 9000
   readyStatus:
     initialDelaySeconds: 30
   serviceAccount:
-    imagePullSecretName: regcred 
+    imagePullSecretName: regcred
 prometheus:
   create: true
