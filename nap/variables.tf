@@ -11,3 +11,14 @@ variable "nginx_pwd" {
   default     = "none"
 }
 
+variable "workspace_path" {
+  description = "The path to the workspace directory"
+  type        = string
+}
+
+variable "nginx_jwt" {
+  description = "The JWT token for NGINX"
+  type        = string
+  sensitive   = true  # Mark as sensitive to avoid exposing it in logs
+}
+
