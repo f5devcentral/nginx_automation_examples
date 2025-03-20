@@ -8,17 +8,7 @@ data "terraform_remote_state" "infra" {
   }
 }
 
-# Read eks state from S3 (replace Terraform Cloud reference)
-data "terraform_remote_state" "eks" {
-  backend = "s3"
-  config = {
-    bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
-    key    = "eks-cluster/terraform.tfstate"  # Path to EKS state file
-    region = "us-east-1"                     # AWS region
-  }
-}
 
-# Read nap state from S3 (conditional based on infra's nap output)
 data "terraform_remote_state" "nap" {
   count = data.terraform_remote_state.infra.outputs.nap ? 1 : 0
   backend = "s3"
