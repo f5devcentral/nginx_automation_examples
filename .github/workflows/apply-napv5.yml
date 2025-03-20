@@ -176,116 +176,128 @@ jobs:
     needs: terraform_nap
     defaults:
       run:
-        working-directory: ./policy
+       working-directory: ./policy
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Init
-        run: terraform init
+    - name: Terraform Init
+      run: terraform init
 
-      - name: Install Docker and Docker Compose
-        run: |
-          sudo apt-get update -y
-          sudo apt-get remove -y containerd containerd.io
-          sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-          sudo apt-get update -y
-          sudo apt-get install docker-ce docker-ce-cli containerd.io -y
-          sudo service docker start
-          sudo usermod -aG docker $USER
+    - name: Fetch EKS Cluster Name and Region
+      run: |
+        echo "EKS_CLUSTER_NAME=$(terraform output -raw cluster_name)" >> $GITHUB_ENV
+        echo "AWS_REGION=$(terraform output -raw aws_region)" >> $GITHUB_ENV
 
-          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
+    - name: Configure kubectl for EKS
+      run: |
+        aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
 
-      - name: Create Certificates Directory for Docker
-        run: |
-          sudo mkdir -p /etc/docker/certs.d/private-registry.nginx.com
+    - name: Verify kubectl connectivity
+      run: kubectl get nodes -n nginx-ingress
 
-      - name: Create NGINX Repository Certificate for Docker
-        run: echo "${{ secrets.NGINX_REPO_CRT }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.cert > /dev/null
+    - name: Install Docker and Docker Compose
+      run: |
+        sudo apt-get update -y
+        sudo apt-get remove -y containerd containerd.io
+        sudo apt-get install apt-transport-https ca-certificates curl software-properties-common -y
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        sudo apt-get update -y
+        sudo apt-get install docker-ce docker-ce-cli containerd.io -y
+        sudo service docker start
+        sudo usermod -aG docker $USER
 
-      - name: Create NGINX Repository Key for Docker
-        run: echo "${{ secrets.NGINX_REPO_KEY }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.key > /dev/null
+        sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
 
-      - name: Create Certificates Directory for NGINX
-        run: |
-          sudo mkdir -p /etc/ssl/nginx
+    - name: Create Certificates Directory for Docker
+      run: |
+        sudo mkdir -p /etc/docker/certs.d/private-registry.nginx.com
 
-      - name: Save NGINX Repository Certificate for NGINX
-        run: echo "${{ secrets.NGINX_REPO_CRT }}" | sudo tee /etc/ssl/nginx/nginx-repo.crt > /dev/null
+    - name: Create NGINX Repository Certificate for Docker
+      run: echo "${{ secrets.NGINX_REPO_CRT }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.cert > /dev/null
 
-      - name: Save NGINX Repository Key for NGINX
-        run: echo "${{ secrets.NGINX_REPO_KEY }}" | sudo tee /etc/ssl/nginx/nginx-repo.key > /dev/null
+    - name: Create NGINX Repository Key for Docker
+      run: echo "${{ secrets.NGINX_REPO_KEY }}" | sudo tee /etc/docker/certs.d/private-registry.nginx.com/client.key > /dev/null
 
-      - name: Build Docker Image
-        run: |
-          docker build --no-cache \
-            --secret id=nginx-crt,src=/etc/ssl/nginx/nginx-repo.crt \
-            --secret id=nginx-key,src=/etc/ssl/nginx/nginx-repo.key \
-            -t waf-compiler-5.4.0:custom .
+    - name: Create Certificates Directory for NGINX
+      run: |
+        sudo mkdir -p /etc/ssl/nginx
 
-      - name: Ensure correct permissions for nap/charts directory
-        run: |
-          sudo chown -R $USER:$USER ${{ github.workspace }}    
-          sudo chmod -R 777 ${{ github.workspace }}
+    - name: Save NGINX Repository Certificate for NGINX
+      run: echo "${{ secrets.NGINX_REPO_CRT }}" | sudo tee /etc/ssl/nginx/nginx-repo.crt > /dev/null
 
-      - name: Run Docker Container as Root
-        run: |
-          docker run --rm \
-              -v ${{ github.workspace }}:/workspace \
-                waf-compiler-5.4.0:custom \
-              -p /workspace/policy/policy.json -o /workspace/policy/compiled_policy.tgz
+    - name: Save NGINX Repository Key for NGINX
+      run: echo "${{ secrets.NGINX_REPO_KEY }}" | sudo tee /etc/ssl/nginx/nginx-repo.key > /dev/null
 
-      - name: Convert Compiled Policy to Base64
-        run: |
-          base64 ${{ github.workspace }}/policy/compiled_policy.tgz > ${{ github.workspace }}/policy/compiled_policy_base64.txt
+    - name: Build Docker Image
+      run: |
+        docker build --no-cache \
+          --secret id=nginx-crt,src=/etc/ssl/nginx/nginx-repo.crt \
+          --secret id=nginx-key,src=/etc/ssl/nginx/nginx-repo.key \
+          -t waf-compiler-5.4.0:custom .
 
-      - name: Fix permissions for compiled files
-        run: |
-          sudo chown -R $USER:$USER ${{ github.workspace }}/policy
-          chmod 644 ${{ github.workspace }}/policy/compiled_policy.tgz
-          chmod 644 ${{ github.workspace }}/policy/compiled_policy_base64.txt
-          ls -lh ${{ github.workspace }}/policy
+    - name: Ensure correct permissions for nap/charts directory
+      run: |
+        sudo chown -R $USER:$USER ${{ github.workspace }}    
+        sudo chmod -R 777 ${{ github.workspace }}
+
+    - name: Run Docker Container as Root
+      run: |
+        docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+              waf-compiler-5.4.0:custom \
+            -p /workspace/policy/policy.json -o /workspace/policy/compiled_policy.tgz
+
+    - name: Convert Compiled Policy to Base64
+      run: |
+        base64 ${{ github.workspace }}/policy/compiled_policy.tgz > ${{ github.workspace }}/policy/compiled_policy_base64.txt
+
+    - name: Fix permissions for compiled files
+      run: |
+        sudo chown -R $USER:$USER ${{ github.workspace }}/policy
+        chmod 644 ${{ github.workspace }}/policy/compiled_policy.tgz
+        chmod 644 ${{ github.workspace }}/policy/compiled_policy_base64.txt
+        ls -lh ${{ github.workspace }}/policy
 
 
-      - name: Copy Compiled Policy to NGINX Ingress Controller
-        run: |
-          NGINX_POD=$(kubectl get pods -n nginx-ingress -l app=nginx-ingress -o jsonpath='{.items[0].metadata.name}')
-          kubectl cp ${{ github.workspace }}/policy/compiled_policy.tgz $NGINX_POD:/etc/app_protect/bundles/compiled_policy.tgz -n nginx-ingress -c nginx-plus-ingress
+    - name: Copy Compiled Policy to NGINX Ingress Controller
+      run: |
+        NGINX_POD=$(kubectl get pods -n nginx-ingress -l app=nginx-ingress -o jsonpath='{.items[0].metadata.name}')
+        kubectl cp ${{ github.workspace }}/policy/compiled_policy.tgz $NGINX_POD:/etc/app_protect/bundles/compiled_policy.tgz -n nginx-ingress -c nginx-plus-ingress
 
-      - name: Terraform Init
-        run: terraform init
+    - name: Terraform Init
+      run: terraform init
 
-      - name: Terraform Plan
-        run: |
-          terraform plan -no-color -input=false -out=tfplan
-          terraform show -no-color tfplan > plan.txt
+    - name: Terraform Plan
+      run: |
+        terraform plan -no-color -input=false -out=tfplan
+        terraform show -no-color tfplan > plan.txt
 
-      - name: Check Changes
-        id: check_changes
-        run: |
-          if grep -q "No changes." plan.txt; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          fi
+    - name: Check Changes
+      id: check_changes
+      run: |
+        if grep -q "No changes." plan.txt; then
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+        else
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+        fi
 
-      - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
-        run: terraform apply -auto-approve tfplan
+    - name: Terraform Apply
+      if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
+      run: terraform apply -auto-approve tfplan
 
   terraform_arcadia:
     name: "Arcadia WebApp"
