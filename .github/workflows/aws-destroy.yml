@@ -1,4 +1,4 @@
-name: "NGINX 5-NAP Destroy"
+name: "NGINX v5-NAP Destroy"
 on:
   push:
     branches:
@@ -185,7 +185,6 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform destroy -auto-approve -input=false
     
-
   terraform_infra:
     name: "Destroy AWS Infra"
     runs-on: ubuntu-latest
