@@ -22,3 +22,8 @@ output "node_security_group_id" {
   description = "EKS NG SG ID"
   value = aws_security_group.eks_nodes.id
 }
+
+output "aws_region" {
+  description = "The AWS region where the EKS cluster is deployed"
+  value       = var.aws_region
+}

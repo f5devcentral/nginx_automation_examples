@@ -192,13 +192,20 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Init
+
+    - name: Terraform Init (EKS)
       run: terraform init
+      working-directory: ./eks-cluster
+
+    - name: Print EKS Terraform Outputs
+      run: terraform output
+      working-directory: ./eks-cluster
 
     - name: Fetch EKS Cluster Name and Region
       run: |
         echo "EKS_CLUSTER_NAME=$(terraform output -raw cluster_name)" >> $GITHUB_ENV
-        echo "AWS_REGION=$(terraform output -raw aws_region)" >> $GITHUB_ENV
+        echo "AWS_REGION=$AWS_REGION" >> $GITHUB_ENV
+      working-directory: ./eks-cluster
 
     - name: Configure kubectl for EKS
       run: |
