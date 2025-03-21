@@ -38,24 +38,49 @@ locals {
   oidc_issuer_url = replace(data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer, "https://", "")
 }
 
+# Get TLS certificate for thumbprint
 data "tls_certificate" "eks_oidc" {
   url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
 }
 
-data "aws_iam_openid_connect_provider" "existing" {
-  count = var.create_oidc_provider ? 0 : 1
-  url   = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+# Check if OIDC provider already exists
+data "external" "oidc_provider_check" {
+  program = ["bash", "-c", <<EOT
+    # Get OIDC issuer URL
+    issuer_url="${data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer}"
+    
+    # Check provider existence
+    if aws iam list-open-id-connect-providers --query "OpenIDConnectProviderList[?ends_with(Arn, '/${issuer_url#https://}')].Arn" --output text | grep -q .; then
+      echo '{"exists":"true"}'
+    else
+      echo '{"exists":"false"}'
+    fi
+  EOT
+  ]
 }
 
+# Create OIDC provider only if it doesn't exist
 resource "aws_iam_openid_connect_provider" "oidc" {
-  count           = var.create_oidc_provider ? 1 : 0
+  count = data.external.oidc_provider_check.result.exists == "true" ? 0 : 1
+
   url             = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.tls_certificate.eks_oidc.certificates[0].sha1_fingerprint]
+
+  depends_on = [aws_eks_cluster.eks-tf]
+}
+
+# Get ARN of existing or new provider
+data "aws_iam_openid_connect_provider" "existing" {
+  count = data.external.oidc_provider_check.result.exists == "true" ? 1 : 0
+  url   = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
 }
 
 locals {
-  oidc_provider_arn = try(data.aws_iam_openid_connect_provider.existing[0].arn, aws_iam_openid_connect_provider.oidc[0].arn)
+  oidc_provider_arn = try(
+    data.aws_iam_openid_connect_provider.existing[0].arn,
+    aws_iam_openid_connect_provider.oidc[0].arn
+  )
 }
 
 # Worker Node IAM Role
