@@ -41,10 +41,22 @@ jobs:
       - name: Initialize Terraform (Local)
         run: terraform init
 
-      - name: Apply Bootstrap Resources
-        run: terraform apply -auto-approve
-
+      - name: Terraform Plan
+        run: terraform plan -no-color -input=false -out=tfplan
       
+      - name: Check for Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." <(terraform show -no-color tfplan); then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Apply Bootstrap Resources
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: terraform apply -auto-approve tfplan
+
   
   terraform_infra:
     name: "AWS Infra"
@@ -143,7 +155,7 @@ jobs:
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve - tfplan
 
   terraform_nap:
     name: "NGINX App Protect"
