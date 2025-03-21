@@ -28,11 +28,6 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Install AWS CLI
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y awscli
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
