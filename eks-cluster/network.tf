@@ -18,29 +18,17 @@ resource "aws_nat_gateway" "main" {
   }
 }
 
-# Calculate subnet CIDR blocks
-module "subnet_addrs" {
-  source  = "hashicorp/subnets/cidr"
-  version = "1.0.0"
-
-  base_cidr_block = local.eks_cidr  # Use the dedicated EKS CIDR block
-  networks = [
-    {
-      name     = "eks-internal"
-      new_bits = 1  # Adds 1 bit to the base CIDR block
-    },
-    {
-      name     = "eks-external"
-      new_bits = 1  # Adds 1 bit to the base CIDR block
-    }
-  ]
+# Calculate subnet CIDR blocks using cidrsubnets
+locals {
+  eks_internal_cidrs = [for i, az in local.azs : cidrsubnet(local.eks_cidr, 1, i)]
+  eks_external_cidrs = [for i, az in local.azs : cidrsubnet(local.eks_cidr, 1, length(local.azs) + i)]
 }
 
 # Create EKS internal subnets
 resource "aws_subnet" "eks-internal" {
   for_each          = toset(local.azs)
   vpc_id            = local.vpc_id
-  cidr_block        = module.subnet_addrs.network_cidr_blocks["eks-internal"][index(local.azs, each.key)]
+  cidr_block        = local.eks_internal_cidrs[index(local.azs, each.key)]
   availability_zone = each.key
   tags = {
     Name = format("%s-eks-int-subnet-%s", local.project_prefix, each.key)
@@ -53,7 +41,7 @@ resource "aws_subnet" "eks-internal" {
 resource "aws_subnet" "eks-external" {
   for_each                = toset(local.azs)
   vpc_id                  = local.vpc_id
-  cidr_block              = module.subnet_addrs.network_cidr_blocks["eks-external"][index(local.azs, each.key)]
+  cidr_block              = local.eks_external_cidrs[index(local.azs, each.key)]
   map_public_ip_on_launch = true
   availability_zone       = each.key
   tags = {
