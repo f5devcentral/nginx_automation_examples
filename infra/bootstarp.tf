@@ -1,3 +1,10 @@
+terraform {
+  # Phase 1: Use local backend for initial creation
+  backend "local" {
+    path = "terraform.tfstate"
+  }
+}
+
 # Fetch the current AWS account ID
 data "aws_caller_identity" "current" {}
 
