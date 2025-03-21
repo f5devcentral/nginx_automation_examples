@@ -28,7 +28,7 @@ resource "aws_s3_bucket" "terraform_state_bucket" {
   tags = {
     Name = "Terraform State Bucket"
   }
-
+}
 
 # Check if the DynamoDB table already exists
 data "aws_dynamodb_table" "existing_table" {
@@ -51,5 +51,4 @@ resource "aws_dynamodb_table" "terraform_state_lock" {
   tags = {
     Name = "Terraform State Lock Table"
   }
-
-  
+}
