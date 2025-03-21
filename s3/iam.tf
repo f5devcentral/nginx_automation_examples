@@ -1,20 +1,8 @@
 data "aws_caller_identity" "current" {}
 
-# Fetch the existing IAM role for Terraform CI/CD if it exists
-data "aws_iam_role" "existing_terraform_execution_role" {
-  count = var.create_iam_resources ? 1 : 0
-  name  = "TerraformCIExecutionRole"
-}
-
-# Fetch the existing IAM policy for Terraform state access if it exists
-data "aws_iam_policy" "existing_terraform_state_access" {
-  count = var.create_iam_resources ? 1 : 0
-  name  = "TerraformStateAccess"
-}
-
 # Create IAM role if it doesn't exist
 resource "aws_iam_role" "terraform_execution_role" {
-  count = var.create_iam_resources && length(data.aws_iam_role.existing_terraform_execution_role) == 0 ? 1 : 0
+  count = var.create_iam_resources ? 1 : 0
 
   name               = "TerraformCIExecutionRole"
   description        = "Role for basic Terraform CI/CD executions"
@@ -34,7 +22,7 @@ resource "aws_iam_role" "terraform_execution_role" {
 
 # Create IAM policy if it doesn't exist
 resource "aws_iam_policy" "terraform_state_access" {
-  count = var.create_iam_resources && length(data.aws_iam_policy.existing_terraform_state_access) == 0 ? 1 : 0
+  count = var.create_iam_resources ? 1 : 0
 
   name        = "TerraformStateAccess"
   description = "Minimum permissions for S3 state management"
@@ -61,12 +49,6 @@ resource "aws_iam_policy" "terraform_state_access" {
 resource "aws_iam_role_policy_attachment" "state_access" {
   count = var.create_iam_resources ? 1 : 0
 
-  role       = coalesce(
-    try(data.aws_iam_role.existing_terraform_execution_role[0].name, ""),
-    try(aws_iam_role.terraform_execution_role[0].name, "")
-  )
-  policy_arn = coalesce(
-    try(data.aws_iam_policy.existing_terraform_state_access[0].arn, ""),
-    try(aws_iam_policy.terraform_state_access[0].arn, "")
-  )
+  role       = aws_iam_role.terraform_execution_role[0].name
+  policy_arn = aws_iam_policy.terraform_state_access[0].arn
 }
