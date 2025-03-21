@@ -155,7 +155,7 @@ jobs:
 
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
-        run: terraform apply -auto-approve - tfplan
+        run: terraform apply -auto-approve tfplan
 
   terraform_nap:
     name: "NGINX App Protect"
