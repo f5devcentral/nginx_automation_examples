@@ -1,20 +1,36 @@
 terraform {
   backend "local" {
-    path = "bootstrap.tfstate"  # Local state for initial creation
+    path = "bootstrap.tfstate"
   }
 }
 
-# Fetch AWS account ID
-data "aws_caller_identity" "current" {}
+# Check if S3 bucket exists using AWS CLI (no Terraform errors)
+data "external" "s3_bucket_exists" {
+  program = ["bash", "-c", <<EOT
+    if aws s3api head-bucket --bucket ${var.tf_state_bucket} >/dev/null 2>&1; then
+      echo '{"exists":"true"}'
+    else
+      echo '{"exists":"false"}'
+    fi
+  EOT
+  ]
+}
 
-# Check if S3 bucket exists (safely)
-data "aws_s3_bucket" "existing_bucket" {
-  bucket = var.tf_state_bucket
+# Check if DynamoDB table exists using AWS CLI (no Terraform errors)
+data "external" "dynamodb_table_exists" {
+  program = ["bash", "-c", <<EOT
+    if aws dynamodb describe-table --table-name terraform-lock-table >/dev/null 2>&1; then
+      echo '{"exists":"true"}'
+    else
+      echo '{"exists":"false"}'
+    fi
+  EOT
+  ]
 }
 
 # Create S3 bucket only if it doesn't exist
 resource "aws_s3_bucket" "terraform_state_bucket" {
-  count = can(data.aws_s3_bucket.existing_bucket.id) ? 0 : 1
+  count = data.external.s3_bucket_exists.result.exists == "true" ? 0 : 1
 
   bucket        = var.tf_state_bucket
   force_destroy = true  # Allow deletion even if not empty
@@ -36,14 +52,9 @@ resource "aws_s3_bucket" "terraform_state_bucket" {
   }
 }
 
-# Check if DynamoDB table exists (safely)
-data "aws_dynamodb_table" "existing_table" {
-  name = "terraform-lock-table"
-}
-
 # Create DynamoDB table only if it doesn't exist
 resource "aws_dynamodb_table" "terraform_state_lock" {
-  count = can(data.aws_dynamodb_table.existing_table.id) ? 0 : 1
+  count = data.external.dynamodb_table_exists.result.exists == "true" ? 0 : 1
 
   name         = "terraform-lock-table"
   billing_mode = "PAY_PER_REQUEST"
