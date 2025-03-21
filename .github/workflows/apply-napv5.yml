@@ -53,6 +53,10 @@ jobs:
           }
           EOF
 
+      - name: Initialize Terraform (S3 Backend)
+        run: |
+          terraform init
+
       - name: Terraform Plan
         run: terraform plan -no-color -input=false -out=tfplan
       
