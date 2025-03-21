@@ -36,12 +36,14 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       # Step 1: Initialize Terraform with Local Backend
-      - name: Initialize Terraform (Local Backend)
+      - name: Initialize Terraform (Local)
         run: terraform init
 
-      # Step 2: Apply Terraform Configuration
-      - name: Apply Terraform Configuration
-        run: terraform apply -auto-approve
+      - name: Apply Bootstrap Resources
+        run: |
+          terraform apply -target=aws_s3_bucket.terraform_state_bucket \
+                          -target=aws_dynamodb_table.terraform_state_lock \
+                          -auto-approve
 
       # Step 3: Migrate to S3 Backend
       - name: Migrate to S3 Backend
