@@ -38,21 +38,6 @@ jobs:
           pip3 install awscli --upgrade --user
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Generate backend.tf
-        id: backend
-        run: |
-          cat > backend.tf << EOF
-          terraform {
-            backend "s3" {
-              bucket         = "akash-terraform-state-bucket"
-              key            = "s3/terraform.tfstate"
-              region         = "${{ env.AWS_REGION }}"
-              dynamodb_table = "terraform-lock-table"
-              encrypt        = true
-            }
-          }
-          EOF
-
       - name: Initialize Terraform (S3 Backend)
         run: |
           terraform init
@@ -69,9 +54,10 @@ jobs:
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Apply Bootstrap Resources
-        if: steps.check_changes.outputs.has_changes == 'true'
+      - name: Terraform Apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
+
 
   
   terraform_infra:
