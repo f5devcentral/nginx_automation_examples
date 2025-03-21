@@ -38,8 +38,20 @@ jobs:
           pip3 install awscli --upgrade --user
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Initialize Terraform (Local)
-        run: terraform init
+      - name: Generate backend.tf
+        id: backend
+        run: |
+          cat > backend.tf << EOF
+          terraform {
+            backend "s3" {
+              bucket         = "akash-terraform-state-bucket"
+              key            = "s3/terraform.tfstate"
+              region         = "${{ env.AWS_REGION }}"
+              dynamodb_table = "terraform-lock-table"
+              encrypt        = true
+            }
+          }
+          EOF
 
       - name: Terraform Plan
         run: terraform plan -no-color -input=false -out=tfplan
@@ -86,11 +98,7 @@ jobs:
 
       - name: Initialize Terraform (S3 Backend)
         run: |
-          terraform init \
-            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
-            -backend-config="key=infra/terraform.tfstate" \
-            -backend-config="region=${{ env.AWS_REGION }}" \
-            -backend-config="dynamodb_table=terraform-lock-table"
+          terraform init
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
