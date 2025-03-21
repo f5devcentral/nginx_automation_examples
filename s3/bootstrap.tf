@@ -5,28 +5,28 @@ terraform {
 }
 
 
-# Check for existing S3 bucket
+# Safe S3 bucket existence check
 data "aws_s3_bucket" "existing_bucket" {
   bucket = var.tf_state_bucket
 }
 
-# Check for existing DynamoDB table
+# Safe DynamoDB table existence check
 data "aws_dynamodb_table" "existing_lock_table" {
   name = "terraform-lock-table"
 }
 
-# S3 Bucket Configuration
+# Conditional S3 bucket creation
 resource "aws_s3_bucket" "terraform_state_bucket" {
   count = can(data.aws_s3_bucket.existing_bucket.id) ? 0 : 1
 
   bucket        = var.tf_state_bucket
   force_destroy = true
-
   tags = {
     Name = "Terraform State Bucket"
   }
 }
 
+# Conditional bucket versioning
 resource "aws_s3_bucket_versioning" "state_bucket" {
   count = can(data.aws_s3_bucket.existing_bucket.id) ? 0 : 1
 
@@ -36,6 +36,7 @@ resource "aws_s3_bucket_versioning" "state_bucket" {
   }
 }
 
+# Conditional encryption
 resource "aws_s3_bucket_server_side_encryption_configuration" "state_bucket" {
   count = can(data.aws_s3_bucket.existing_bucket.id) ? 0 : 1
 
@@ -47,7 +48,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "state_bucket" {
   }
 }
 
-# DynamoDB Table Configuration
+# Conditional DynamoDB table creation
 resource "aws_dynamodb_table" "terraform_state_lock" {
   count = can(data.aws_dynamodb_table.existing_lock_table.id) ? 0 : 1
 
