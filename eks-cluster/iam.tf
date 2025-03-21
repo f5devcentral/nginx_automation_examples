@@ -43,43 +43,30 @@ data "tls_certificate" "eks_oidc" {
   url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
 }
 
-# Check if OIDC provider already exists
-data "external" "oidc_provider_check" {
-  program = ["bash", "-c", <<EOT
-    # Get OIDC issuer URL
-    issuer_url="${data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer}"
-    
-    # Check provider existence
-    if aws iam list-open-id-connect-providers --query "OpenIDConnectProviderList[?ends_with(Arn, '/$${issuer_url#https://}')].Arn" --output text | grep -q .; then
-      echo "{\"exists\":\"true\"}"
-    else
-      echo "{\"exists\":\"false\"}"
-    fi
-  EOT
-  ]
-}
-
 # Create OIDC provider only if it doesn't exist
 resource "aws_iam_openid_connect_provider" "oidc" {
-  count = data.external.oidc_provider_check.result.exists == "true" ? 0 : 1
-
   url             = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.tls_certificate.eks_oidc.certificates[0].sha1_fingerprint]
 
-  depends_on = [aws_eks_cluster.eks-tf]
+  # Prevent creation if the provider already exists
+  lifecycle {
+    precondition {
+      condition     = !contains([for p in data.aws_iam_openid_connect_provider.existing : p.arn], self.arn)
+      error_message = "OIDC provider already exists."
+    }
+  }
 }
 
-# Get ARN of existing or new provider
+# Get existing OIDC providers
 data "aws_iam_openid_connect_provider" "existing" {
-  count = data.external.oidc_provider_check.result.exists == "true" ? 1 : 0
-  url   = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
+  url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
 }
 
 locals {
   oidc_provider_arn = try(
-    data.aws_iam_openid_connect_provider.existing[0].arn,
-    aws_iam_openid_connect_provider.oidc[0].arn
+    data.aws_iam_openid_connect_provider.existing.arn,
+    aws_iam_openid_connect_provider.oidc.arn
   )
 }
 
