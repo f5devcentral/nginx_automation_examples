@@ -29,10 +29,6 @@ resource "aws_s3_bucket" "terraform_state_bucket" {
     Name = "Terraform State Bucket"
   }
 
-  lifecycle {
-    prevent_destroy = true
-  }
-}
 
 # Check if the DynamoDB table already exists
 data "aws_dynamodb_table" "existing_table" {
@@ -56,7 +52,4 @@ resource "aws_dynamodb_table" "terraform_state_lock" {
     Name = "Terraform State Lock Table"
   }
 
-  lifecycle {
-    prevent_destroy = true
-  }
-}
+  
