@@ -5,25 +5,23 @@ terraform {
 }
 
 
-# Check S3 bucket existence using AWS CLI
 data "external" "s3_bucket_check" {
   program = ["bash", "-c", <<EOT
-    if aws s3api head-bucket --bucket ${var.tf_state_bucket} --region ${var.aws_region} 2>/dev/null; then
-      echo '{"exists":"true"}'
+    if aws s3api head-bucket --bucket ${var.tf_state_bucket} --region ${var.aws_region} >/dev/null 2>&1; then
+      printf '{"exists":"true"}'
     else
-      echo '{"exists":"false"}'
+      printf '{"exists":"false"}'
     fi
   EOT
   ]
 }
 
-# Check DynamoDB table existence using AWS CLI
 data "external" "dynamodb_table_check" {
   program = ["bash", "-c", <<EOT
-    if aws dynamodb describe-table --table-name terraform-lock-table --region ${var.aws_region} 2>/dev/null; then
-      echo '{"exists":"true"}'
+    if aws dynamodb describe-table --table-name terraform-lock-table --region ${var.aws_region} >/dev/null 2>&1; then
+      printf '{"exists":"true"}'
     else
-      echo '{"exists":"false"}'
+      printf '{"exists":"false"}'
     fi
   EOT
   ]
