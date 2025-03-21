@@ -18,10 +18,10 @@ resource "aws_nat_gateway" "main" {
   }
 }
 
-# Calculate subnet CIDR blocks using cidrsubnets
+# Calculate subnet CIDR blocks using cidrsubnet
 locals {
-  eks_internal_cidrs = [for i, az in local.azs : cidrsubnet(local.eks_cidr, 1, i)]
-  eks_external_cidrs = [for i, az in local.azs : cidrsubnet(local.eks_cidr, 1, length(local.azs) + i)]
+  eks_internal_cidrs = [for i, az in local.azs : cidrsubnet(local.eks_cidr, 2, i)]
+  eks_external_cidrs = [for i, az in local.azs : cidrsubnet(local.eks_cidr, 2, length(local.azs) + i)]
 }
 
 # Create EKS internal subnets
