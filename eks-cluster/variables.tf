@@ -1,4 +1,4 @@
-#Project Globals
+#Project Global
 variable "admin_src_addr" {
   type        = string
   description = "Allowed Admin source IP prefix"
