@@ -35,19 +35,11 @@ output "iam_policy_created" {
 # IAM Role Name Output
 output "iam_role_name" {
   description = "The name of the IAM role."
-  value = coalesce(
-    try(aws_iam_role.terraform_execution_role[0].name, ""),
-    try(data.aws_iam_role.existing_terraform_execution_role[0].name, ""),
-    "No IAM Role Found"
-  )
+  value = length(aws_iam_role.terraform_execution_role) > 0 ? aws_iam_role.terraform_execution_role[0].name : "No IAM Role Created"
 }
 
 # IAM Policy Name Output
 output "iam_policy_name" {
   description = "The name of the IAM policy."
-  value = coalesce(
-    try(aws_iam_policy.terraform_state_access[0].name, ""),
-    try(data.aws_iam_policy.existing_terraform_state_access[0].name, ""),
-    "No IAM Policy Found"
-  )
+  value = length(aws_iam_policy.terraform_state_access) > 0 ? aws_iam_policy.terraform_state_access[0].name : "No IAM Policy Created"
 }
