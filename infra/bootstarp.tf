@@ -57,6 +57,6 @@ resource "aws_dynamodb_table" "terraform_state_lock" {
   }
 
   lifecycle {
-    prevent_destroy = flase
+    prevent_destroy = false
   }
 }
