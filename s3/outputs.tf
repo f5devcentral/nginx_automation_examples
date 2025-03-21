@@ -20,26 +20,28 @@ output "dynamodb_table_name" {
   value       = length(aws_dynamodb_table.terraform_state_lock) > 0 ? aws_dynamodb_table.terraform_state_lock[0].name : null
 }
 
-# IAM Role Output
 output "iam_role_created" {
   description = "Whether the IAM role was created."
   value       = length(aws_iam_role.terraform_execution_role) > 0
 }
 
-# IAM Policy Output
 output "iam_policy_created" {
   description = "Whether the IAM policy was created."
   value       = length(aws_iam_policy.terraform_state_access) > 0
 }
 
-# IAM Role Name Output
 output "iam_role_name" {
   description = "The name of the IAM role."
-  value = length(aws_iam_role.terraform_execution_role) > 0 ? aws_iam_role.terraform_execution_role[0].name : "No IAM Role Created"
+  value = coalesce(
+    try(aws_iam_role.terraform_execution_role[0].name, ""),
+    try(data.aws_iam_role.existing_terraform_execution_role[0].name, "")
+  )
 }
 
-# IAM Policy Name Output
 output "iam_policy_name" {
   description = "The name of the IAM policy."
-  value = length(aws_iam_policy.terraform_state_access) > 0 ? aws_iam_policy.terraform_state_access[0].name : "No IAM Policy Created"
+  value = coalesce(
+    try(aws_iam_policy.terraform_state_access[0].name, ""),
+    try(data.aws_iam_policy.existing_terraform_state_access[0].name, "")
+  )
 }
