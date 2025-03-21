@@ -1,10 +1,3 @@
-terraform {
-  backend "local" {
-    path = "bootstrap.tfstate"
-  }
-}
-
-
 data "external" "s3_bucket_check" {
   program = ["bash", "-c", <<EOT
     if aws s3api head-bucket --bucket ${var.tf_state_bucket} --region ${var.aws_region} >/dev/null 2>&1; then
