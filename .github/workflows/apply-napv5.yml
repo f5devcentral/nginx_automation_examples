@@ -28,28 +28,22 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y awscli
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # Phase 1: Bootstrap with local backend
       - name: Initialize Terraform (Local)
         run: terraform init
 
       - name: Apply Bootstrap Resources
-        run: |
-          terraform apply -target=aws_s3_bucket.terraform_state_bucket \
-                          -target=aws_dynamodb_table.terraform_state_lock \
-                          -auto-approve
+        run: terraform apply -auto-approve
 
-      # Phase 2: Migrate state to S3
-      - name: Reinitialize with S3 Backend
-        run: |
-          terraform init -migrate-state \
-            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
-            -backend-config="key=${{ env.TF_STATE_KEY }}" \
-            -backend-config="region=${{ env.AWS_REGION }}" \
-            -backend-config="dynamodb_table=terraform-lock-table"
-
+      
+  
   terraform_infra:
     name: "AWS Infra"
     runs-on: ubuntu-latest
@@ -77,7 +71,12 @@ jobs:
 
 
       - name: Initialize Terraform (S3 Backend)
-        run: terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
+            -backend-config="key=infra/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=terraform-lock-table"
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
