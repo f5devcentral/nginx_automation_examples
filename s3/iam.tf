@@ -1,18 +1,18 @@
-
 data "aws_caller_identity" "current" {}
 
-# Fetch the existing IAM role for Terraform CI/CD if it exist
+# Fetch the existing IAM role for Terraform CI/CD if it exists
 data "aws_iam_role" "existing_terraform_execution_role" {
   count = var.create_iam_resources ? 1 : 0
   name  = "TerraformCIExecutionRole"
 }
 
-# Fetch the existing IAM policy for Terraform state access if it exists
+# Check if the IAM policy exists using a safer approach
 data "aws_iam_policy" "existing_terraform_state_access" {
   count = var.create_iam_resources ? 1 : 0
-  name  = "TerraformStateAccess" # Changed from arn to name lookup
+  name  = "TerraformStateAccess"
 }
 
+# Create IAM role if it doesn't exist
 resource "aws_iam_role" "terraform_execution_role" {
   count = var.create_iam_resources && length(data.aws_iam_role.existing_terraform_execution_role) == 0 ? 1 : 0
 
@@ -32,7 +32,7 @@ resource "aws_iam_role" "terraform_execution_role" {
   })
 }
 
-# IAM Policy for Terraform state access (if it doesn't exist)
+# Create IAM policy if it doesn't exist
 resource "aws_iam_policy" "terraform_state_access" {
   count = var.create_iam_resources && length(data.aws_iam_policy.existing_terraform_state_access) == 0 ? 1 : 0
 
