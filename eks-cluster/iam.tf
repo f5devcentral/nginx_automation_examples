@@ -50,7 +50,7 @@ data "external" "oidc_provider_check" {
     issuer_url="${data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer}"
     
     # Check provider existence
-    if aws iam list-open-id-connect-providers --query "OpenIDConnectProviderList[?ends_with(Arn, '/${issuer_url#https://}')].Arn" --output text | grep -q .; then
+    if aws iam list-open-id-connect-providers --query "OpenIDConnectProviderList[?ends_with(Arn, '/$${issuer_url#https://}')].Arn" --output text | grep -q .; then
       echo "{\"exists\":\"true\"}"
     else
       echo "{\"exists\":\"false\"}"
