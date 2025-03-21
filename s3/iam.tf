@@ -10,7 +10,6 @@ data "aws_iam_policy" "existing_terraform_state_access" {
   name  = "TerraformStateAccess" # Changed from arn to name lookup
 }
 
-# IAM Role for Terraform CI/CD execution (if it doesn't exist)
 resource "aws_iam_role" "terraform_execution_role" {
   count = var.create_iam_resources && length(data.aws_iam_role.existing_terraform_execution_role) == 0 ? 1 : 0
 
@@ -28,10 +27,7 @@ resource "aws_iam_role" "terraform_execution_role" {
       Action = "sts:AssumeRole"
     }]
   })
-
-  # REMOVED prevent_destroy to allow deletion
 }
-
 # IAM Policy for Terraform state access (if it doesn't exist)
 resource "aws_iam_policy" "terraform_state_access" {
   count = var.create_iam_resources && length(data.aws_iam_policy.existing_terraform_state_access) == 0 ? 1 : 0
