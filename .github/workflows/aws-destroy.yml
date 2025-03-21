@@ -208,3 +208,49 @@ jobs:
     - name: Terraform Destroy
       if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
       run: terraform destroy -auto-approve -input=false -lock=false
+
+
+  destroy_S3:
+    name: "Destroy S3/DynamoDB"
+    needs: terraform_infra
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./s3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize Terraform (Local)
+        run: terraform init
+
+      - name: Terraform Plan (Destroy)
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terraform Destroy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
+        run: terraform destroy -auto-approve -input=false -lock=false

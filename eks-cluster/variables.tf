@@ -37,6 +37,11 @@ variable "eks_addons" {
   ]
 }
 
+variable "create_oidc_provider" {
+  description = "Whether to create OIDC provider for IRSA"
+  type        = bool
+  default     = true
+}
 
 
 

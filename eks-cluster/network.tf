@@ -18,28 +18,17 @@ resource "aws_nat_gateway" "main" {
   }
 }
 
-
-module "subnet_addrs" {
-  for_each        = toset(local.azs)
-  source          = "hashicorp/subnets/cidr"
-  version         = "1.0.0"
-  base_cidr_block = cidrsubnet(local.eks_cidr, 2, index(local.azs, each.key))  # Use the dedicated EKS CIDR block
-  networks        = [
-    {
-      name     = "eks-internal"
-      new_bits = 1
-    },
-    {
-      name     = "eks-external"
-      new_bits = 1
-    }
-  ]
+# Calculate subnet CIDR blocks using cidrsubnet
+locals {
+  eks_internal_cidrs = [for i, az in local.azs : cidrsubnet(local.eks_cidr, 2, i)]
+  eks_external_cidrs = [for i, az in local.azs : cidrsubnet(local.eks_cidr, 2, length(local.azs) + i)]
 }
 
+# Create EKS internal subnets
 resource "aws_subnet" "eks-internal" {
-  for_each          = toset(local.azs) # Removed nonsensitive() if not needed
+  for_each          = toset(local.azs)
   vpc_id            = local.vpc_id
-  cidr_block        = module.subnet_addrs[each.key].network_cidr_blocks["eks-internal"]
+  cidr_block        = local.eks_internal_cidrs[index(local.azs, each.key)]
   availability_zone = each.key
   tags = {
     Name = format("%s-eks-int-subnet-%s", local.project_prefix, each.key)
@@ -48,12 +37,13 @@ resource "aws_subnet" "eks-internal" {
   }
 }
 
+# Create EKS external subnets
 resource "aws_subnet" "eks-external" {
-  for_each          = toset(local.azs) # Removed nonsensitive() if not needed
-  vpc_id            = local.vpc_id
-  cidr_block        = module.subnet_addrs[each.key].network_cidr_blocks["eks-external"]
+  for_each                = toset(local.azs)
+  vpc_id                  = local.vpc_id
+  cidr_block              = local.eks_external_cidrs[index(local.azs, each.key)]
   map_public_ip_on_launch = true
-  availability_zone = each.key
+  availability_zone       = each.key
   tags = {
     Name = format("%s-eks-ext-subnet-%s", local.project_prefix, each.key)
     "kubernetes.io/cluster/${local.cluster_name}" = "shared"
@@ -61,6 +51,7 @@ resource "aws_subnet" "eks-external" {
   }
 }
 
+# Create route table for NAT Gateway
 resource "aws_route_table" "main" {
   vpc_id = local.vpc_id
   route {
@@ -72,14 +63,16 @@ resource "aws_route_table" "main" {
   }
 }
 
+# Associate internal subnets with the route table
 resource "aws_route_table_association" "internal-subnet-association" {
-  for_each       = toset(local.azs) # Removed nonsensitive() if not needed
+  for_each       = toset(local.azs)
   subnet_id      = aws_subnet.eks-internal[each.key].id
   route_table_id = aws_route_table.main.id
 }
 
+# Associate external subnets with the main route table
 resource "aws_route_table_association" "external-subnet-association" {
-  for_each       = toset(local.azs) # Removed nonsensitive() if not needed
+  for_each       = toset(local.azs)
   subnet_id      = aws_subnet.eks-external[each.key].id
   route_table_id = local.vpc_main_route_table_id
 }

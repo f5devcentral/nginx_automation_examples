@@ -1,0 +1,1 @@
+{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"subnet_addrs","Source":"registry.terraform.io/hashicorp/subnets/cidr","Version":"1.0.0","Dir":".terraform/modules/subnet_addrs"}]}
