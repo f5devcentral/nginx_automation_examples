@@ -2,8 +2,6 @@ name: "NGINX NAPV5 Deployment"
 on:
   push:
     branches: [apply-nap]
-  pull_request:
-    branches: [apply-nap]
 
 env:
   AWS_REGION: us-east-1
@@ -11,6 +9,47 @@ env:
   TF_STATE_KEY: infra/terraform.tfstate
 
 jobs:
+  bootstrap_infra:
+    name: "Bootstrap S3/DynamoDB"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./s3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # Phase 1: Bootstrap with local backend
+      - name: Initialize Terraform (Local)
+        run: terraform init
+
+      - name: Apply Bootstrap Resources
+        run: |
+          terraform apply -target=aws_s3_bucket.terraform_state_bucket \
+                          -target=aws_dynamodb_table.terraform_state_lock \
+                          -auto-approve
+
+      # Phase 2: Migrate state to S3
+      - name: Reinitialize with S3 Backend
+        run: |
+          terraform init -migrate-state \
+            -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
+            -backend-config="key=${{ env.TF_STATE_KEY }}" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=terraform-lock-table"
+
   terraform_infra:
     name: "AWS Infra"
     runs-on: ubuntu-latest
