@@ -51,9 +51,9 @@ data "external" "oidc_provider_check" {
     
     # Check provider existence
     if aws iam list-open-id-connect-providers --query "OpenIDConnectProviderList[?ends_with(Arn, '/${issuer_url#https://}')].Arn" --output text | grep -q .; then
-      echo '{"exists":"true"}'
+      echo "{\"exists\":\"true\"}"
     else
-      echo '{"exists":"false"}'
+      echo "{\"exists\":\"false\"}"
     fi
   EOT
   ]
