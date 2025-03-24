@@ -7,8 +7,6 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  TF_STATE_BUCKET: akash-terraform-state-bucket
-  TF_STATE_KEY: infra/terraform.tfstate
 
 jobs:
   terraform_arcadia:
