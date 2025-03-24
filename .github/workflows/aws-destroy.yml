@@ -79,16 +79,15 @@ jobs:
         run: terraform init
 
       - name: Terraform Destroy
-        run: terraform destroy  -auto-approve -lock=false
-
+        run: terraform destroy -auto-approve -lock=false
 
   terraform_nap:
     name: "Destroy NGINX NIC/App Protect"
     runs-on: ubuntu-latest
     needs: terraform_policy
     defaults:
-     run:
-      working-directory: ./nap
+      run:
+        working-directory: ./nap
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -96,10 +95,10 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-         aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -109,20 +108,20 @@ jobs:
 
       - name: Terraform Plan (Destroy)
         run: |
-          terraform plan -destroy -no-color -input=false -lock=false -out=tfplan -lock=false \
-          -var="workspace_path=${{ env.WORKSPACE_PATH }}" \
-          -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
-          -var="nginx_pwd=none"
+          terraform plan -destroy -no-color -input=false -lock=false -out=tfplan \
+            -var="workspace_path=${{ env.WORKSPACE_PATH }}" \
+            -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
+            -var="nginx_pwd=none"
         env:
-         WORKSPACE_PATH: "./nap"
+          WORKSPACE_PATH: "./nap"
  
       - name: Check Changes
         id: check_changes
         run: |
           if grep -q "No changes." plan.txt; then
-           echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "has_changes=false" >> $GITHUB_OUTPUT
           else
-           echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Terraform Destroy
@@ -133,7 +132,7 @@ jobs:
             -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
             -var="nginx_pwd=none"
         env:
-            WORKSPACE_PATH: "./nap"
+          WORKSPACE_PATH: "./nap"
 
   terraform_eks:
     name: "Destroy AWS EKS"
@@ -143,41 +142,41 @@ jobs:
       run:
         working-directory: ./eks-cluster
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v3
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-        aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Init
-      run: terraform init
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Terraform Plan (Destroy)
-      if: github.event_name == 'pull_request' || github.event_name == 'push'
-      run: |
-        terraform plan -destroy -no-color -input=false  -out=tfplan -lock=false
-        terraform show -no-color tfplan > plan.txt
+      - name: Terraform Plan (Destroy)
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
+          terraform show -no-color tfplan > plan.txt
 
-    - name: Check Changes
-      id: check_changes
-      run: |
-        if grep -q "No changes." plan.txt; then
-          echo "has_changes=false" >> $GITHUB_OUTPUT
-        else
-          echo "has_changes=true" >> $GITHUB_OUTPUT
-        fi
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Terraform Destroy
-      if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
-      run: terraform destroy -auto-approve -input=false -lock=false
+      - name: Terraform Destroy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
+        run: terraform destroy -auto-approve -input=false -lock=false
 
   terraform_infra:
     name: "Destroy AWS Infra"
@@ -187,50 +186,49 @@ jobs:
       run:
         working-directory: ./infra
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v3
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-        aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Init
-      run: terraform init
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Terraform Plan (Destroy)
-      if: github.event_name == 'pull_request' || github.event_name == 'push'
-      run: |
-        terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
-        terraform show -no-color tfplan > plan.txt
+      - name: Terraform Plan (Destroy)
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
+          terraform show -no-color tfplan > plan.txt
 
-    - name: Check Changes
-      id: check_changes
-      run: |
-        if grep -q "No changes." plan.txt; then
-          echo "has_changes=false" >> $GITHUB_OUTPUT
-        else
-          echo "has_changes=true" >> $GITHUB_OUTPUT
-        fi
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Terraform Destroy
-      if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
-      run: terraform destroy -auto-approve -input=false -lock=false
+      - name: Terraform Destroy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
+        run: terraform destroy -auto-approve -input=false -lock=false
    
   terraform_S3:
-    name: "Dynamic AWS Cleanup"
+    name: "Destroy S3/DynamoDB"
     needs: terraform_infra
     runs-on: ubuntu-latest
     defaults:
-     run:
-      working-directory: ./s3
-
+      run:
+        working-directory: ./s3
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -238,75 +236,65 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-         aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Extract Resource Names from Terraform
-        id: extract_names
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Find Bucket Name
+        id: find_bucket
         run: |
-         # Extract S3 bucket name from Terraform files
-         BUCKET_NAME=$(grep -o 'bucket\s*=\s*".*"' *.tf | head -1 | cut -d'"' -f2)
-         echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
-      
-         # Extract DynamoDB table name from Terraform files
-         TABLE_NAME=$(grep -o 'name\s*=\s*".*"' *.tf | head -1 | cut -d'"' -f2)
-         echo "table_name=${TABLE_NAME}" >> $GITHUB_OUTPUT
-      
-         echo "Extracted bucket: ${BUCKET_NAME}"
-         echo "Extracted table: ${TABLE_NAME}"
-
-      - name:  Extract Resource Names from Terraform
-        id: extract_bucket
-        run: |
-         # Extract the bucket name from variables.tf
-         BUCKET_NAME=$(grep -o 'tf_state_bucket\s*=\s*".*"' variables.tf | cut -d'"' -f2)
-         echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
-         echo "Using bucket: ${BUCKET_NAME}"
-
-         # Extract DynamoDB table name from Terraform files
-         TABLE_NAME=$(grep -o 'name\s*=\s*".*"' *.tf | head -1 | cut -d'"' -f2)
-         echo "table_name=${TABLE_NAME}" >> $GITHUB_OUTPUT
-         echo "Extracted table: ${TABLE_NAME}"
-
-      - name: Force Delete S3 Bucket
-        run: |
-          if [[ -n "${{ steps.extract_bucket.outputs.bucket_name }}" ]]; then
-            echo "🧹 Emptying bucket: ${{ steps.extract_bucket.outputs.bucket_name }}"
-            # Delete all objects and versions
-            aws s3api delete-objects --bucket "${{ steps.extract_bucket.outputs.bucket_name }}" \
-              --delete "$(aws s3api list-object-versions \
-              --bucket "${{ steps.extract_bucket.outputs.bucket_name }}" \
-              --query '{Objects: [Versions[].{Key:Key,VersionId:VersionId}, DeleteMarkers[].{Key:Key,VersionId:VersionId}]}' \
-              --output json)" 2>/dev/null || true
-        
-           echo "💥 Deleting bucket: ${{ steps.extract_bucket.outputs.bucket_name }}"
-           aws s3api delete-bucket --bucket "${{ steps.extract_bucket.outputs.bucket_name }}" || true
+          # Try 3 methods to get bucket name
+          BUCKET_NAME=$(
+            # 1. Try extracting from variables.tf
+            grep -o 'tf_state_bucket\s*=\s*".*"' variables.tf 2>/dev/null | cut -d'"' -f2 ||
+            # 2. Try extracting from Terraform outputs
+            terraform output -raw s3_bucket_name 2>/dev/null ||
+            # 3. Try finding bucket via AWS API
+            aws s3api list-buckets --query "Buckets[?contains(Name, 'terraform') || contains(Name, 'state')].Name | [0]" --output text
+          )
+          
+          if [ -z "$BUCKET_NAME" ]; then
+            echo "::warning::Could not determine bucket name automatically"
+            echo "bucket_name=none" >> $GITHUB_OUTPUT
           else
-           echo "⚠️ Could not extract bucket name from variables.tf"
-          exit 1
+            echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
+            echo "Using bucket: ${BUCKET_NAME}"
           fi
 
-           # Delete DynamoDB table if found
-           if [[ -n "${{ steps.extract_names.outputs.table_name }}" ]]; then
-              echo "💥 Deleting table: ${{ steps.extract_names.outputs.table_name }}"
-              aws dynamodb delete-table --table-name "${{ steps.extract_names.outputs.table_name }}" || true
-           else
-             echo "ℹ️ No table name found in Terraform config"
-           fi
-
-      - name: Verify Cleanup
+      - name: Delete S3 Bucket
+        if: steps.find_bucket.outputs.bucket_name != 'none'
         run: |
-          echo "✅ Verification:"
-          if [[ -n "${{ steps.extract_names.outputs.bucket_name }}" ]]; then
-              echo "Bucket deletion status:"
-              aws s3api head-bucket --bucket "${{ steps.extract_names.outputs.bucket_name }}" 2>&1 || echo "Bucket deleted"
-          fi
-      
-          if [[ -n "${{ steps.extract_names.outputs.table_name }}" ]]; then
-              echo "Table deletion status:"
-              aws dynamodb describe-table --table-name "${{ steps.extract_names.outputs.table_name }}" 2>&1 || echo "Table deleted"
-          fi
+          echo "🧹 Emptying bucket: ${{ steps.find_bucket.outputs.bucket_name }}"
+          # Delete all versions first
+          aws s3api delete-objects --bucket "${{ steps.find_bucket.outputs.bucket_name }}" \
+            --delete "$(aws s3api list-object-versions \
+            --bucket "${{ steps.find_bucket.outputs.bucket_name }}" \
+            --query '{Objects: [Versions[].{Key:Key,VersionId:VersionId}, DeleteMarkers[].{Key:Key,VersionId:VersionId}]}' \
+            --output json)" 2>/dev/null || true
+          
+          echo "💥 Deleting bucket"
+          aws s3api delete-bucket --bucket "${{ steps.find_bucket.outputs.bucket_name }}" || true
 
-    
+      - name: Delete DynamoDB Table
+        run: |
+          TABLE_NAME="terraform-lock-table"
+          echo "💥 Deleting table: ${TABLE_NAME}"
+          aws dynamodb delete-table --table-name "${TABLE_NAME}" || true
+
+      - name: Final Verification
+        run: |
+          if [[ "${{ steps.find_bucket.outputs.bucket_name }}" != "none" ]]; then
+            echo "Verifying bucket deletion:"
+            aws s3api head-bucket --bucket "${{ steps.find_bucket.outputs.bucket_name }}" 2>/dev/null && \
+              echo "::error::Bucket still exists!" || echo "Bucket deleted successfully"
+          fi
+          echo "Verifying table deletion:"
+          aws dynamodb describe-table --table-name "terraform-lock-table" 2>/dev/null && \
+            echo "::error::Table still exists!" || echo "Table deleted successfully"
