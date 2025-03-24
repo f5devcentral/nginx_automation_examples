@@ -134,7 +134,7 @@ jobs:
             -var="workspace_path=${{ env.WORKSPACE_PATH }}" \
             -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
             -var="nginx_pwd=none"
-          env:
+        env:
             WORKSPACE_PATH: "./nap"
 
   terraform_eks:
