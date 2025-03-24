@@ -129,17 +129,3 @@ resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
   role       = aws_iam_role.ebs_csi_driver.name
 }
 
-resource "kubernetes_service_account" "ebs_csi_controller" {
-  depends_on = [
-    aws_eks_cluster.eks-tf,
-    aws_iam_openid_connect_provider.oidc
-  ]
-
-  metadata {
-    name      = "ebs-csi-controller-sa"
-    namespace = "kube-system"
-    annotations = {
-      "eks.amazonaws.com/role-arn" = aws_iam_role.ebs_csi_driver.arn
-    }
-  }
-}
