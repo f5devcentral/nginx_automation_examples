@@ -1,4 +1,4 @@
-# IAM Role for EKS Cluster
+# IAM Role for EKS Cluster (Unchanged)
 resource "aws_iam_role" "eks-iam-role" {
   name = format("%s-eks-iam-role-%s", local.project_prefix, local.build_suffix)
   path = "/"
@@ -29,7 +29,7 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly-EK
   role       = aws_iam_role.eks-iam-role.name
 }
 
-# OIDC Provider Configuration
+# OIDC Provider Configuration (Unchanged)
 data "aws_eks_cluster" "cluster" {
   name = aws_eks_cluster.eks-tf.name
 }
@@ -38,12 +38,10 @@ locals {
   oidc_issuer_url = replace(data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer, "https://", "")
 }
 
-# Get TLS certificate for thumbprint
 data "tls_certificate" "eks_oidc" {
   url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
 }
 
-# Create OIDC provider only if it doesn't exist
 resource "aws_iam_openid_connect_provider" "oidc" {
   url             = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
   client_id_list  = ["sts.amazonaws.com"]
@@ -54,7 +52,7 @@ locals {
   oidc_provider_arn = aws_iam_openid_connect_provider.oidc.arn
 }
 
-# Worker Node IAM Role
+# Worker Node IAM Role (Fixed)
 resource "aws_iam_role" "workernodes" {
   name = format("%s-eks-node-iam-role-%s", local.project_prefix, local.build_suffix)
 
@@ -67,23 +65,12 @@ resource "aws_iam_role" "workernodes" {
           Service = "ec2.amazonaws.com"
         },
         Action = "sts:AssumeRole"
-      },
-      {
-        Effect = "Allow",
-        Principal = {
-          Federated = local.oidc_provider_arn
-        },
-        Action = "sts:AssumeRoleWithWebIdentity",
-        Condition = {
-          StringEquals = {
-            "${local.oidc_issuer_url}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
-          }
-        }
       }
     ]
   })
 }
 
+# Standard Node Policies (Unchanged)
 resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
   role       = aws_iam_role.workernodes.name
@@ -104,133 +91,9 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
   role       = aws_iam_role.workernodes.name
 }
 
-# EBS CSI Driver Policy
-resource "aws_iam_policy" "workernodes_ebs_policy" {
-  name = format("%s-ebs_csi_driver-%s", local.project_prefix, local.build_suffix)
+# Removed the custom EBS policy and its attachment - using managed policy instead
 
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Action = [
-          "ec2:DetachVolume",
-          "ec2:AttachVolume",
-          "ec2:ModifyVolume",
-          "ec2:DescribeInstances",
-          "ec2:DescribeAvailabilityZones",
-          "ec2:DescribeTags",
-          "ec2:DescribeVolumes",
-          "ec2:CreateSnapshot",
-          "ec2:DescribeVolumesModifications",
-          "ec2:DescribeSnapshots"
-        ],
-        Resource = "*"
-      },
-      {
-        Effect = "Allow",
-        Action = "ec2:CreateTags",
-        Resource = [
-          "arn:aws:ec2:*:*:volume/*",
-          "arn:aws:ec2:*:*:snapshot/*"
-        ],
-        Condition = {
-          StringEquals = {
-            "ec2:CreateAction" = [
-              "CreateVolume",
-              "CreateSnapshot"
-            ]
-          }
-        }
-      },
-      {
-        Effect = "Allow",
-        Action = "ec2:DeleteTags",
-        Resource = [
-          "arn:aws:ec2:*:*:volume/*",
-          "arn:aws:ec2:*:*:snapshot/*"
-        ]
-      },
-      {
-        Effect = "Allow",
-        Action = "ec2:CreateVolume",
-        Resource = "*",
-        Condition = {
-          StringLike = {
-            "aws:RequestTag/ebs.csi.aws.com/cluster" = "true"
-          }
-        }
-      },
-      {
-        Effect = "Allow",
-        Action = "ec2:CreateVolume",
-        Resource = "*",
-        Condition = {
-          StringLike = {
-            "aws:RequestTag/CSIVolumeName" = "*"
-          }
-        }
-      },
-      {
-        Effect = "Allow",
-        Action = "ec2:DeleteVolume",
-        Resource = "*",
-        Condition = {
-          StringLike = {
-            "ec2:ResourceTag/ebs.csi.aws.com/cluster" = "true"
-          }
-        }
-      },
-      {
-        Effect = "Allow",
-        Action = "ec2:DeleteVolume",
-        Resource = "*",
-        Condition = {
-          StringLike = {
-            "ec2:ResourceTag/CSIVolumeName" = "*"
-          }
-        }
-      },
-      {
-        Effect = "Allow",
-        Action = "ec2:DeleteVolume",
-        Resource = "*",
-        Condition = {
-          StringLike = {
-            "ec2:ResourceTag/kubernetes.io/created-for/pvc/name" = "*"
-          }
-        }
-      },
-      {
-        Effect = "Allow",
-        Action = "ec2:DeleteSnapshot",
-        Resource = "*",
-        Condition = {
-          StringLike = {
-            "ec2:ResourceTag/CSIVolumeSnapshotName" = "*"
-          }
-        }
-      },
-      {
-        Effect = "Allow",
-        Action = "ec2:DeleteSnapshot",
-        Resource = "*",
-        Condition = {
-          StringLike = {
-            "ec2:ResourceTag/ebs.csi.aws.com/cluster" = "true"
-          }
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "workernodes-AmazonEBSCSIDriver" {
-  policy_arn = aws_iam_policy.workernodes_ebs_policy.arn
-  role       = aws_iam_role.workernodes.name
-}
-
-# IAM Instance Profile
+# IAM Instance Profile (Unchanged)
 resource "aws_iam_instance_profile" "workernodes" {
   name = format("%s-eks-node-instance-profile-%s", local.project_prefix, local.build_suffix)
   role = aws_iam_role.workernodes.name
@@ -260,7 +123,23 @@ resource "aws_iam_role" "ebs_csi_driver" {
   })
 }
 
+# Use the official AWS managed policy instead of custom one
 resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   role       = aws_iam_role.ebs_csi_driver.name
+}
+
+resource "kubernetes_service_account" "ebs_csi_controller" {
+  depends_on = [
+    aws_eks_cluster.eks-tf,
+    aws_iam_openid_connect_provider.oidc
+  ]
+
+  metadata {
+    name      = "ebs-csi-controller-sa"
+    namespace = "kube-system"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.ebs_csi_driver.arn
+    }
+  }
 }
