@@ -79,7 +79,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Destroy
-        run: terraform destroy -auto-approve
+        run: terraform destroy  -auto-approve -lock=false
 
 
   terraform_nap:
