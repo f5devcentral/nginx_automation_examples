@@ -253,10 +253,19 @@ jobs:
     # Pre-cleanup: Empty buckets before destruction
     - name: Empty S3 Buckets
       run: |
-        BUCKET_NAME=$(terraform output -raw tf_state_bucket 2>/dev/null || echo "")
-        if [ -n "$BUCKET_NAME" ]; then
-          aws s3 rm s3://$BUCKET_NAME --recursive --no-verify-ssl || true
+       # Try to get bucket name from outputs, fallback to variable value
+       BUCKET_NAME=$(terraform output -raw tf_state_bucket 2>/dev/null || echo "${{ vars.tf_state_bucket }}")
+    
+       if [ -n "$BUCKET_NAME" ]; then
+         echo "Attempting to empty bucket: $BUCKET_NAME"
+         if aws s3 ls "s3://$BUCKET_NAME" --no-verify-ssl 2>/dev/null; then
+           aws s3 rm "s3://$BUCKET_NAME" --recursive --no-verify-ssl || true
+        else
+          echo "Bucket $BUCKET_NAME does not exist or is not accessible"
         fi
+       else
+        echo "Could not determine bucket name - skipping bucket cleanup"
+       fi
 
     # Main destruction
     - name: Terraform Destroy
