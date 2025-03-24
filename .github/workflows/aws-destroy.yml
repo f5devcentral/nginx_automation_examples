@@ -250,21 +250,17 @@ jobs:
     - name: Initialize Terraform
       run: terraform init
 
-    # Pre-cleanup: Empty buckets before destruction
     - name: Empty S3 Buckets
       run: |
-       # Try to get bucket name from outputs, fallback to variable value
-       BUCKET_NAME=$(terraform output -raw tf_state_bucket 2>/dev/null || echo "${{ vars.tf_state_bucket }}")
+       # Hardcode the bucket name you know exists
+       BUCKET_NAME="akash-terraform-state-bucket"
     
-       if [ -n "$BUCKET_NAME" ]; then
-         echo "Attempting to empty bucket: $BUCKET_NAME"
-         if aws s3 ls "s3://$BUCKET_NAME" --no-verify-ssl 2>/dev/null; then
-           aws s3 rm "s3://$BUCKET_NAME" --recursive --no-verify-ssl || true
-        else
-          echo "Bucket $BUCKET_NAME does not exist or is not accessible"
-        fi
+       # Check if bucket exists before trying to empty it
+       if aws s3 ls "s3://$BUCKET_NAME" --no-verify-ssl 2>/dev/null; then
+        echo "Emptying bucket $BUCKET_NAME"
+        aws s3 rm "s3://$BUCKET_NAME" --recursive --no-verify-ssl || true
        else
-        echo "Could not determine bucket name - skipping bucket cleanup"
+         echo "Bucket $BUCKET_NAME not found or already empty"
        fi
 
     # Main destruction
