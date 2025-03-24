@@ -1,4 +1,3 @@
-# IAM Role for EKS Cluster (Unchanged)
 resource "aws_iam_role" "eks-iam-role" {
   name = format("%s-eks-iam-role-%s", local.project_prefix, local.build_suffix)
   path = "/"
