@@ -76,10 +76,14 @@ resource "aws_eks_addon" "cluster-addons" {
   cluster_name   = aws_eks_cluster.eks-tf.id
   addon_name     = each.value.name
   resolve_conflicts = "OVERWRITE"
+  
+  # Add service account role ARN for EBS CSI driver
+  service_account_role_arn = each.value.name == "aws-ebs-csi-driver" ? aws_iam_role.ebs_csi_driver.arn : null
 
   depends_on = [
     aws_eks_node_group.private-node-group-1-tf,
     aws_eks_node_group.private-node-group-2-tf,
+    aws_iam_role.ebs_csi_driver
   ]
 }
 
