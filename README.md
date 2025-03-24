@@ -28,16 +28,37 @@
 
   
   **GITHUB:** Create secrets with the following values:
+## GitHub Secrets Configuration
 
-  | **Name**              | **Type**| **Description**                                                                                   |
-  | --------------------- | -------- --------------------------------------------------------------------------------------------       |
-  | AWS_ACCESS_KEY_ID     | Secrets | Your AWS Access Key ID                                                                            |
-  | AWS_SECRET_ACCESS_KEY | Secrets | Your AWS Secret Access Key                                                                        |
-  | AWS_SESSION_TOKEN     | Secrets | Your AWS Session Token                                                                            |
-  | NGINX_JWT             | Secrets | Your NGINX JSON Web Token value associated with your NGINX license.                               |
-  | NGINX_CRT             | Secrets | Your F5XC API certificate. Set this to **api.p12**                                                |
-  | NGINX_KEY             | Secrets | Set this to the password you supplied when creating your F5 XC API certificate                    |
+This workflow requires the following secrets to be configured in your GitHub repository:
 
+### Required Secrets
+
+| Secret Name            | Type    | Description                                                                 | Example Value/Format        |
+|------------------------|---------|-----------------------------------------------------------------------------|----------------------------|
+| `AWS_ACCESS_KEY_ID`     | Secret  | AWS IAM user access key ID with sufficient permissions                     | `AKIAXXXXXXXXXXXXXXXX`     |
+| `AWS_SECRET_ACCESS_KEY` | Secret  | Corresponding secret access key for the AWS IAM user                       | (40-character mixed case string) |
+| `AWS_SESSION_TOKEN`     | Secret  | Session token for temporary AWS credentials (if using MFA)                 | (Base64-encoded string)    |
+| `NGINX_JWT`             | Secret  | JSON Web Token for NGINX license authentication                           | `eyJhbGciOi...` (JWT format) |
+| `NGINX_CRT`             | Secret  | F5XC API certificate in PKCS#12 format                                    | `api.p12` file contents    |
+| `NGINX_KEY`             | Secret  | Password used when creating the F5 XC API certificate                     | YourCertificatePassword123 |
+
+### How to Add Secrets
+
+1. Navigate to your GitHub repository
+2. Go to **Settings** → **Secrets and variables** → **Actions**
+3. Click **New repository secret**
+4. Enter the secret name exactly as shown above
+5. Paste the secret value
+6. Click **Add secret**
+
+### Important Notes
+
+- Never commit these values directly in your code
+- All secrets should be stored as repository secrets (not environment secrets)
+- Rotate these credentials regularly for security
+- Ensure the AWS credentials have the minimum required permissions
+- The `NGINX_CRT` secret should contain the entire contents of your `api.p12` file
 
 
 ## Workflow Runs
@@ -48,14 +69,14 @@
   
   | Workflow     | Branch Name      |
   | ------------ | ---------------- |
-  | NGINX-nap/nic| deploy-xc-bigip  |
+  | NGINX-nap/nic| apply--NIC-NAP   |
 
  
   **DESTROY**
   
   | Workflow     | Branch Name       |
   | ------------ | ----------------- |
-  | NGINX-nap/nic| destroy-xc-bigip  |
+  | NGINX-nap/nic| destroy-NIC-NAP   |
 
 
 
