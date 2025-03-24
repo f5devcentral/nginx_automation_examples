@@ -2,10 +2,8 @@ name: "NGINX NAP/NIC-V5 Deployment"
 on:
   push:
     branches: [apply-nap]
-
 env:
   AWS_REGION: us-east-1
-
 jobs:
   bootstrap_infra:
     name: "Bootstrap S3/DynamoDB"
