@@ -80,10 +80,10 @@ This workflow requires the following secrets to be configured in your GitHub rep
   * Also update assets boolean value as per your work-flows
 
 **STEP 3:**  In  S3 directory, add the following data 
-*variable "tf_state_bucket" {
- * type        = string
-  *description = "S3 bucket for Terraform remote state storage"
- *default     = "your-unique-bucket-name"  # Replace with your actual bucket name
+variable "tf_state_bucket" {
+  type        = string
+  description = "S3 bucket for Terraform remote state storage"
+  default     = "your-unique-bucket-name"  # Replace with your actual bucket name
 }
 
  
