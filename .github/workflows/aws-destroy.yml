@@ -224,13 +224,13 @@ jobs:
 
   
   terraform_S3:
-    name: "Destroy S3/DynamoDB/IAM"
-    needs: terraform_infra
-    runs-on: ubuntu-latest
-    defaults:
-     run:
-       working-directory: ./s3
-    steps:
+   name: "Destroy S3/DynamoDB/IAM"
+   needs: terraform_infra
+   runs-on: ubuntu-latest
+   defaults:
+    run:
+      working-directory: ./s3
+   steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -251,27 +251,38 @@ jobs:
     - name: Set Bucket Name
       id: set_bucket
       run: |
-        # Use the bucket name from variables.tf
         BUCKET_NAME="akash-terraform-state-bucket"
         echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
         echo "Using bucket: ${BUCKET_NAME}"
 
-    - name: Delete S3 Bucket
+    - name: Delete S3 Bucket Contents
       run: |
         BUCKET_NAME="${{ steps.set_bucket.outputs.bucket_name }}"
         
-        echo "🧹 Emptying bucket: $BUCKET_NAME"
-        # Delete all objects
-        aws s3 rm "s3://$BUCKET_NAME" --recursive || true
-        
-        # Delete all versions and markers
+        # First delete all object versions
+        echo "🧹 Deleting all object versions..."
         aws s3api delete-objects --bucket "$BUCKET_NAME" \
           --delete "$(aws s3api list-object-versions \
           --bucket "$BUCKET_NAME" \
-          --query '{Objects: [Versions[].{Key:Key,VersionId:VersionId}, DeleteMarkers[].{Key:Key,VersionId:VersionId}]}' \
+          --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' \
           --output json)" 2>/dev/null || true
         
-        echo "💥 Deleting bucket"
+        # Then delete all delete markers
+        echo "🧹 Deleting all delete markers..."
+        aws sapi delete-objects --bucket "$BUCKET_NAME" \
+          --delete "$(aws s3api list-object-versions \
+          --bucket "$BUCKET_NAME" \
+          --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' \
+          --output json)" 2>/dev/null || true
+        
+        # Finally delete any remaining objects
+        echo "🧹 Deleting remaining objects..."
+        aws s3 rm "s3://$BUCKET_NAME" --recursive || true
+
+    - name: Delete S3 Bucket
+      run: |
+        BUCKET_NAME="${{ steps.set_bucket.outputs.bucket_name }}"
+        echo "💥 Deleting bucket: $BUCKET_NAME"
         aws s3api delete-bucket --bucket "$BUCKET_NAME" || true
 
     - name: Delete DynamoDB Table
@@ -322,14 +333,13 @@ jobs:
           echo "Table $TABLE_NAME deleted successfully"
         fi
         
-        # Verify IAM policy
+        # Verify IAM resources
         if aws iam get-policy --policy-arn "arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):policy/TerraformStateAccess" 2>/dev/null; then
           echo "::error::IAM Policy still exists!"
         else
           echo "IAM Policy deleted successfully"
         fi
         
-        # Verify IAM role
         if aws iam get-role --role-name "TerraformCIExecutionRole" 2>/dev/null; then
           echo "::error::IAM Role still exists!"
         else
