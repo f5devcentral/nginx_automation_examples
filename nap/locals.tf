@@ -7,3 +7,4 @@ locals {
   cluster_ca_certificate  = data.terraform_remote_state.eks.outputs.kubeconfig-certificate-authority-data
   app                     = format("%s-nap-%s", local.project_prefix, local.build_suffix)
 }
+
