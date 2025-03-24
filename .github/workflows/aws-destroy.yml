@@ -257,17 +257,35 @@ jobs:
          echo "Extracted bucket: ${BUCKET_NAME}"
          echo "Extracted table: ${TABLE_NAME}"
 
-      - name: Delete Resources
+      - name:  Extract Resource Names from Terraform
+        id: extract_bucket
         run: |
-          # Delete S3 bucket if found
-          if [[ -n "${{ steps.extract_names.outputs.bucket_name }}" ]]; then
-             echo "🧹 Emptying bucket: ${{ steps.extract_names.outputs.bucket_name }}"
-             aws s3 rm "s3://${{ steps.extract_names.outputs.bucket_name }}" --recursive --quiet || true
-    
-             echo "💥 Deleting bucket: ${{ steps.extract_names.outputs.bucket_name }}"
-             aws s3api delete-bucket --bucket "${{ steps.extract_names.outputs.bucket_name }}" || true
+         # Extract the bucket name from variables.tf
+         BUCKET_NAME=$(grep -o 'tf_state_bucket\s*=\s*".*"' variables.tf | cut -d'"' -f2)
+         echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
+         echo "Using bucket: ${BUCKET_NAME}"
+
+         # Extract DynamoDB table name from Terraform files
+         TABLE_NAME=$(grep -o 'name\s*=\s*".*"' *.tf | head -1 | cut -d'"' -f2)
+         echo "table_name=${TABLE_NAME}" >> $GITHUB_OUTPUT
+         echo "Extracted table: ${TABLE_NAME}"
+
+      - name: Force Delete S3 Bucket
+        run: |
+          if [[ -n "${{ steps.extract_bucket.outputs.bucket_name }}" ]]; then
+            echo "🧹 Emptying bucket: ${{ steps.extract_bucket.outputs.bucket_name }}"
+            # Delete all objects and versions
+            aws s3api delete-objects --bucket "${{ steps.extract_bucket.outputs.bucket_name }}" \
+              --delete "$(aws s3api list-object-versions \
+              --bucket "${{ steps.extract_bucket.outputs.bucket_name }}" \
+              --query '{Objects: [Versions[].{Key:Key,VersionId:VersionId}, DeleteMarkers[].{Key:Key,VersionId:VersionId}]}' \
+              --output json)" 2>/dev/null || true
+        
+           echo "💥 Deleting bucket: ${{ steps.extract_bucket.outputs.bucket_name }}"
+           aws s3api delete-bucket --bucket "${{ steps.extract_bucket.outputs.bucket_name }}" || true
           else
-             echo "ℹ️ No bucket name found in Terraform config"
+           echo "⚠️ Could not extract bucket name from variables.tf"
+          exit 1
           fi
 
            # Delete DynamoDB table if found
