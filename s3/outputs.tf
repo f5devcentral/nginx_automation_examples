@@ -10,8 +10,7 @@ output "s3_bucket_name" {
 }
 
 output "tf_state_bucket" {
-  value = aws_s3_bucket.terraform_state.bucket
-  description = "Name of the S3 bucket for Terraform state"
+  value = aws_s3_bucket.state_bucket.bucket
 }
 
 # DynamoDB Table Details
