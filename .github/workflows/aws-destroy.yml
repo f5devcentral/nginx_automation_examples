@@ -224,7 +224,7 @@ jobs:
       run: terraform destroy -auto-approve -input=false -lock=false
 
 
-  destroy_S3:
+  terrafrom_destroy_S3:
     name: "Destroy S3/DynamoDB"
     needs: terraform_infra
     runs-on: ubuntu-latest
@@ -233,38 +233,50 @@ jobs:
         working-directory: ./s3
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
 
-      - name: Initialize Terraform (Local)
-        run: terraform init
+    - name: Initialize Terraform
+      run: terraform init
 
-      - name: Terraform Plan (Destroy)
-        if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: |
-          terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
-          terraform show -no-color tfplan > plan.txt
+    # Pre-cleanup: Empty buckets before destruction
+    - name: Empty S3 Buckets
+      run: |
+        BUCKET_NAME=$(terraform output -raw tf_state_bucket 2>/dev/null || echo "")
+        if [ -n "$BUCKET_NAME" ]; then
+          aws s3 rm s3://$BUCKET_NAME --recursive --no-verify-ssl || true
+        fi
 
-      - name: Check Changes
-        id: check_changes
-        run: |
-          if grep -q "No changes." plan.txt; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          fi
+    # Main destruction
+    - name: Terraform Destroy
+      if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap'
+      run: |
+        terraform destroy -auto-approve -input=false -lock=false -refresh=false
 
-      - name: Terraform Destroy
-        if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
-        run: terraform destroy -auto-approve -input=false -lock=false
+    # Post-cleanup: Verify and force delete if needed
+    - name: Verify and Force Cleanup
+      run: |
+        # Check if state bucket still exists
+        BUCKET_NAME=$(terraform output -raw tf_state_bucket 2>/dev/null || echo "")
+        if [ -n "$BUCKET_NAME" ]; then
+          echo "Force deleting bucket $BUCKET_NAME"
+          aws s3 rb s3://$BUCKET_NAME --force --no-verify-ssl || true
+        fi
+
+        # Check if DynamoDB table still exists
+        TABLE_NAME="terraform-state-lock"
+        if aws dynamodb describe-table --table-name $TABLE_NAME 2>/dev/null; then
+          echo "Force deleting table $TABLE_NAME"
+          aws dynamodb delete-table --table-name $TABLE_NAME || true
+        fi
