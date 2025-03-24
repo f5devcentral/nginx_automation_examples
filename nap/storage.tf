@@ -1,9 +1,4 @@
 resource "kubernetes_service_account" "ebs_csi_controller" {
-  depends_on = [
-    aws_eks_cluster.eks-tf,
-    aws_iam_openid_connect_provider.oidc
-  ]
-
   metadata {
     name      = "ebs-csi-controller-sa"
     namespace = "kube-system"
