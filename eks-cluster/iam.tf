@@ -99,7 +99,6 @@ resource "aws_iam_instance_profile" "workernodes" {
   role = aws_iam_role.workernodes.name
 }
 
-# EBS CSI Driver Role (Improved)
 resource "aws_iam_role" "ebs_csi_driver" {
   name = format("%s-ebs-csi-driver-role-%s", local.project_prefix, local.build_suffix)
 
@@ -109,13 +108,25 @@ resource "aws_iam_role" "ebs_csi_driver" {
       {
         Effect = "Allow",
         Principal = {
-          Federated = local.oidc_provider_arn
+          Federated = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(
+            aws_eks_cluster.eks-tf.identity[0].oidc[0].issuer, 
+            "https://", 
+            ""
+          )}"
         },
         Action = "sts:AssumeRoleWithWebIdentity",
         Condition = {
           StringEquals = {
-            "${local.oidc_issuer_url}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa",
-            "${local.oidc_issuer_url}:aud" = "sts.amazonaws.com"
+            "${replace(
+              aws_eks_cluster.eks-tf.identity[0].oidc[0].issuer, 
+              "https://", 
+              ""
+            )}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa",
+            "${replace(
+              aws_eks_cluster.eks-tf.identity[0].oidc[0].issuer, 
+              "https://", 
+              ""
+            )}:aud" = "sts.amazonaws.com"
           }
         }
       }
