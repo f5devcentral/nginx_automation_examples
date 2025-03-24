@@ -111,7 +111,7 @@ jobs:
 
       - name: Terraform Plan (Destroy)
         run: |
-          terraform plan -destroy -no-color -input=false -out=tfplan -lock=false \
+          terraform plan -destroy -no-color -input=false -lock=false -out=tfplan -lock=false \
           -var="workspace_path=${{ env.WORKSPACE_PATH }}" \
           -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
           -var="nginx_pwd=none"
@@ -130,7 +130,7 @@ jobs:
       - name: Terraform Destroy
         if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: |
-          terraform destroy -auto-approve -input=false \
+          terraform destroy -auto-approve -input=false -lock=false \
             -var="workspace_path=${{ env.WORKSPACE_PATH }}" \
             -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
             -var="nginx_pwd=none"
