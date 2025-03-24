@@ -8,10 +8,6 @@ output "cluster_endpoint" {
   value       = aws_eks_cluster.eks-tf.endpoint
 }
 
-output "ebs_csi_sa_name" {
-  value = kubernetes_service_account.ebs_csi_controller.metadata[0].name
-}
-
 output "cluster_name" {
   description = "Kubernetes Cluster Name"
   value       = nonsensitive(aws_eks_cluster.eks-tf.name)
