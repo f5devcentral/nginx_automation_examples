@@ -1,4 +1,4 @@
-name: "NGINX NAP-V5 Deployment"
+name: "NGINX NAP/NIC-V5 Deployment"
 on:
   push:
     branches: [apply-nap]
