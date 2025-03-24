@@ -278,15 +278,17 @@ jobs:
              echo "ℹ️ No table name found in Terraform config"
            fi
 
-        - name: Verify Cleanup
-          run: |
-           echo "✅ Verification:"
-           if [[ -n "${{ steps.extract_names.outputs.bucket_name }}" ]]; then
+      - name: Verify Cleanup
+        run: |
+          echo "✅ Verification:"
+          if [[ -n "${{ steps.extract_names.outputs.bucket_name }}" ]]; then
               echo "Bucket deletion status:"
               aws s3api head-bucket --bucket "${{ steps.extract_names.outputs.bucket_name }}" 2>&1 || echo "Bucket deleted"
-           fi
+          fi
       
-           if [[ -n "${{ steps.extract_names.outputs.table_name }}" ]]; then
+          if [[ -n "${{ steps.extract_names.outputs.table_name }}" ]]; then
               echo "Table deletion status:"
               aws dynamodb describe-table --table-name "${{ steps.extract_names.outputs.table_name }}" 2>&1 || echo "Table deleted"
-           fi
+          fi
+
+    
