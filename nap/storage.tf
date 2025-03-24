@@ -4,7 +4,6 @@ resource "kubernetes_service_account" "ebs_csi_controller" {
     data.terraform_remote_state.eks.outputs.cluster_endpoint,
     data.terraform_remote_state.eks.outputs.oidc_provider_arn
   ]
-
   metadata {
     name      = "ebs-csi-controller-sa"
     namespace = "kube-system"
