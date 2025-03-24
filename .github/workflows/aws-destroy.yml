@@ -235,24 +235,6 @@ jobs:
 
       - name: Initialize Terraform (Local)
         run: terraform init
-      
-      - name: Generate backend.tf
-        id: backend
-        run: |
-          cat > backend.tf << EOF
-          terraform {
-            backend "s3" {
-              bucket         = "akash-terraform-state-bucket"
-              key            = "s3/terraform.tfstate"
-              region         = "${{ env.AWS_REGION }}"
-              dynamodb_table = "terraform-lock-table"
-              encrypt        = true
-            }
-          }
-          EOF
-
-      - name: Reinitialize Terraform with S3 Backend
-        run: terraform init -migrate-state
 
       - name: Terraform Plan (Destroy)
         if: github.event_name == 'pull_request' || github.event_name == 'push'
