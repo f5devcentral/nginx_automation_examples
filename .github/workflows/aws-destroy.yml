@@ -224,7 +224,7 @@ jobs:
 
   
   terraform_S3:
-   name: "Destroy S3/DynamoDB/IAM"
+   name: "Force Delete S3/DynamoDB"
    needs: terraform_infra
    runs-on: ubuntu-latest
    defaults:
@@ -242,54 +242,52 @@ jobs:
         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-
-    - name: Initialize Terraform
-      run: terraform init
-
     - name: Set Bucket Name
       id: set_bucket
       run: |
-        BUCKET_NAME="akash-terraform-state-bucket"
-        echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
-        echo "Using bucket: ${BUCKET_NAME}"
+        echo "bucket_name=akash-terraform-state-bucket" >> $GITHUB_OUTPUT
 
-    - name: Delete S3 Bucket Contents
+    - name: Nuclear S3 Bucket Deletion
       run: |
         BUCKET_NAME="${{ steps.set_bucket.outputs.bucket_name }}"
         
-        # First delete all object versions
-        echo "🧹 Deleting all object versions..."
-        aws s3api delete-objects --bucket "$BUCKET_NAME" \
+        # 1. Delete all objects and versions
+        echo "🔥 Deleting ALL objects and versions..."
+        aws s3api delete-objects --bucket $BUCKET_NAME \
           --delete "$(aws s3api list-object-versions \
-          --bucket "$BUCKET_NAME" \
-          --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' \
-          --output json)" 2>/dev/null || true
+          --bucket $BUCKET_NAME \
+          --query '{Objects: [
+            Versions[].{Key:Key,VersionId:VersionId},
+            DeleteMarkers[].{Key:Key,VersionId:VersionId}
+          ]}' \
+          --output json)" || true
         
-        # Then delete all delete markers
-        echo "🧹 Deleting all delete markers..."
-        aws sapi delete-objects --bucket "$BUCKET_NAME" \
-          --delete "$(aws s3api list-object-versions \
-          --bucket "$BUCKET_NAME" \
-          --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' \
-          --output json)" 2>/dev/null || true
+        # 2. Force delete any remaining objects
+        echo "💥 Force deleting any remaining objects..."
+        aws s3 rm s3://$BUCKET_NAME --recursive || true
         
-        # Finally delete any remaining objects
-        echo "🧹 Deleting remaining objects..."
-        aws s3 rm "s3://$BUCKET_NAME" --recursive || true
-
-    - name: Delete S3 Bucket
-      run: |
-        BUCKET_NAME="${{ steps.set_bucket.outputs.bucket_name }}"
-        echo "💥 Deleting bucket: $BUCKET_NAME"
-        aws s3api delete-bucket --bucket "$BUCKET_NAME" || true
+        # 3. Delete bucket
+        echo "🚀 Deleting bucket..."
+        aws s3api delete-bucket --bucket $BUCKET_NAME || true
+        
+        # 4. Final verification
+        if aws s3api head-bucket --bucket $BUCKET_NAME 2>/dev/null; then
+          echo "::error::Bucket $BUCKET_NAME still exists after deletion attempts!"
+          exit 1
+        else
+          echo "✅ Bucket $BUCKET_NAME successfully deleted"
+        fi
 
     - name: Delete DynamoDB Table
       run: |
         TABLE_NAME="terraform-lock-table"
-        echo "💥 Deleting table: $TABLE_NAME"
-        aws dynamodb delete-table --table-name "$TABLE_NAME" || true
+        echo "💥 Deleting DynamoDB table..."
+        aws dynamodb delete-table --table-name $TABLE_NAME || true
+        if aws dynamodb describe-table --table-name $TABLE_NAME 2>/dev/null; then
+          echo "::error::Table $TABLE_NAME still exists!"
+        else
+          echo "✅ Table $TABLE_NAME successfully deleted"
+        fi
 
     - name: Clean Up IAM Resources
       run: |
