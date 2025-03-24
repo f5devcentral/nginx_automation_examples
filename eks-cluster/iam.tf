@@ -236,7 +236,7 @@ resource "aws_iam_instance_profile" "workernodes" {
   role = aws_iam_role.workernodes.name
 }
 
-# EBS CSI Driver Role
+# EBS CSI Driver Role (Improved)
 resource "aws_iam_role" "ebs_csi_driver" {
   name = format("%s-ebs-csi-driver-role-%s", local.project_prefix, local.build_suffix)
 
@@ -251,7 +251,8 @@ resource "aws_iam_role" "ebs_csi_driver" {
         Action = "sts:AssumeRoleWithWebIdentity",
         Condition = {
           StringEquals = {
-            "${local.oidc_issuer_url}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+            "${local.oidc_issuer_url}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa",
+            "${local.oidc_issuer_url}:aud" = "sts.amazonaws.com"
           }
         }
       }
