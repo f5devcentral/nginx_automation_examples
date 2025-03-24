@@ -1,4 +1,4 @@
-name: "NGINX NAPV5 Deployment"
+name: "NGINX NAP-V5 Deployment"
 on:
   push:
     branches: [apply-nap]
@@ -30,13 +30,6 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-
-      - name: Install AWS CLI
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y python3-pip
-          pip3 install awscli --upgrade --user
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Initialize Terraform (S3 Backend)
         run: |
