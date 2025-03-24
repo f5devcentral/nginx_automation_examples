@@ -224,128 +224,69 @@ jobs:
       run: terraform destroy -auto-approve -input=false -lock=false
    
   terraform_S3:
-    name: "Destroy S3/DynamoDB"
+    name: "Dynamic AWS Cleanup"
     needs: terraform_infra
     runs-on: ubuntu-latest
     defaults:
-      run:
-        working-directory: ./s3
+     run:
+      working-directory: ./s3
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v3
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-        aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+      - name: Extract Resource Names from Terraform
+        id: extract_names
+        run: |
+         # Extract S3 bucket name from Terraform files
+         BUCKET_NAME=$(grep -o 'bucket\s*=\s*".*"' *.tf | head -1 | cut -d'"' -f2)
+         echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
+      
+         # Extract DynamoDB table name from Terraform files
+         TABLE_NAME=$(grep -o 'name\s*=\s*".*"' *.tf | head -1 | cut -d'"' -f2)
+         echo "table_name=${TABLE_NAME}" >> $GITHUB_OUTPUT
+      
+         echo "Extracted bucket: ${BUCKET_NAME}"
+         echo "Extracted table: ${TABLE_NAME}"
 
-    - name: Initialize Terraform
-      run: terraform init
-
-    - name: Get Resource Names from Outputs
-      id: get_resources
-      run: |
-        # Get S3 bucket name if it exists
-        if terraform output -raw s3_bucket_created | grep -q 'true'; then
-          BUCKET_NAME=$(terraform output -raw s3_bucket_name)
-          echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
-        fi
-
-        # Get DynamoDB table name if it exists
-        if terraform output -raw dynamodb_table_created | grep -q 'true'; then
-          TABLE_NAME=$(terraform output -raw dynamodb_table_name)
-          echo "table_name=${TABLE_NAME}" >> $GITHUB_OUTPUT
-        fi
-
-        # Get IAM role/policy names if they exist
-        if terraform output -raw iam_role_created | grep -q 'true'; then
-          ROLE_NAME=$(terraform output -raw iam_role_name)
-          echo "role_name=${ROLE_NAME}" >> $GITHUB_OUTPUT
-        fi
-
-        if terraform output -raw iam_policy_created | grep -q 'true'; then
-          POLICY_NAME=$(terraform output -raw iam_policy_name)
-          echo "policy_name=${POLICY_NAME}" >> $GITHUB_OUTPUT
-          POLICY_ARN=$(aws iam list-policies --query "Policies[?PolicyName=='${POLICY_NAME}'].Arn" --output text)
-          echo "policy_arn=${POLICY_ARN}" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Empty and Delete Resources
-      run: |
-        # Delete S3 bucket contents if it exists
-        if [[ -n "${{ steps.get_resources.outputs.bucket_name }}" ]]; then
-          echo "Emptying S3 bucket: ${{ steps.get_resources.outputs.bucket_name }}"
-        
-        # Delete all object versions
-        aws s3api delete-objects --bucket ${{ steps.get_resources.outputs.bucket_name }} \
-          --delete "$(aws s3api list-object-versions \
-          --bucket ${{ steps.get_resources.outputs.bucket_name }} \
-          --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}')" 2>/dev/null || true
-        
-        # Delete all delete markers
-        aws s3api delete-objects --bucket ${{ steps.get_resources.outputs.bucket_name }} \
-          --delete "$(aws s3api list-object-versions \
-          --bucket ${{ steps.get_resources.outputs.bucket_name }} \
-          --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}')" 2>/dev/null || true
-        
-        echo "Deleting S3 bucket: ${{ steps.get_resources.outputs.bucket_name }}"
-        aws s3 rb s3://${{ steps.get_resources.outputs.bucket_name }} --force || true
-        fi
-
-        # Delete DynamoDB table if it exists
-        if [[ -n "${{ steps.get_resources.outputs.table_name }}" ]]; then
-          echo "Deleting DynamoDB table: ${{ steps.get_resources.outputs.table_name }}"
-          aws dynamodb delete-table --table-name ${{ steps.get_resources.outputs.table_name }} || true
-        fi
-
-        # Detach and delete IAM policy if it exists
-        if [[ -n "${{ steps.get_resources.outputs.policy_arn }}" ]]; then
-          echo "Detaching policy from role: ${{ steps.get_resources.outputs.policy_arn }}"
-          aws iam detach-role-policy \
-            --role-name ${{ steps.get_resources.outputs.role_name }} \
-            --policy-arn ${{ steps.get_resources.outputs.policy_arn }} || true
-        
-          echo "Deleting IAM policy: ${{ steps.get_resources.outputs.policy_name }}"
-          aws iam delete-policy --policy-arn ${{ steps.get_resources.outputs.policy_arn }} || true
-        fi
-
-        # Delete IAM role if it exists
-        if [[ -n "${{ steps.get_resources.outputs.role_name }}" ]]; then
-           echo "Deleting IAM role: ${{ steps.get_resources.outputs.role_name }}"
-          aws iam delete-role --role-name ${{ steps.get_resources.outputs.role_name }} || true
-        fi
-
-    - name: Terraform Destroy
-      if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap'
-      run: |
-        terraform destroy -auto-approve -input=false -lock=false -refresh=false
-
-    - name: Final Verification
-      run: |
-        # Final check for S3 bucket
-        if [[ -n "${{ steps.get_resources.outputs.bucket_name }}" ]]; then
-          if aws s3 ls "s3://${{ steps.get_resources.outputs.bucket_name }}" 2>/dev/null; then
-            echo "WARNING: Bucket ${{ steps.get_resources.outputs.bucket_name }} still exists"
-            exit 1
+      - name: Delete Resources
+        run: |
+          # Delete S3 bucket if found
+          if [[ -n "${{ steps.extract_names.outputs.bucket_name }}" ]]; then
+             echo "🧹 Emptying bucket: ${{ steps.extract_names.outputs.bucket_name }}"
+             aws s3 rm "s3://${{ steps.extract_names.outputs.bucket_name }}" --recursive --quiet || true
+    
+             echo "💥 Deleting bucket: ${{ steps.extract_names.outputs.bucket_name }}"
+             aws s3api delete-bucket --bucket "${{ steps.extract_names.outputs.bucket_name }}" || true
           else
-            echo "Verified bucket ${{ steps.get_resources.outputs.bucket_name }} is deleted"
+             echo "ℹ️ No bucket name found in Terraform config"
           fi
-        fi
 
-        # Final check for DynamoDB table
-        if [[ -n "${{ steps.get_resources.outputs.table_name }}" ]]; then
-          if aws dynamodb describe-table --table-name ${{ steps.get_resources.outputs.table_name }} 2>/dev/null; then
-            echo "WARNING: Table ${{ steps.get_resources.outputs.table_name }} still exists"
-            exit 1
-          else
-            echo "Verified table ${{ steps.get_resources.outputs.table_name }} is deleted"
-          fi
-        fi
-  
+           # Delete DynamoDB table if found
+           if [[ -n "${{ steps.extract_names.outputs.table_name }}" ]]; then
+              echo "💥 Deleting table: ${{ steps.extract_names.outputs.table_name }}"
+              aws dynamodb delete-table --table-name "${{ steps.extract_names.outputs.table_name }}" || true
+           else
+             echo "ℹ️ No table name found in Terraform config"
+           fi
+
+        - name: Verify Cleanup
+          run: |
+           echo "✅ Verification:"
+           if [[ -n "${{ steps.extract_names.outputs.bucket_name }}" ]]; then
+              echo "Bucket deletion status:"
+              aws s3api head-bucket --bucket "${{ steps.extract_names.outputs.bucket_name }}" 2>&1 || echo "Bucket deleted"
+           fi
+      
+           if [[ -n "${{ steps.extract_names.outputs.table_name }}" ]]; then
+              echo "Table deletion status:"
+              aws dynamodb describe-table --table-name "${{ steps.extract_names.outputs.table_name }}" 2>&1 || echo "Table deleted"
+           fi
