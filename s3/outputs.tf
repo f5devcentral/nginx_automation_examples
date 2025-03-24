@@ -9,6 +9,11 @@ output "s3_bucket_name" {
   value       = length(aws_s3_bucket.terraform_state_bucket) > 0 ? aws_s3_bucket.terraform_state_bucket[0].bucket : null
 }
 
+output "tf_state_bucket" {
+  value = aws_s3_bucket.terraform_state.bucket
+  description = "Name of the S3 bucket for Terraform state"
+}
+
 # DynamoDB Table Details
 output "dynamodb_table_created" {
   description = "Whether the DynamoDB table was created."
