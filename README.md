@@ -26,8 +26,7 @@
 * **IAC State:** Amazon S3
 * **CI/CD:** GitHub Actions
 
-  
-  **GITHUB:** Create secrets with the following values:
+
 ## GitHub Secrets Configuration
 
 This workflow requires the following secrets to be configured in your GitHub repository:
@@ -40,8 +39,8 @@ This workflow requires the following secrets to be configured in your GitHub rep
 | `AWS_SECRET_ACCESS_KEY` | Secret  | Corresponding secret access key for the AWS IAM user                       | (40-character mixed case string) |
 | `AWS_SESSION_TOKEN`     | Secret  | Session token for temporary AWS credentials (if using MFA)                 | (Base64-encoded string)    |
 | `NGINX_JWT`             | Secret  | JSON Web Token for NGINX license authentication                           | `eyJhbGciOi...` (JWT format) |
-| `NGINX_CRT`             | Secret  | F5XC API certificate in PKCS#12 format                                    | `api.p12` file contents    |
-| `NGINX_KEY`             | Secret  | Password used when creating the F5 XC API certificate                     | YourCertificatePassword123 |
+| `NGINX_CRT`             | Secret  | NGINX Certificate in PKCS#12 format                                    | `api.p12` file contents    |
+| `NGINX_KEY`             | Secret  | NGINX Key                                                              | YourCertificatePassword123 |
 
 ### How to Add Secrets
 
@@ -52,13 +51,6 @@ This workflow requires the following secrets to be configured in your GitHub rep
 5. Paste the secret value
 6. Click **Add secret**
 
-### Important Notes
-
-- Never commit these values directly in your code
-- All secrets should be stored as repository secrets (not environment secrets)
-- Rotate these credentials regularly for security
-- Ensure the AWS credentials have the minimum required permissions
-- The `NGINX_CRT` secret should contain the entire contents of your `api.p12` file
 
 
 ## Workflow Runs
