@@ -112,11 +112,14 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan (Destroy)
-        if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: |
-          terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
-          terraform show -no-color tfplan > plan.txt
-
+          terraform plan -destroy -no-color -input=false -out=tfplan -lock=false \
+          -var="workspace_path=${{ env.WORKSPACE_PATH }}" \
+          -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
+          -var="nginx_pwd=none"
+        env:
+         WORKSPACE_PATH: "./nap"
+ 
       - name: Check Changes
         id: check_changes
         run: |
