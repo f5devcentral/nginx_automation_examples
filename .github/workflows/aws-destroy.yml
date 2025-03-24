@@ -4,10 +4,8 @@ on:
     branches:
       - destroy-nap
   pull_request:
-
 env:
   AWS_REGION: us-east-1
-
 jobs:
   terraform_arcadia:
     name: "Destroy Arcadia WebApp"
