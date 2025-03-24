@@ -1,17 +1,3 @@
-
-resource "kubernetes_service_account" "ebs_csi_controller" {
-  depends_on = [
-   data.terraform_remote_state.eks
-  ]
-  metadata {
-    name      = "ebs-csi-controller-sa"
-    namespace = "kube-system"
-    annotations = {
-      "eks.amazonaws.com/role-arn" = data.terraform_remote_state.eks.outputs.ebs_csi_driver_role_arn
-    }
-  }
-}
-
 resource "kubernetes_storage_class_v1" "aws_csi" {
   metadata {
     name = "ebs-sc"
