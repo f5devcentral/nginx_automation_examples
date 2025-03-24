@@ -6,7 +6,7 @@ variable "tf_state_bucket" {
 variable "create_iam_resources" {
   description = "Whether to create IAM resources (role and policy)."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "aws_region" {
