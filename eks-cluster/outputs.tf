@@ -27,3 +27,7 @@ output "aws_region" {
   description = "The AWS region where the EKS cluster is deployed"
   value       = var.aws_region
 }
+
+output "ebs_csi_driver_role_arn" {
+  value = aws_iam_role.ebs_csi_driver.arn
+}
