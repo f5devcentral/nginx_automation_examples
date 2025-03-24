@@ -247,40 +247,46 @@ jobs:
       - name: Initialize Terraform
         run: terraform init
 
-      - name: Find Bucket Name
-        id: find_bucket
+      - name: Find and Delete S3 Bucket
+        id: s3_cleanup
         run: |
-          # Try 3 methods to get bucket name
-          BUCKET_NAME=$(
-            # 1. Try extracting from variables.tf
-            grep -o 'tf_state_bucket\s*=\s*".*"' variables.tf 2>/dev/null | cut -d'"' -f2 ||
-            # 2. Try extracting from Terraform outputs
-            terraform output -raw s3_bucket_name 2>/dev/null ||
-            # 3. Try finding bucket via AWS API
-            aws s3api list-buckets --query "Buckets[?contains(Name, 'terraform') || contains(Name, 'state')].Name | [0]" --output text
-          )
+          # Method 1: Try to get from Terraform outputs
+          BUCKET_NAME=$(terraform output -raw s3_bucket_name 2>/dev/null || echo "")
           
+          # Method 2: If no output, try to extract from Terraform config
           if [ -z "$BUCKET_NAME" ]; then
-            echo "::warning::Could not determine bucket name automatically"
-            echo "bucket_name=none" >> $GITHUB_OUTPUT
-          else
-            echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
-            echo "Using bucket: ${BUCKET_NAME}"
+            BUCKET_NAME=$(grep -E 'bucket[[:space:]]*=[[:space:]]*"[^"]+"|bucket_name[[:space:]]*=[[:space:]]*"[^"]+"' *.tf -h | head -1 | cut -d'"' -f2)
+          fi
+          
+          # Method 3: If still not found, look for likely buckets
+          if [ -z "$BUCKET_NAME" ]; then
+            echo "::warning::No bucket name found in config, searching AWS..."
+            BUCKET_NAME=$(aws s3api list-buckets --query "Buckets[?starts_with(Name, 'akash-') || contains(Name, 'terraform') || contains(Name, 'state')].Name | [0]" --output text)
           fi
 
-      - name: Delete S3 Bucket
-        if: steps.find_bucket.outputs.bucket_name != 'none'
-        run: |
-          echo "🧹 Emptying bucket: ${{ steps.find_bucket.outputs.bucket_name }}"
-          # Delete all versions first
-          aws s3api delete-objects --bucket "${{ steps.find_bucket.outputs.bucket_name }}" \
-            --delete "$(aws s3api list-object-versions \
-            --bucket "${{ steps.find_bucket.outputs.bucket_name }}" \
-            --query '{Objects: [Versions[].{Key:Key,VersionId:VersionId}, DeleteMarkers[].{Key:Key,VersionId:VersionId}]}' \
-            --output json)" 2>/dev/null || true
-          
-          echo "💥 Deleting bucket"
-          aws s3api delete-bucket --bucket "${{ steps.find_bucket.outputs.bucket_name }}" || true
+          if [ -n "$BUCKET_NAME" ]; then
+            echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
+            echo "Found bucket: ${BUCKET_NAME}"
+            
+            # Force delete bucket contents
+            echo "🧹 Emptying bucket..."
+            aws s3 rm "s3://${BUCKET_NAME}" --recursive --quiet || true
+            
+            # Delete all versions and markers
+            echo "🧹 Deleting all versions..."
+            aws s3api delete-objects --bucket "${BUCKET_NAME}" \
+              --delete "$(aws s3api list-object-versions \
+              --bucket "${BUCKET_NAME}" \
+              --query '{Objects: [Versions[].{Key:Key,VersionId:VersionId}, DeleteMarkers[].{Key:Key,VersionId:VersionId}]}' \
+              --output json)" 2>/dev/null || true
+            
+            # Delete bucket
+            echo "💥 Deleting bucket..."
+            aws s3api delete-bucket --bucket "${BUCKET_NAME}" || true
+          else
+            echo "::warning::Could not find any S3 bucket to delete"
+            echo "bucket_name=none" >> $GITHUB_OUTPUT
+          fi
 
       - name: Delete DynamoDB Table
         run: |
@@ -290,9 +296,9 @@ jobs:
 
       - name: Final Verification
         run: |
-          if [[ "${{ steps.find_bucket.outputs.bucket_name }}" != "none" ]]; then
+          if [[ "${{ steps.s3_cleanup.outputs.bucket_name }}" != "none" ]]; then
             echo "Verifying bucket deletion:"
-            aws s3api head-bucket --bucket "${{ steps.find_bucket.outputs.bucket_name }}" 2>/dev/null && \
+            aws s3api head-bucket --bucket "${{ steps.s3_cleanup.outputs.bucket_name }}" 2>/dev/null && \
               echo "::error::Bucket still exists!" || echo "Bucket deleted successfully"
           fi
           echo "Verifying table deletion:"
