@@ -37,7 +37,7 @@ jobs:
       - name: Terraform Plan (Destroy)
         if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: |
-          terraform plan -destroy -no-color -input=false -out=tfplan
+          terraform plan -destroy -no-color -input=false -lock=false -out=tfplan
           terraform show -no-color tfplan > plan.txt
 
       - name: Check Changes
@@ -51,7 +51,7 @@ jobs:
 
       - name: Terraform Destroy
         if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
-        run: terraform destroy -auto-approve -input=false
+        run: terraform destroy -auto-approve -lock=false -input=false
 
   terraform_policy:
     name: "Destroy NGINX Policy"
@@ -163,7 +163,7 @@ jobs:
     - name: Terraform Plan (Destroy)
       if: github.event_name == 'pull_request' || github.event_name == 'push'
       run: |
-        terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
+        terraform plan -destroy -no-color -input=false  -out=tfplan -lock=false
         terraform show -no-color tfplan > plan.txt
 
     - name: Check Changes
