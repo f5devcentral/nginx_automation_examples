@@ -1,13 +1,3 @@
-resource "kubernetes_service_account" "ebs_csi_controller" {
-  metadata {
-    name      = "ebs-csi-controller-sa"
-    namespace = "kube-system"
-    annotations = {
-      "eks.amazonaws.com/role-arn" = aws_iam_role.ebs_csi_driver.arn
-    }
-  }
-}
-
 resource "kubernetes_storage_class_v1" "aws_csi" {
   metadata {
     name = "ebs-sc"
