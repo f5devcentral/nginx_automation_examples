@@ -221,86 +221,93 @@ jobs:
       - name: Terraform Destroy
         if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform destroy -auto-approve -input=false -lock=false
-   
+
   terraform_S3:
-    name: "Destroy S3/DynamoDB"
-    needs: terraform_infra
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./s3
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+   name: "Destroy S3/DynamoDB"
+   needs: terraform_infra
+   runs-on: ubuntu-latest
+   defaults:
+    run:
+      working-directory: ./s3
+   steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
 
-      - name: Initialize Terraform
-        run: terraform init
+    - name: Initialize Terraform
+      run: terraform init
 
-      - name: Find and Delete S3 Bucket
-        id: s3_cleanup
-        run: |
-          # Method 1: Try to get from Terraform outputs
-          BUCKET_NAME=$(terraform output -raw s3_bucket_name 2>/dev/null || echo "")
+    - name: Extract Bucket Name from Variables
+      id: extract_bucket
+      run: |
+        # Extract bucket name from variables.tf
+        BUCKET_NAME=$(grep -o 'tf_state_bucket\s*=\s*".*"' variables.tf | cut -d'"' -f2)
+        
+        # Validate bucket name format
+        if [[ ! "$BUCKET_NAME" =~ ^[a-zA-Z0-9.\-_]{1,255}$ ]]; then
+          echo "::error::Invalid bucket name format: $BUCKET_NAME"
+          exit 1
+        fi
+        
+        echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
+        echo "Using bucket: ${BUCKET_NAME}"
+
+    - name: Force Delete S3 Bucket
+      run: |
+        BUCKET_NAME="${{ steps.extract_bucket.outputs.bucket_name }}"
+        
+        # Delete all objects and versions
+        echo "🧹 Emptying bucket: $BUCKET_NAME"
+        aws s3 rm "s3://$BUCKET_NAME" --recursive || true
+        
+        # Delete all version markers
+        aws s3api delete-objects --bucket "$BUCKET_NAME" \
+          --delete "$(aws s3api list-object-versions \
+          --bucket "$BUCKET_NAME" \
+          --query '{Objects: [Versions[].{Key:Key,VersionId:VersionId}, DeleteMarkers[].{Key:Key,VersionId:VersionId}]}' \
+          --output json)" 2>/dev/null || true
+        
+        # Delete bucket
+        echo "💥 Deleting bucket: $BUCKET_NAME"
+        aws s3api delete-bucket --bucket "$BUCKET_NAME" || true
+
+    - name: Delete DynamoDB Table
+      run: |
+        TABLE_NAME="terraform-lock-table"
+        echo "💥 Deleting table: $TABLE_NAME"
+        aws dynamodb delete-table --table-name "$TABLE_NAME" || true
+
+    - name: Clean Up IAM Resources
+      run: |
+        # Detach and delete policy
+        POLICY_ARN=$(aws iam list-policies --query "Policies[?PolicyName=='TerraformStateAccess'].Arn" --output text)
+        if [ -n "$POLICY_ARN" ]; then
+          echo "Detaching policy from roles..."
+          ATTACHED_ROLES=$(aws iam list-entities-for-policy --policy-arn $POLICY_ARN --query "PolicyRoles[].RoleName" --output text)
+          for ROLE in $ATTACHED_ROLES; do
+            aws iam detach-role-policy --role-name $ROLE --policy-arn $POLICY_ARN || true
+          done
           
-          # Method 2: If no output, try to extract from Terraform config
-          if [ -z "$BUCKET_NAME" ]; then
-            BUCKET_NAME=$(grep -E 'bucket[[:space:]]*=[[:space:]]*"[^"]+"|bucket_name[[:space:]]*=[[:space:]]*"[^"]+"' *.tf -h | head -1 | cut -d'"' -f2)
-          fi
-          
-          # Method 3: If still not found, look for likely buckets
-          if [ -z "$BUCKET_NAME" ]; then
-            echo "::warning::No bucket name found in config, searching AWS..."
-            BUCKET_NAME=$(aws s3api list-buckets --query "Buckets[?starts_with(Name, 'akash-') || contains(Name, 'terraform') || contains(Name, 'state')].Name | [0]" --output text)
-          fi
+          echo "Deleting policy..."
+          aws iam delete-policy --policy-arn $POLICY_ARN || true
+        fi
 
-          if [ -n "$BUCKET_NAME" ]; then
-            echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
-            echo "Found bucket: ${BUCKET_NAME}"
-            
-            # Force delete bucket contents
-            echo "🧹 Emptying bucket..."
-            aws s3 rm "s3://${BUCKET_NAME}" --recursive --quiet || true
-            
-            # Delete all versions and markers
-            echo "🧹 Deleting all versions..."
-            aws s3api delete-objects --bucket "${BUCKET_NAME}" \
-              --delete "$(aws s3api list-object-versions \
-              --bucket "${BUCKET_NAME}" \
-              --query '{Objects: [Versions[].{Key:Key,VersionId:VersionId}, DeleteMarkers[].{Key:Key,VersionId:VersionId}]}' \
-              --output json)" 2>/dev/null || true
-            
-            # Delete bucket
-            echo "💥 Deleting bucket..."
-            aws s3api delete-bucket --bucket "${BUCKET_NAME}" || true
-          else
-            echo "::warning::Could not find any S3 bucket to delete"
-            echo "bucket_name=none" >> $GITHUB_OUTPUT
-          fi
+        # Delete role
+        ROLE_NAME="TerraformCIExecutionRole"
+        if aws iam get-role --role-name $ROLE_NAME 2>/dev/null; then
+          echo "Deleting role..."
+          aws iam delete-role --role-name $ROLE_NAME || true
+        fi
 
-      - name: Delete DynamoDB Table
-        run: |
-          TABLE_NAME="terraform-lock-table"
-          echo "💥 Deleting table: ${TABLE_NAME}"
-          aws dynamodb delete-table --table-name "${TABLE_NAME}" || true
-
-      - name: Final Verification
-        run: |
-          if [[ "${{ steps.s3_cleanup.outputs.bucket_name }}" != "none" ]]; then
-            echo "Verifying bucket deletion:"
-            aws s3api head-bucket --bucket "${{ steps.s3_cleanup.outputs.bucket_name }}" 2>/dev/null && \
-              echo "::error::Bucket still exists!" || echo "Bucket deleted successfully"
-          fi
-          echo "Verifying table deletion:"
-          aws dynamodb describe-table --table-name "terraform-lock-table" 2>/dev/null && \
-            echo "::error::Table still exists!" || echo "Table deleted successfully"
+    - name: Terraform Destroy
+      run: terraform destroy -auto-approve -input=false -lock=false -refresh=false
