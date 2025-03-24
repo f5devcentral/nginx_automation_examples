@@ -134,6 +134,8 @@ resource "aws_iam_role" "ebs_csi_driver" {
   })
 }
 
+data "aws_caller_identity" "current" {}
+
 # Use the official AWS managed policy instead of custom one
 resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
