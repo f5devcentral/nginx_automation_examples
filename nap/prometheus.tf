@@ -5,4 +5,8 @@ resource "helm_release" "prometheus" {
     #version = "27.3.0"
     namespace = kubernetes_namespace.monitoring.metadata[0].name
     values = [file("./charts/prometheus/values.yaml")]
+    
+    depends_on = [
+    kubernetes_service_account.ebs_csi_controller
+    ]
 }
