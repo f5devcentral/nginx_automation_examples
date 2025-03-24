@@ -1,8 +1,7 @@
 
 resource "kubernetes_service_account" "ebs_csi_controller" {
   depends_on = [
-    data.terraform_remote_state.eks.outputs.cluster_endpoint,
-    data.terraform_remote_state.eks.outputs.oidc_provider_arn
+   data.terraform_remote_state.eks
   ]
   metadata {
     name      = "ebs-csi-controller-sa"
