@@ -1,20 +1,17 @@
 # Deploying NGINX Ingress Controller with NGINX WAFv5 in AWS
-================================================================
+---------------------------------------------------------------
 
 Introduction :
 ---------------
 This demo guide offers a step-by-step walkthrough for configuring the NGINX Ingress Controller with NGINX App Protect v5 on AWS Cloud, using Terraform scripts to automate the deployment. For more information, refer to the devcentral article:  <Coming Soon>
 
-**Note:** 
 
 ## Getting Started
 
 ## Prerequisites
 
 * [NGINX Plus with App Protect and NGINX Ingress Controller license](https://www.nginx.com/free-trial-request/)
-* [AWS Account](https://aws.amazon.com) - Due to the assets being created, free tier will not work.
-  * The F5 BIG-IP AMI being used from the [AWS Marketplace](https://aws.amazon.com/marketplace) must be subscribed to your account
-  * Please make sure resources like VPC and Elastic IP's are below the threshold limit in that aws region
+* [AWS Account](https://aws.amazon.com) - Due to the assets being created, the free tier will not work.
 * [GitHub Account](https://github.com)
 
 ## Assets
@@ -23,7 +20,8 @@ This demo guide offers a step-by-step walkthrough for configuring the NGINX Ingr
 * **infra:**     AWS Infrastructure (VPC, IGW, etc.)
 * **eks:**       AWS Elastic Kubernetes Service
 * **arcadia:**   Arcadia Finance test web application and API
-* **policy:**    NGINX WAF Compiler Docker and Policy 
+* **policy:**    NGINX WAF Compiler Docker and Policy
+* **S3:**        Amazon S3 bucket and IAM role and policy for storage.
 
 ## Tools
 
@@ -56,7 +54,6 @@ This workflow requires the following secrets to be configured in your GitHub rep
 4. Enter the secret name exactly as shown above
 5. Paste the secret value
 6. Click **Add secret**
-
 
 
 ## Workflow Runs
