@@ -13,7 +13,7 @@ jobs:
     defaults:
       run:
         working-directory: ./arcadia
-        
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -223,6 +223,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/destroy-nap' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform destroy -auto-approve -input=false -lock=false
 
+  
   terraform_S3:
     name: "Force Delete S3/DynamoDB"
     needs: terraform_infra
@@ -255,19 +256,19 @@ jobs:
           set -e
           BUCKET_NAME="${{ steps.set_bucket.outputs.bucket_name }}"
           
-          # 1. Delete all object versions
+          # 1. Delete all object versions (with null checks)
           echo "🔥 Deleting ALL object versions..."
-          versions=$(aws s3api list-object-versions --bucket $BUCKET_NAME --output json)
-          versions_to_delete=$(echo $versions | jq '{Objects: [.Versions[] | {Key:.Key, VersionId:.VersionId}]}')
+          versions=$(aws s3api list-object-versions --bucket $BUCKET_NAME --output json || echo '{"Versions":[],"DeleteMarkers":[]}')
+          versions_to_delete=$(echo $versions | jq '{Objects: [.Versions[]? | {Key:.Key, VersionId:.VersionId}]}' || echo '{"Objects":[]}')
           if [ "$(echo $versions_to_delete | jq '.Objects | length')" -gt 0 ]; then
-            aws s3api delete-objects --bucket $BUCKET_NAME --delete "$versions_to_delete"
+            aws s3api delete-objects --bucket $BUCKET_NAME --delete "$versions_to_delete" || true
           fi
           
-          # 2. Delete all delete markers
+          # 2. Delete all delete markers (with null checks)
           echo "🗑️ Deleting ALL delete markers..."
-          markers_to_delete=$(echo $versions | jq '{Objects: [.DeleteMarkers[] | {Key:.Key, VersionId:.VersionId}]}')
+          markers_to_delete=$(echo $versions | jq '{Objects: [.DeleteMarkers[]? | {Key:.Key, VersionId:.VersionId}]}' || echo '{"Objects":[]}')
           if [ "$(echo $markers_to_delete | jq '.Objects | length')" -gt 0 ]; then
-            aws s3api delete-objects --bucket $BUCKET_NAME --delete "$markers_to_delete"
+            aws s3api delete-objects --bucket $BUCKET_NAME --delete "$markers_to_delete" || true
           fi
           
           # 3. Force delete any remaining objects
@@ -292,9 +293,9 @@ jobs:
           TABLE_NAME="terraform-lock-table"
           echo "💥 Deleting DynamoDB table..."
           if aws dynamodb describe-table --table-name $TABLE_NAME 2>/dev/null; then
-            aws dynamodb delete-table --table-name $TABLE_NAME
+            aws dynamodb delete-table --table-name $TABLE_NAME || true
             echo "⌛ Waiting for table to be deleted..."
-            aws dynamodb wait table-not-exists --table-name $TABLE_NAME
+            aws dynamodb wait table-not-exists --table-name $TABLE_NAME || true
           fi
           if aws dynamodb describe-table --table-name $TABLE_NAME 2>/dev/null; then
             echo "::error::Table $TABLE_NAME still exists!"
@@ -307,10 +308,10 @@ jobs:
         run: |
           set -e
           # Delete policy
-          POLICY_ARN=$(aws iam list-policies --query "Policies[?PolicyName=='TerraformStateAccess'].Arn" --output text)
+          POLICY_ARN=$(aws iam list-policies --query "Policies[?PolicyName=='TerraformStateAccess'].Arn" --output text || echo "")
           if [ -n "$POLICY_ARN" ]; then
             echo "🔗 Detaching policy from roles..."
-            ATTACHED_ROLES=$(aws iam list-entities-for-policy --policy-arn $POLICY_ARN --query "PolicyRoles[].RoleName" --output text)
+            ATTACHED_ROLES=$(aws iam list-entities-for-policy --policy-arn $POLICY_ARN --query "PolicyRoles[].RoleName" --output text || echo "")
             for ROLE in $ATTACHED_ROLES; do
               aws iam detach-role-policy --role-name $ROLE --policy-arn $POLICY_ARN || true
             done
@@ -361,4 +362,4 @@ jobs:
             exit 1
           else
             echo "IAM Role deleted successfully"
-          fi
+          fi      
