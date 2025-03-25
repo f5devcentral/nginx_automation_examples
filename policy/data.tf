@@ -1,3 +1,4 @@
+# Read infra state from S3
 data "terraform_remote_state" "infra" {
   backend = "s3"
   config = {
@@ -17,13 +18,18 @@ data "terraform_remote_state" "eks" {
   }
 }
 
+# Read nap state from S3
+data "terraform_remote_state" "nap" {
+  backend = "s3"
+  config = {
+    bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
+    key    = "nap/terraform.tfstate"         # Path to NAP state file
+    region = "us-east-1"                     # AWS region
+  }
+}
+
+# Keep existing data sources for Kubernetes
 data "aws_eks_cluster_auth" "auth" {
   name = data.terraform_remote_state.eks.outputs.cluster_name
 }
 
-data "kubernetes_service_v1" "nginx-service" {
-  metadata {
-    name      = try(format("%s-%s-controller", helm_release.nginx-plus-ingress.name, helm_release.nginx-plus-ingress.chart))
-    namespace = try(helm_release.nginx-plus-ingress.namespace)
-  }
-}
