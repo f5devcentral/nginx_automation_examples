@@ -11,7 +11,7 @@ This demo guide offers a step-by-step walkthrough for configuring the NGINX Ingr
 
 ## Architecture Diagram 
 
-.. figure:: assets/AWS.jpeg
+![System Architecture](assets/AWS.jpeg)
 
 
 ## Prerequisites
