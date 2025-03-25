@@ -225,7 +225,7 @@ jobs:
 
   
   terraform_S3:
-    name: "Force Delete S3/DynamoDB"
+    name: "Delete S3/DynamoDB"
     needs: terraform_infra
     runs-on: ubuntu-latest
     defaults:
