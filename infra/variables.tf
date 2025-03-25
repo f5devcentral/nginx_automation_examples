@@ -16,8 +16,6 @@ variable "resource_owner" {
   default     = "myName"
 }
 
-
-
 variable "cidr" {
   description = "The CIDR block for the Virtual Private Cloud (VPC) of the deployment"
   default     = "10.0.0.0/16"  # Updated to a larger CIDR block
@@ -56,13 +54,6 @@ variable "int_address_prefixes" {
   type        = list(any)
   default     = ["10.1.20.0/24", "10.1.120.0/24"]
   description = "Internal subnet address prefixes"
-}
-
-variable "nap" {
-  type = bool
-}
-variable "nic" {
-  type = bool
 }
 
 
