@@ -1,113 +1,54 @@
-# Deploying NGINX Ingress Controller with NGINX WAFv5 in AWS
----------------------------------------------------------------
+# NGINX Automation Terraform Examples
 
-Introduction :
----------------
-This demo guide offers a step-by-step walkthrough for configuring the NGINX Ingress Controller with NGINX App Protect v5 on AWS Cloud, using Terraform scripts to automate the deployment. For more information, refer to the devcentral article:  <Coming Soon>
+## Overview
 
+This is a consolidated automation repo for different verified designs customer use case examples using `F5 Nginx` utilizing Terraform. For more information on the use cases covered by this project, please see the following articles and workflow guides:
+
+**NOTE: To learn about each use case check the devcentral article link provided in each scenario folder README** </br>
+</br>
+
+
+### **F5 Distributed Cloud WAF**
+
+  | **DevCentral Overview Articles**                                                                                                                          | **Use Case / Workflow Guides (SaaS Console, Automation)**                                                                                                                                                |
+  | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | [Deploy WAF on any Edge with F5 Distributed Cloud](https://community.f5.com/t5/technical-articles/deploy-waf-on-any-edge-with-f5-distributed-cloud/ta-p/313079) | [Deploy F5 XC WAF on XC Regional Edges (SaaS Console, Automation)](https://github.com/f5devcentral/f5-xc-waap-terraform-examples/blob/main/workflow-guides/waf/f5-xc-waf-on-re/README.rst)                         |
 
 ## Getting Started
 
-## Prerequisites
-
-* [NGINX Plus with App Protect and NGINX Ingress Controller license](https://www.nginx.com/free-trial-request/)
-* [AWS Account](https://aws.amazon.com) - Due to the assets being created, the free tier will not work.
+* [AWS Account](https://aws.amazon.com) - Due to the assets being created, free tier will not work.
+  * The F5 NGINX App Protect AMI being used from the [AWS Marketplace](https://aws.amazon.com/marketplace) should be subsribed to your account
+  * Please make sure resources like VPC and Elastic IP's are below the threshold limit in that aws region
 * [GitHub Account](https://github.com)
 
-## Assets
+## Steps to execute
 
-* **nap:**       NGINX Ingress Controller for Kubernetes with NGINX App Protect (WAF and API Protection)
-* **infra:**     AWS Infrastructure (VPC, IGW, etc.)
-* **eks:**       AWS Elastic Kubernetes Service
-* **arcadia:**   Arcadia Finance test web application and API
-* **policy:**    NGINX WAF Compiler Docker and Policy
-* **S3:**        Amazon S3 bucket and IAM role and policy for storage.
+1. Clone the repo locally and update AWS credentials like `access keys`, `secret key` and `session token` be in  `settings` --> `Secrets` --> `Actions` section <br />
+![image](https://user-images.githubusercontent.com/6093830/209962425-1c3452ec-9b32-4509-adb5-cc85d4a67a10.png)
+> Note: Above values typically expire in every 12 hours. If you are not using session token please remove this field accordingly in workflow file step name-`configure aws credentials` in all jobs
 
-## Tools
+2. EC2 keys should be updated properly in `settings` --> `Secrets` --> `Actions` section <br />
+> Note: Make sure passwords follow company security standards like alpha numeric, etc. <br />
 
-* **Cloud Provider:** AWS
-* **IAC:** Terraform
-* **IAC State:** Amazon S3
-* **CI/CD:** GitHub Actions
+3. EC2 key related pem and pub file should be copied to terraform folder in your use case<br />
 
+4. Make sure you have subscribed to the `NGINX App Protect AMI` in AWS account <br />
 
-## GitHub Secrets Configuration
+5. Update your `ENV` variables in `/data/testbed-data.json` file in your use case folder <br />
 
-This workflow requires the following secrets to be configured in your GitHub repository:
+6. Install self hosted runner and add it to this repo <br />
 
-### Required Secrets
+7. Make sure `awscli`, `kubectl`, `ansible-playbook`, `pytest`, `git` and other required tools are installed in this private custom runner. Refer `requirements.txt` file for more details <br />
 
-| Secret Name            | Type    | Description                                                                 | Example Value/Format        |
-|------------------------|---------|-----------------------------------------------------------------------------|----------------------------|
-| `AWS_ACCESS_KEY_ID`     | Secret  | AWS IAM user access key ID with sufficient permissions                     | `AKIAXXXXXXXXXXXXXXXX`     |
-| `AWS_SECRET_ACCESS_KEY` | Secret  | Corresponding secret access key for the AWS IAM user                       | (40-character mixed case string) |
-| `AWS_SESSION_TOKEN`     | Secret  | Session token for temporary AWS credentials (if using MFA)                 | (Base64-encoded string)    |
-| `NGINX_JWT`             | Secret  | JSON Web Token for NGINX license authentication                            | `eyJhbGciOi...` (JWT format) |
-| `NGINX_CRT`             | Secret  | NGINX Certificate in PKCS#12 format                                        | `api.p12` file contents    |
-| `NGINX_KEY`             | Secret  | Private key for securing HTTPS and verifying SSL/TLS certificates          | YourCertificatePasrivatekey|                                                    
+> Note: Please install and make sure python packages like `pytest-html`, `awscli==1.18.105` and `botocore==1.17.28` are available with their correct versions in runner to avoid failures <br />
 
-### How to Add Secrets
+8. Go to `Actions` tab and select your article work-flow <br />
 
-1. Navigate to your GitHub repository
-2. Go to **Settings** → **Secrets and variables** → **Actions**
-3. Click **New repository secret**
-4. Enter the secret name exactly as shown above
-5. Paste the secret value
-6. Click **Add secret**
+9. Click on `Run Workflow` option and execute it <br />
 
+10. Check the CI/CD jobs execution and check the artifacts for more details <br />
+<br />
 
-## Workflow Runs
-
-**STEP 1:** Check out a branch for the workflow you wish to run using the following naming convention. 
-
-  **DEPLOY**
-  
-  | Workflow     | Branch Name      |
-  | ------------ | ---------------- |
-  | NGINX V5-NIC/NAP Apply| apply-NIC/NAP   |
-
- 
-  **DESTROY**
-  
-  | Workflow     | Branch Name       |
-  | ------------ | ----------------- |
-  | NGINX V5-NIC/NAP Destroy| destroy-NIC/NAP   |
-
-
-
-**STEP 2:** Rename `infra/terraform.tfvars.examples` to `infra/terraform.tfvars` and add the following data:
-  * project_prefix  = "Your project identifier name in **lower case** letters only - this will be applied as a prefix to all assets"
-  * resource_owner = "Your-name"
-  * aws_region     = "AWS Region" ex. us-east-1
-  * azs            = ["us-east-1a", "us-east1b"] - Change to Correct Availability Zones based on selected Region
-
-
-**STEP 3:**  Modify the `S3/variable.tf` file inside the `S3 directory`.
-  * default     = "your-unique-bucket-name"  # Replace with your actual bucket name
-
-**STEP 4:**  Modify the `Backend.tf` file in the `Infra/Backend.tf`, `eks-cluster/Backend.tf`, `Nap/Backend.tf`, `Policy/Backend.tf`, `Arcadia/Backend.tf`  directory. 
-  * bucket         = "your-unique-bucket-name"  # Your S3 bucket name
-  * key            = "infra/terraform.tfstate"       # Path to state file
-  * region         = "your-aws-region-name"   By default us-east-1
-
-**STEP 5:** Add the name of your S3 bucket inside the `NGINX V5-NIC/NAP Destroy` workflow file, which is located in the Terraform _S3 job.
-  *      name: Set Bucket Name
-  *      id: set_bucket
-  *      run: |
-  *        echo "bucket_name="your-unique-bucket-name" >> $GITHUB_OUTPUT
-          
-**STEP 6:** Commit and push your build branch to your forked repo
-  * Build will run and can be monitored in the GitHub Actions tab and TF Cloud console
-
-
-**STEP 7:** Once the pipeline is complete, verify that your assets were deployed or destroyed based on your workflow. 
-
-            **NOTE:**  The autocert process takes time.  It may be 5 to 10 minutes before Let's Encrypt has provided the cert.
-
-
-## Development
-
-Outline any requirements to setup a development environment if someone would like to contribute.  You may also link to another file for this information.
 
 ## Support
 
@@ -123,7 +64,7 @@ Please refer to the [F5 DevCentral Community Code of Conduct](code_of_conduct.md
 
 ## Copyright
 
-Copyright 2014-2020 F5 Networks Inc.
+Copyright 2014-2023 F5 Networks Inc.
 
 ### F5 Networks Contributor License Agreement
 
