@@ -1,8 +1,8 @@
 # Deploying NGINX Ingress Controller with NGINX WAFv5 in AWS
 ============================================================
 
-Overview
-#########
+Introduction :
+---------------
 This demo guide offers a step-by-step walkthrough for configuring the NGINX Ingress Controller with NGINX App Protect v5 on AWS Cloud, using Terraform scripts to automate the deployment. For more information, refer to the devcentral article:  <Coming Soon>
 
 **Note:** 
@@ -85,7 +85,7 @@ This workflow requires the following secrets to be configured in your GitHub rep
   * azs            = ["us-east-1a", "us-east1b"] - Change to Correct Availability Zones based on selected Region
   * Also update assets boolean value as per your work-flows
 
-**STEP 3:**  In the 'S3 directory', inside the 'variable.tf' file  modify the following data 
+**STEP 3:**  In the `S3 directory`, inside the `variable.tf` file  modify the following data 
   * description = "S3 bucket for Terraform remote state storage"
   * default     = "your-unique-bucket-name"  # Replace with your actual bucket name
   
