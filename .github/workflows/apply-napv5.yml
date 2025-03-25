@@ -292,15 +292,10 @@ jobs:
               waf-compiler-5.4.0:custom \
             -p /workspace/policy/policy.json -o /workspace/policy/compiled_policy.tgz
 
-    - name: Convert Compiled Policy to Base64
-      run: |
-        base64 ${{ github.workspace }}/policy/compiled_policy.tgz > ${{ github.workspace }}/policy/compiled_policy_base64.txt
-
     - name: Fix permissions for compiled files
       run: |
         sudo chown -R $USER:$USER ${{ github.workspace }}/policy
         chmod 644 ${{ github.workspace }}/policy/compiled_policy.tgz
-        chmod 644 ${{ github.workspace }}/policy/compiled_policy_base64.txt
         ls -lh ${{ github.workspace }}/policy
 
 
