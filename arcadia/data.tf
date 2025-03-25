@@ -1,21 +1,33 @@
-data "tfe_outputs" "infra" {
-  organization = var.tf_cloud_organization
-  workspace = "infra"
+# Read infra state from S3
+data "terraform_remote_state" "infra" {
+  backend = "s3"
+  config = {
+    bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
+    key    = "infra/terraform.tfstate"       # Path to infra's state file
+    region = "us-east-1"                     # AWS region
+  }
 }
-data "tfe_outputs" "eks" {
-  organization = var.tf_cloud_organization
-  workspace = "eks"
+
+
+data "terraform_remote_state" "nap" {
+  backend = "s3"
+  config = {
+    bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
+    key    = "nap/terraform.tfstate"         # Path to NAP state file
+    region = "us-east-1"                     # AWS region
+  }
 }
-data "tfe_outputs" "nap" {
-  count = data.tfe_outputs.infra.values.nap ? 1 : 0
-  organization = var.tf_cloud_organization
-  workspace = "nap"
+
+data "terraform_remote_state" "eks" {
+  backend = "s3"
+  config = {
+    bucket = "akash-terraform-state-bucket"  # Your S3 bucket name
+    key    = "eks-cluster/terraform.tfstate"  # Path to EKS state file
+    region = "us-east-1"                     # AWS region
+  }
 }
-data "tfe_outputs" "nic" {
-  count = data.tfe_outputs.infra.values.nic ? 1 : 0
-  organization = var.tf_cloud_organization
-  workspace = "nic"
-}
+
+# Get EKS cluster auth using S3 state
 data "aws_eks_cluster_auth" "auth" {
-  name = data.tfe_outputs.eks.values.cluster_name
+  name = data.terraform_remote_state.eks.outputs.cluster_name
 }

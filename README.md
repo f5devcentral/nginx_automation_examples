@@ -80,18 +80,27 @@ This workflow requires the following secrets to be configured in your GitHub rep
   * resource_owner = "Your-name"
   * aws_region     = "AWS Region" ex. us-east-1
   * azs            = ["us-east-1a", "us-east1b"] - Change to Correct Availability Zones based on selected Region
-  * Also update assets boolean value as per your work-flows
 
-**STEP 3:**  In the `S3 directory`, inside the `variable.tf` file  modify the following data 
-  * description = "S3 bucket for Terraform remote state storage"
+
+**STEP 3:**  Modify the `S3/variable.tf` file inside the `S3 directory`.
   * default     = "your-unique-bucket-name"  # Replace with your actual bucket name
-  
 
-**STEP 4:** Commit and push your build branch to your forked repo
+**STEP 4:**  Modify the `Backend.tf` file in the `Infra/Backend.tf`, `eks-cluster/Backend.tf`, `Nap/Backend.tf`, `Policy/Backend.tf`, `Arcadia/Backend.tf`  directory. 
+  * bucket         = "your-unique-bucket-name"  # Your S3 bucket name
+  * key            = "infra/terraform.tfstate"       # Path to state file
+  * region         = "your-aws-region-name"   By default us-east-1
+
+**STEP 5:** Add the name of your S3 bucket inside the `NGINX V5-NIC/NAP Destroy` workflow file, which is located in the Terraform _S3 job.
+  *      name: Set Bucket Name
+  *      id: set_bucket
+  *      run: |
+  *        echo "bucket_name="your-unique-bucket-name" >> $GITHUB_OUTPUT
+          
+**STEP 6:** Commit and push your build branch to your forked repo
   * Build will run and can be monitored in the GitHub Actions tab and TF Cloud console
 
 
-**STEP 5:** Once the pipeline is complete, verify that your assets were deployed or destroyed based on your workflow. 
+**STEP 7:** Once the pipeline is complete, verify that your assets were deployed or destroyed based on your workflow. 
 
             **NOTE:**  The autocert process takes time.  It may be 5 to 10 minutes before Let's Encrypt has provided the cert.
 
