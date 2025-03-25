@@ -1,4 +1,4 @@
-
+# eks-cluster/ekscluster.tf
 # Create EKS cluster and node groups
 resource "aws_eks_cluster" "eks-tf" {
 
@@ -28,8 +28,8 @@ resource "aws_eks_node_group" "private-node-group-1-tf" {
   instance_types = ["t3.medium"]
  
   scaling_config {
-   desired_size = 2
-   max_size   = 3
+   desired_size = 1
+   max_size   = 2
    min_size   = 1
   }
 
@@ -44,13 +44,6 @@ resource "aws_eks_node_group" "private-node-group-1-tf" {
   ]
  }
 
- resource "aws_eks_addon" "cluster-addons" {
-  for_each = { for addon in var.eks_addons : addon.name => addon }
-  cluster_name = aws_eks_cluster.eks-tf.id
-  addon_name = each.value.name
-  #addon_version = each.value.version
-  resolve_conflicts = "OVERWRITE"
- }
 
 resource "aws_eks_node_group" "private-node-group-2-tf" {
   cluster_name  = aws_eks_cluster.eks-tf.name
@@ -61,8 +54,8 @@ resource "aws_eks_node_group" "private-node-group-2-tf" {
   instance_types = ["t3.medium"]
  
   scaling_config {
-   desired_size = 2
-   max_size   = 3
+   desired_size = 1
+   max_size   = 2
    min_size   = 1
   }
 
@@ -76,3 +69,52 @@ resource "aws_eks_node_group" "private-node-group-2-tf" {
    aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
   ]
  }
+
+# Create EKS Addons
+resource "aws_eks_addon" "cluster-addons" {
+  for_each       = { for addon in var.eks_addons : addon.name => addon }
+  cluster_name   = aws_eks_cluster.eks-tf.id
+  addon_name     = each.value.name
+  resolve_conflicts = "OVERWRITE"
+  
+  # Add service account role ARN for EBS CSI driver
+  service_account_role_arn = each.value.name == "aws-ebs-csi-driver" ? aws_iam_role.ebs_csi_driver.arn : null
+
+  depends_on = [
+    aws_eks_node_group.private-node-group-1-tf,
+    aws_eks_node_group.private-node-group-2-tf,
+    aws_iam_role.ebs_csi_driver
+  ]
+}
+
+output "kubeconfig" {
+  value = <<EOT
+apiVersion: v1
+clusters:
+- cluster:
+    server: ${aws_eks_cluster.eks-tf.endpoint}
+    certificate-authority-data: ${aws_eks_cluster.eks-tf.certificate_authority[0].data}
+  name: ${aws_eks_cluster.eks-tf.arn}  # Use ARN as context name
+contexts:
+- context:
+    cluster: ${aws_eks_cluster.eks-tf.arn}
+    user: ${aws_eks_cluster.eks-tf.arn}
+  name: ${aws_eks_cluster.eks-tf.arn}  # Dynamic context name
+current-context: ${aws_eks_cluster.eks-tf.arn}
+kind: Config
+users:
+- name: ${aws_eks_cluster.eks-tf.arn}
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1beta1
+      command: aws
+      args:
+        - "eks"
+        - "get-token"
+        - "--cluster-name"
+        - ${aws_eks_cluster.eks-tf.name}
+        - "--region"
+        - ${local.aws_region}
+EOT
+  sensitive = true
+}
