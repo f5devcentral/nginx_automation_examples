@@ -1,10 +1,13 @@
-Protect Moderna Apps against OWASP top 10 attacks Using NGINX One for Kubernetes 
+Protect Modern Apps against OWASP top 10 attacks using NGINX One for Kubernetes 
 =============================
 
 Introduction :
 ---------------
 This demo guide offers a step-by-step walkthrough for configuring the NGINX Ingress Controller with NGINX App Protect v5 on AWS Cloud, using Terraform scripts to automate the deployment. For more information, refer to the devcentral article:  <Coming Soon>
 
+--------------
+
+.. contents:: **Table of Contents**
 
 ## Architecture Diagram 
 
