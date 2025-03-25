@@ -86,11 +86,11 @@ This workflow requires the following secrets to be configured in your GitHub rep
   * default     = "your-unique-bucket-name"  # Replace with your actual bucket name
 
 **STEP 4:**  Modify the `Backend.tf` file in the `Infra/Backend.tf`, `eks-cluster/Backend.tf`, `Nap/Backend.tf`, `Policy/Backend.tf`, `Arcadia/Backend.tf`  directory. 
-   *bucket         = "your-unique-bucket-name"  # Your S3 bucket name
-   * key            = "infra/terraform.tfstate"       # Path to state file
-   * region         = "your-aws-region-name"   By default us-east-1
+  * bucket         = "your-unique-bucket-name"  # Your S3 bucket name
+  * key            = "infra/terraform.tfstate"       # Path to state file
+  * region         = "your-aws-region-name"   By default us-east-1
 
-**STEP 5:** Add the name of your S3 bucket inside the `NGINX V5-NIC/NAP Destroy` workflow file.
+**STEP 5:** Add the name of your S3 bucket inside the `NGINX V5-NIC/NAP Destroy` workflow file, which is located in the Terraform _S3 job.
  *name: Set Bucket Name
   *      id: set_bucket
   *      run: |
