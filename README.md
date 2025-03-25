@@ -61,14 +61,14 @@ This workflow requires the following secrets to be configured in your GitHub rep
   
   | Workflow     | Branch Name      |
   | ------------ | ---------------- |
-  | NGINX-nap/nic| apply--NIC-NAP   |
+  | NGINX-nap/nic| apply-NIC/NAP   |
 
  
   **DESTROY**
   
   | Workflow     | Branch Name       |
   | ------------ | ----------------- |
-  | NGINX-nap/nic| destroy-NIC-NAP   |
+  | NGINX-nap/nic| destroy-NIC/NAP   |
 
 
 
@@ -80,11 +80,11 @@ This workflow requires the following secrets to be configured in your GitHub rep
   * Also update assets boolean value as per your work-flows
 
 **STEP 3:**  In  S3 directory, inside the variable.tf file  add the following data 
-  * variable "tf_state_bucket" {
+  variable "tf_state_bucket" {
   * type        = string
   * description = "S3 bucket for Terraform remote state storage"
   * default     = "your-unique-bucket-name"  # Replace with your actual bucket name
- *}
+  }
 
  
 
