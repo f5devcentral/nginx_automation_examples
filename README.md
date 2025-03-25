@@ -12,42 +12,14 @@ This is a consolidated automation repo for different verified designs customer u
 
   | **DevCentral Overview Articles**                                                                                                                          | **Use Case / Workflow Guides (SaaS Console, Automation)**                                                                                                                                                |
   | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | [Deploy WAF on any Edge with F5 Distributed Cloud](https://community.f5.com/t5/technical-articles/deploy-waf-on-any-edge-with-f5-distributed-cloud/ta-p/313079) | [Deploy F5 XC WAF on XC Regional Edges (SaaS Console, Automation)](https://github.com/f5devcentral/f5-xc-waap-terraform-examples/blob/main/workflow-guides/waf/f5-xc-waf-on-re/README.rst)                         |
+  | [Deploy NGINX Ingress Controller with App Proetctv5 in AWS Cloud](https://community.f5.com/t5/technical-articles/deploy-waf-on-any-edge-with-f5-distributed-cloud/ta-p/313079) | [Deploy NGINX Ingress Controller with App Proetctv5 in AWS Cloud](https://github.com/f5devcentral/nginx_automation_examples/blob/main/workflow-guides/NIC/NAPREADME.md)                         |
 
 ## Getting Started
 
 * [AWS Account](https://aws.amazon.com) - Due to the assets being created, free tier will not work.
-  * The F5 NGINX App Protect AMI being used from the [AWS Marketplace](https://aws.amazon.com/marketplace) should be subsribed to your account
   * Please make sure resources like VPC and Elastic IP's are below the threshold limit in that aws region
 * [GitHub Account](https://github.com)
 
-## Steps to execute
-
-1. Clone the repo locally and update AWS credentials like `access keys`, `secret key` and `session token` be in  `settings` --> `Secrets` --> `Actions` section <br />
-![image](https://user-images.githubusercontent.com/6093830/209962425-1c3452ec-9b32-4509-adb5-cc85d4a67a10.png)
-> Note: Above values typically expire in every 12 hours. If you are not using session token please remove this field accordingly in workflow file step name-`configure aws credentials` in all jobs
-
-2. EC2 keys should be updated properly in `settings` --> `Secrets` --> `Actions` section <br />
-> Note: Make sure passwords follow company security standards like alpha numeric, etc. <br />
-
-3. EC2 key related pem and pub file should be copied to terraform folder in your use case<br />
-
-4. Make sure you have subscribed to the `NGINX App Protect AMI` in AWS account <br />
-
-5. Update your `ENV` variables in `/data/testbed-data.json` file in your use case folder <br />
-
-6. Install self hosted runner and add it to this repo <br />
-
-7. Make sure `awscli`, `kubectl`, `ansible-playbook`, `pytest`, `git` and other required tools are installed in this private custom runner. Refer `requirements.txt` file for more details <br />
-
-> Note: Please install and make sure python packages like `pytest-html`, `awscli==1.18.105` and `botocore==1.17.28` are available with their correct versions in runner to avoid failures <br />
-
-8. Go to `Actions` tab and select your article work-flow <br />
-
-9. Click on `Run Workflow` option and execute it <br />
-
-10. Check the CI/CD jobs execution and check the artifacts for more details <br />
-<br />
 
 
 ## Support
