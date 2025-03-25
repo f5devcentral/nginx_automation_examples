@@ -1,5 +1,11 @@
-# NGINX Automation Deployment Examples
+# Deploying NGINX Ingress Controller with NGINX WAFv5 in AWS
+============================================================
 
+Overview
+#########
+This demo guide offers a step-by-step walkthrough for configuring the NGINX Ingress Controller with NGINX App Protect v5 on AWS Cloud, using Terraform scripts to automate the deployment. For more information, refer to the devcentral article:  <Coming Soon>
+
+**Note:** 
 
 ## Getting Started
 
@@ -38,9 +44,9 @@ This workflow requires the following secrets to be configured in your GitHub rep
 | `AWS_ACCESS_KEY_ID`     | Secret  | AWS IAM user access key ID with sufficient permissions                     | `AKIAXXXXXXXXXXXXXXXX`     |
 | `AWS_SECRET_ACCESS_KEY` | Secret  | Corresponding secret access key for the AWS IAM user                       | (40-character mixed case string) |
 | `AWS_SESSION_TOKEN`     | Secret  | Session token for temporary AWS credentials (if using MFA)                 | (Base64-encoded string)    |
-| `NGINX_JWT`             | Secret  | JSON Web Token for NGINX license authentication                           | `eyJhbGciOi...` (JWT format) |
-| `NGINX_CRT`             | Secret  | NGINX Certificate in PKCS#12 format                                    | `api.p12` file contents    |
-| `NGINX_KEY`             | Secret  | NGINX Key                                                              | YourCertificatePassword123 |
+| `NGINX_JWT`             | Secret  | JSON Web Token for NGINX license authentication                            | `eyJhbGciOi...` (JWT format) |
+| `NGINX_CRT`             | Secret  | NGINX Certificate in PKCS#12 format                                        | `api.p12` file contents    |
+| `NGINX_KEY`             | Secret  | Private key for securing HTTPS and verifying SSL/TLS certificates          | YourCertificatePasrivatekey|                                                    
 
 ### How to Add Secrets
 
@@ -61,14 +67,14 @@ This workflow requires the following secrets to be configured in your GitHub rep
   
   | Workflow     | Branch Name      |
   | ------------ | ---------------- |
-  | NGINX-nap/nic| apply-NIC/NAP   |
+  | NGINX V5-NIC/NAP Apply| apply-NIC/NAP   |
 
  
   **DESTROY**
   
   | Workflow     | Branch Name       |
   | ------------ | ----------------- |
-  | NGINX-nap/nic| destroy-NIC/NAP   |
+  | NGINX V5-NIC/NAP Destroy| destroy-NIC/NAP   |
 
 
 
@@ -79,22 +85,16 @@ This workflow requires the following secrets to be configured in your GitHub rep
   * azs            = ["us-east-1a", "us-east1b"] - Change to Correct Availability Zones based on selected Region
   * Also update assets boolean value as per your work-flows
 
-**STEP 3:**  In  S3 directory, inside the variable.tf file  add the following data 
-  variable "tf_state_bucket" {
-  * type        = string
+**STEP 3:**  In the 'S3 directory', inside the 'variable.tf' file  modify the following data 
   * description = "S3 bucket for Terraform remote state storage"
   * default     = "your-unique-bucket-name"  # Replace with your actual bucket name
-  }
+  
 
- 
-
-
-
-**STEP 5:** Commit and push your build branch to your forked repo
+**STEP 4:** Commit and push your build branch to your forked repo
   * Build will run and can be monitored in the GitHub Actions tab and TF Cloud console
 
 
-**STEP 6:** Once the pipeline is complete, verify that your assets were deployed or destroyed based on your workflow. 
+**STEP 5:** Once the pipeline is complete, verify that your assets were deployed or destroyed based on your workflow. 
 
             **NOTE:**  The autocert process takes time.  It may be 5 to 10 minutes before Let's Encrypt has provided the cert.
 
