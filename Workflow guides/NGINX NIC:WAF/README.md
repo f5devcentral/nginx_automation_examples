@@ -82,12 +82,12 @@ This workflow requires the following secrets to be configured in your GitHub rep
 **DEPLOY**
   | Workflow     | Branch Name      |
   | ------------ | ---------------- |
-  | NGINX V5-NIC/NAP Apply| apply-NIC/NAP   |
+  |Apply-nic-napv5| apply-NIC/NAP   |
 
 **DESTROY**
   | Workflow     | Branch Name       |
   | ------------ | ----------------- |
-  | NGINX V5-NIC/NAP Destroy| destroy-NIC/NAP   |
+  | Destroy-nic-napv5| destroy-NIC/NAP   |
 
 ### STEP 2: Modify terraform.tfvars
 Rename `infra/terraform.tfvars.examples` to `infra/terraform.tfvars` and add the following data:
