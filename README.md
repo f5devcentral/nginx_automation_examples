@@ -91,7 +91,7 @@ This workflow requires the following secrets to be configured in your GitHub rep
   * region         = "your-aws-region-name"   By default us-east-1
 
 **STEP 5:** Add the name of your S3 bucket inside the `NGINX V5-NIC/NAP Destroy` workflow file, which is located in the Terraform _S3 job.
- *name: Set Bucket Name
+  *      name: Set Bucket Name
   *      id: set_bucket
   *      run: |
   *        echo "bucket_name="your-unique-bucket-name" >> $GITHUB_OUTPUT
