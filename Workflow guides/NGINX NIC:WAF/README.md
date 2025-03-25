@@ -1,5 +1,5 @@
 # Protect Modern Apps against OWASP top 10 attacks using NGINX One for Kubernetes
-=============================
+=======================================================================================
 
 ## Table of Contents
 - [Introduction](#introduction)
