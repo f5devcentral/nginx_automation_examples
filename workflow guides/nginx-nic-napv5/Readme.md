@@ -143,13 +143,13 @@ data "terraform_remote_state" "infra" {
   backend = "s3"
   config = {
     bucket         = "your-unique-bucket-name"   # Your S3 bucket name
-    key            = "path/to/your/statefile.tfstate"  # Path to your state file
-    region         = "us-west-2"                # AWS region
+    key            = "infra/terraform.tfstate"  # Path to your state file
+    region         = "us-east-1"                # AWS region
   }
 }
 ```
 ### STEP 6: Set Bucket Name
-Add the name of your S3 bucket inside the `destroy-nic-napv5` workflow file, which is located in the Terraform _S3 job:
+Add the name of your S3 bucket inside the and  [`destroy-nic-napv5.yml`](https://github.com/f5devcentral/nginx_automation_examples/blob/main/.github/workflows/destroy-nic-napv5.yml) workflow file, which is located in the Terraform _S3 job:
   
   * echo "bucket_name="your-unique-bucket-name" >> $GITHUB_OUTPUT
 
