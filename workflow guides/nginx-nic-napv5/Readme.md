@@ -19,8 +19,10 @@
     - [STEP 4: Modify Backend.tf](#step-4-modify-backendtf)
     - [STEP 5: Configuring data.tf for Remote State](#step-5-configuring-datatf-for-Remote-State)
     - [STEP 6: Set Bucket Name](#step-6-set-bucket-name)
-    - [STEP 7: Commit and Push](#step-7-commit-and-push)
-    - [STEP 8: Verify Assets](#step-8-verify-assets)
+    - [STEP 7: Policy ](#step-7-Policy)
+    - [STEP 8: Deployment Workflow](#step-8-Deployment-workflow)
+    - [STEP 9: Destroy Workflow](#step-9-Destroy-workflow)
+    - [STEP 10: Validation](#step-10-validation)
   - [Support](#support)
   - [Community Code of Conduct](#community-code-of-conduct)
   - [License](#license)
@@ -166,7 +168,7 @@ Users have the option to utilize the existing policy or, if preferred, create a 
 .. figure:: assets/add-lb.png
 
 
-### STEP 9: Deployment Workflow  
+### STEP 9: Destroy Workflow  
 
 * Step 1: From your main branch, check out a new branch for the destroy workflow using the following naming convention
 
