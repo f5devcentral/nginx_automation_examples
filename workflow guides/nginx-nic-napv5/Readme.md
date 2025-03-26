@@ -140,3 +140,12 @@ Copyright 2014-2020 F5 Networks Inc.
 Before you start contributing to any project sponsored by F5 Networks, Inc. (F5) on GitHub, you will need to sign a Contributor License Agreement (CLA).
 
 
+Workflow Instructions
+######################
+
+`Deploy NGINX Ingress Controller with App ProtectV5 Workflow <./xc-console-demo-guide.rst>`__
+
+
+
+
+
