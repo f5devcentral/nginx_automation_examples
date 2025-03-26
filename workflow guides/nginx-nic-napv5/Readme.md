@@ -188,7 +188,7 @@ Users have the option to utilize the existing policy or, if preferred, create a 
 
 Users can now access the application through the NGINX Ingress Controller Load Balancer, which enhances security for the backend application by implementing the configured Web Application Firewall (WAF) policies. This setup not only improves accessibility but also ensures that the application is protected from various web threats.
 
-    ![Arcadia](assets/arcardia.png)
+  ![Arcadia](assets/arcardia.png)
 
 * With malicious attacks:
 
