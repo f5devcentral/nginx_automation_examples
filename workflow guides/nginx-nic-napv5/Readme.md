@@ -148,61 +148,45 @@ Users have the option to utilize the existing policy or, if preferred, create a 
 
 ### STEP 8: Deployment Workflow  
 
-* Step 1: Check out a branch for the deploy workflow using the following naming convention
+* **Step 1**: Check out a branch for the deploy workflow using the following naming convention  
+  * nic-napv5 deployment branch: apply-nic-napv5  
+  ![Branch](assets/branch.png)
 
- * nic-napv5 deployment branch: apply-nic-napv5
+* **Step 2**: Push your deploy branch to the forked repo  
+  ![Push](assets/push.png)
 
-.. figure:: assets/branch.png
+* **Step 3**: Back in GitHub, navigate to the Actions tab of your forked repo and monitor your build  
+  ![Actions](assets/actions.png)
 
-* Step 2: Push your deploy branch to the forked repo
-
-.. figure:: assets/push.png
-
-* Step 3: Back in GitHub, navigate to the Actions tab of your forked repo and monitor your build
-
-.. figure:: assets/actions.png
-
-* Step 4: Once the pipeline completes, verify your assets were deployed to AWS 
-
-.. figure:: assets/apply.png
-
+* **Step 4**: Once the pipeline completes, verify your assets were deployed to AWS  
+  ![Apply](assets/apply.png)
 
 ### STEP 9: Destroy Workflow  
 
-* Step 1: From your main branch, check out a new branch for the destroy workflow using the following naming convention
+* **Step 1**: From your main branch, check out a new branch for the destroy workflow using the following naming convention  
+  * nic-napv5 destroy branch: destroy-nic-napv5  
+  ![Add LB](assets/add-lb.png)
 
- * nic-napv5 destroy branch: destroy-nic-napv5
+* **Step 2**: Push your destroy branch to the forked repo  
+  ![Add LB](assets/add-lb.png)
 
-.. figure:: assets/add-lb.png
+* **Step 3**: Back in GitHub, navigate to the Actions tab of your forked repo and monitor your workflow  
+  ![Actions](assets/actions.png)
 
-* Step 2: Push your destroy branch to the forked repo
-
-.. figure:: assets/add-lb.png
-
-* Step 3: Back in GitHub, navigate to the Actions tab of your forked repo and monitor your workflow
-
-.. figure:: assets/actions.png
-
-* Step 4: Once the pipeline is completed, verify that your assets were destroyed
-
-.. figure:: assets/destroy.png
-
+* **Step 4**: Once the pipeline is completed, verify that your assets were destroyed  
+  ![Destroy](assets/destroy.png)
 
 ### STEP 10: Validation  
 
 Users can now access the application through the NGINX Ingress Controller Load Balancer, which enhances security for the backend application by implementing the configured Web Application Firewall (WAF) policies. This setup not only improves accessibility but also ensures that the application is protected from various web threats.
 
-.. figure:: assets/arcardia.png
+![Arcadia](assets/arcardia.png)
 
-* With malicious attacks:
+* With malicious attacks:  
+  ![Cross-site](assets/cross-site.png)
 
-.. figure:: assets/cross-site.png
-
-* Verify that the cross-site scripting is detected and blocked by NGINX App Protect.
-
-.. figure:: assets/block.png
-
-
+* Verify that the cross-site scripting is detected and blocked by NGINX App Protect.  
+  ![Block](assets/block.png)
 
 ### Conclusion  
 
