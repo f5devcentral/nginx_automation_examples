@@ -7,7 +7,7 @@ resource "kubernetes_manifest" "arcadia_virtualserver" {
       namespace = "default"
     }
     spec = {
-      host = try(data.terraform_remote_state.nap.outputs.external_name, "arcadia-cd-demo.sr.f5-cloud-demo.com")
+      host = try(data.terraform_remote_state.nap.outputs.external_name)
       
       # Reference the WAF policy
       policies = [
