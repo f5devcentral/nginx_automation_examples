@@ -110,12 +110,21 @@ variable "tf_state_bucket" {
   default     = "your-unique-bucket-name" 
 }
 ```
-### STEP 4: Modify Backend.tf
-Modify the `Backend.tf` file in the `Infra/Backend.tf`, `eks-cluster/Backend.tf`, `Nap/Backend.tf`, `Policy/Backend.tf`, and `Arcadia/Backend.tf` directories. 
+### STEP 4: Configure Backend.tf
+Add the S3 bucket name to the `Backend.tf` file in the `Infra/Backend.tf`, `eks-cluster/Backend.tf`, `Nap/Backend.tf`, `Policy/Backend.tf`, and `Arcadia/Backend.tf` directories. 
+
+### Example Configuration:
 
 ```hcl
-bucket         = "your-unique-bucket-name"  # Your S3 bucket name
-region         = "your-aws-region-name"   By default us-east-1
+terraform {
+  backend "s3" {
+    bucket         = "your-unique-bucket-name"       # Your S3 bucket name
+    key            = "infra/terraform.tfstate"       # Path to state file
+    region         = "us-east-1"                     # AWS region
+    dynamodb_table = "terraform-lock-table"          # DynamoDB table for state locking
+    encrypt        = true                        
+  }
+}
 ```
 
 ### STEP 5: Configuring `data.tf` for Remote State
