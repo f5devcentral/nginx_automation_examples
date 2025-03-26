@@ -23,6 +23,7 @@
     - [STEP 8: Deployment Workflow](#step-8-Deployment-workflow)
     - [STEP 9: Destroy Workflow](#step-9-Destroy-workflow)
     - [STEP 10: Validation](#step-10-validation)
+  - [Conclusion](#conclusion)
   - [Support](#support)
   - [Community Code of Conduct](#community-code-of-conduct)
   - [License](#license)
@@ -203,8 +204,9 @@ Users can now access the application through the NGINX Ingress Controller Load B
 
 .. figure:: assets/sql-inj-detect.png
 
-Conclusion:  
-******************
+
+
+### Conclusion  
 
 This article outlines deploying a robust security framework using the NGINX Ingress Controller and NGINX App Protect WAF version 5 for a sample web application hosted on AWS EKS. We leveraged the NGINX Automation Examples Repository and integrated it into a CI/CD pipeline for streamlined deployment. Although the provided code and security configurations are foundational and may not cover every possible scenario, they serve as a valuable starting point for implementing NGINX Ingress Controller and NGINX App Protect version 5 in your own cloud environments.
 
