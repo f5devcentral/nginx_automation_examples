@@ -249,7 +249,7 @@ jobs:
       - name: Set Bucket Name
         id: set_bucket
         run: |
-          echo "bucket_name=akash-terraform-state-bucket" >> $GITHUB_OUTPUT
+          echo "bucket_name= your-unique-bucket-name" >> $GITHUB_OUTPUT
 
       - name: Nuclear S3 Bucket Deletion
         run: |
