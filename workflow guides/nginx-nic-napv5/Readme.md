@@ -121,8 +121,8 @@ The build will run and can be monitored in the GitHub Actions tab and TF Cloud c
 Once the pipeline is complete, verify that your assets were deployed or destroyed based on your workflow.  
 **NOTE:** The autocert process takes time. It may be 5 to 10 minutes before Let's Encrypt has provided the cert.
 
-## Development
-Outline any requirements to set up a development environment if someone would like to contribute. You may also link to another file for this information.
+
+
 
 ## Support
 For support, please open a GitHub issue. Note, the code in this repository is community-supported and is not supported by F5 Networks.
