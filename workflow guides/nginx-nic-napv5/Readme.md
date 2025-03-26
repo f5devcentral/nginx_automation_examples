@@ -18,9 +18,10 @@
     - [STEP 5: Configuring data.tf for Remote State](#step-5-configuring-datatf-for-Remote-State)
     - [STEP 6: Set Bucket Name](#step-6-set-bucket-name)
     - [STEP 7: Policy ](#step-7-Policy)
-    - [STEP 8: Deployment Workflow](#step-8-Deployment-workflow)
-    - [STEP 9: Validation](#step-9-validation)
-    - [STEP 10: Destroy Workflow](#step-10-Destroy-workflow)
+    - [STEP 8: Commit Changes](#step-8-Commit-Changes)
+    - [STEP 9: Deployment Workflow](#step-9-Deployment-workflow)
+    - [STEP 10: Validation](#step-10-validation)
+    - [STEP 11: Destroy Workflow](#step-11-Destroy-workflow)
   - [Conclusion](#conclusion)
   - [Support](#support)
   - [Copyright](#copyright)
@@ -172,7 +173,7 @@ Users have the option to utilize the existing policy or, if preferred, create a 
    ![commit](assets/commit.png)
    
 
-### STEP 8: Deployment Workflow  
+### STEP 9: Deployment Workflow  
 
 * **Step 1**: Check out a branch for the deploy workflow using the following naming convention  
   * nic-napv5 deployment branch: apply-nic-napv5
@@ -192,7 +193,7 @@ Users have the option to utilize the existing policy or, if preferred, create a 
   ![Apply](assets/apply.png)
 
 
-### STEP 9: Validation  
+### STEP 10: Validation  
 
 Users can now access the application through the NGINX Ingress Controller Load Balancer, which enhances security for the backend application by implementing the configured Web Application Firewall (WAF) policies. This setup not only improves accessibility but also ensures that the application is protected from various web threats.
 
@@ -207,7 +208,7 @@ Users can now access the application through the NGINX Ingress Controller Load B
   ![Block](assets/block.png)
   
 
-### STEP 10: Destroy Workflow  
+### STEP 11: Destroy Workflow  
 
 * **Step 1**: From your main branch, check out a new branch for the destroy workflow using the following naming convention  
   * nic-napv5 destroy branch: destroy-nic-napv5  
