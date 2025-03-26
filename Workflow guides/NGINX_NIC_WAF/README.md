@@ -26,7 +26,7 @@
 
 ## Introduction
 ---------------
-This demo guide offers a step-by-step walkthrough for configuring the NGINX Ingress Controller with NGINX App Protect v5 on AWS Cloud, using Terraform scripts to automate the deployment. For more information, refer to the devcentral article:  <Coming Soon>
+This demo guide offers a step-by-step walkthrough for configuring the NGINX Ingress Controller with NGINX App Protect v5 on AWS Cloud, using Terraform scripts to automate the deployment. Please refer to the [docs](https://docs.nginx.com/nginx-ingress-controller/installation/integrations/)for more information For more information, refer to the DevCentral article:  <Coming Soon>
 
 --------------
 
@@ -82,12 +82,12 @@ This workflow requires the following secrets to be configured in your GitHub rep
 **DEPLOY**
   | Workflow     | Branch Name      |
   | ------------ | ---------------- |
-  |Apply-nic-napv5| apply-NIC/NAP   |
+  |Apply-nic-napv5| apply-nic-napv5   |
 
 **DESTROY**
   | Workflow     | Branch Name       |
   | ------------ | ----------------- |
-  | Destroy-nic-napv5| destroy-NIC/NAP   |
+  | Destroy-nic-napv5| destroy-nic-napv5   |
 
 ### STEP 2: Modify terraform.tfvars
 Rename `infra/terraform.tfvars.examples` to `infra/terraform.tfvars` and add the following data:
