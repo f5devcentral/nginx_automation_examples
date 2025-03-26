@@ -165,7 +165,12 @@ Users have the option to utilize the existing policy or, if preferred, create a 
   
    ![Push](assets/policy.png)
 
- 
+
+### STEP 8: Commit changes
+
+
+   ![commit](assets/commit.png)
+   
 
 ### STEP 8: Deployment Workflow  
 
