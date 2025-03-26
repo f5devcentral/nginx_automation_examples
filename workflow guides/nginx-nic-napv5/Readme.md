@@ -19,12 +19,10 @@
     - [STEP 6: Set Bucket Name](#step-6-set-bucket-name)
     - [STEP 7: Policy ](#step-7-Policy)
     - [STEP 8: Deployment Workflow](#step-8-Deployment-workflow)
-    - [STEP 9: Destroy Workflow](#step-9-Destroy-workflow)
-    - [STEP 10: Validation](#step-10-validation)
+    - [STEP 9: Validation](#step-9-validation)
+    - [STEP 10: Destroy Workflow](#step-10-Destroy-workflow)
   - [Conclusion](#conclusion)
   - [Support](#support)
-  - [Community Code of Conduct](#community-code-of-conduct)
-  - [License](#license)
   - [Copyright](#copyright)
     - [F5 Networks Contributor License Agreement](#f5-networks-contributor-license-agreement)
 
@@ -165,7 +163,23 @@ Users have the option to utilize the existing policy or, if preferred, create a 
 
   ![Apply](assets/apply.png)
 
-### STEP 9: Destroy Workflow  
+
+### STEP 9: Validation  
+
+Users can now access the application through the NGINX Ingress Controller Load Balancer, which enhances security for the backend application by implementing the configured Web Application Firewall (WAF) policies. This setup not only improves accessibility but also ensures that the application is protected from various web threats.
+
+  ![Arcadia](assets/arcardia.png)
+
+* With malicious attacks:
+
+  ![Cross-site](assets/cross-site.png)
+
+* Verify that the cross-site scripting is detected and blocked by NGINX App Protect.  
+
+  ![Block](assets/block.png)
+  
+
+### STEP 10: Destroy Workflow  
 
 * **Step 1**: From your main branch, check out a new branch for the destroy workflow using the following naming convention  
   * nic-napv5 destroy branch: destroy-nic-napv5  
@@ -184,19 +198,7 @@ Users have the option to utilize the existing policy or, if preferred, create a 
 
   ![Destroy](assets/destroy.png)
 
-### STEP 10: Validation  
 
-Users can now access the application through the NGINX Ingress Controller Load Balancer, which enhances security for the backend application by implementing the configured Web Application Firewall (WAF) policies. This setup not only improves accessibility but also ensures that the application is protected from various web threats.
-
-  ![Arcadia](assets/arcardia.png)
-
-* With malicious attacks:
-
-  ![Cross-site](assets/cross-site.png)
-
-* Verify that the cross-site scripting is detected and blocked by NGINX App Protect.  
-
-  ![Block](assets/block.png)
 
 ### Conclusion  
 
@@ -205,12 +207,6 @@ This article outlines deploying a robust security framework using the NGINX Ingr
 ## Support
 For support, please open a GitHub issue. Note that the code in this repository is community-supported and is not supported by F5 Networks.
 
-## Community Code of Conduct
-Please refer to the [F5 DevCentral Community Code of Conduct](code_of_conduct.md).
-
-## License
-[Apache License 2.0](LICENSE)
-
 ## Copyright
 Copyright 2014-2020 F5 Networks Inc.
 
@@ -218,10 +214,6 @@ Copyright 2014-2020 F5 Networks Inc.
 Before you start contributing to any project sponsored by F5 Networks, Inc. (F5) on GitHub, you will need to sign a Contributor License Agreement (CLA).
 
 
-Workflow Instructions
-######################
-
-`Deploy NGINX Ingress Controller with App ProtectV5 Workflow <./xc-console-demo-guide.rst>`__
 
 
 
