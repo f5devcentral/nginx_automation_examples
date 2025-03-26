@@ -8,7 +8,7 @@ This repository serves as a comprehensive hub that consolidates a variety of aut
 </br>
 
 
-### **F5 Distributed Cloud WAF**
+### **NGINX Ingress Controller/NGINX App Protect WAF**
 
   | **DevCentral Overview Articles**                                                                                                                          | **Use Case / Workflow Guides (SaaS Console, Automation)**                                                                                                                                                |
   | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
