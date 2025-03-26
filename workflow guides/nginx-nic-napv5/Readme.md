@@ -100,12 +100,22 @@ Rename `infra/terraform.tfvars.examples` to `infra/terraform.tfvars` and add the
 
 ### STEP 3: Modify variable.tf
 Modify the `S3/variable.tf` file inside the `S3 directory`:
-  * default     = "your-unique-bucket-name"  # Replace with your actual bucket name
 
+### Example Configuration:
+```hcl
+variable "tf_state_bucket" {
+  type        = string
+  description = "S3 bucket for Terraform state"
+  default     = "your-unique-bucket-name" 
+}
+```
 ### STEP 4: Modify Backend.tf
 Modify the `Backend.tf` file in the `Infra/Backend.tf`, `eks-cluster/Backend.tf`, `Nap/Backend.tf`, `Policy/Backend.tf`, and `Arcadia/Backend.tf` directories. 
-  * bucket         = "your-unique-bucket-name"  # Your S3 bucket name
-  * region         = "your-aws-region-name"   By default us-east-1
+
+```hcl
+bucket         = "your-unique-bucket-name"  # Your S3 bucket name
+region         = "your-aws-region-name"   By default us-east-1
+```
 
 ### STEP 5: Configuring `data.tf` for Remote State
 
