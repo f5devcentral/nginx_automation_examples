@@ -2,8 +2,6 @@
 ==================================================================================================
 
 ## Table of Contents
-- [Deploy NGINX Ingress Controller with App ProtectV5 in AWS Cloud](#deploy-nginx-ingress-controller-with-app-protectv5-in-aws-cloud)
-  - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
   - [Architecture Diagram](#architecture-diagram)
   - [Prerequisites](#prerequisites)
