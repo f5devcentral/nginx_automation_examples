@@ -1,23 +1,23 @@
-# S3 Bucket Details
+
+# S3 and Dynamo Outputs
 output "s3_bucket_created" {
-  description = "Whether the S3 bucket was created."
-  value       = length(aws_s3_bucket.terraform_state_bucket) > 0 ? true : false
+  value       = !local.bucket_exists
+  description = "Whether a new S3 bucket was created"
 }
 
 output "s3_bucket_name" {
-  description = "The name of the S3 bucket."
-  value       = length(aws_s3_bucket.terraform_state_bucket) > 0 ? aws_s3_bucket.terraform_state_bucket[0].bucket : null
+  value       = local.bucket_exists ? var.tf_state_bucket : aws_s3_bucket.terraform_state[0].bucket
+  description = "Name of the S3 bucket used for Terraform state"
 }
 
-# DynamoDB Table Details
 output "dynamodb_table_created" {
-  description = "Whether the DynamoDB table was created."
-  value       = length(aws_dynamodb_table.terraform_state_lock) > 0 ? true : false
+  value       = !local.dynamodb_exists
+  description = "Whether a new DynamoDB table was created"
 }
 
 output "dynamodb_table_name" {
-  description = "The name of the DynamoDB table."
-  value       = length(aws_dynamodb_table.terraform_state_lock) > 0 ? aws_dynamodb_table.terraform_state_lock[0].name : null
+  value       = "terraform-lock-table"
+  description = "Name of the DynamoDB table used for state locking"
 }
 
 # Output the ARN of the created IAM role (if created)
