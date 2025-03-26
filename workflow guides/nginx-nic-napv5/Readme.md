@@ -238,9 +238,7 @@ Users can now access the application through the NGINX Ingress Controller Load B
 
 
 
-### Conclusion  
 
-This article outlines deploying a robust security framework using the NGINX Ingress Controller and NGINX App Protect WAF version 5 for a sample web application hosted on AWS EKS. We leveraged the NGINX Automation Examples Repository and integrated it into a CI/CD pipeline for streamlined deployment. Although the provided code and security configurations are foundational and may not cover every possible scenario, they serve as a valuable starting point for implementing NGINX Ingress Controller and NGINX App Protect version 5 in your own cloud environments.
 
 ## Support
 For support, please open a GitHub issue. Note that the code in this repository is community-supported and is not supported by F5 Networks.
