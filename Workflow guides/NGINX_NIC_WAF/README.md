@@ -107,7 +107,7 @@ Modify the `Backend.tf` file in the `Infra/Backend.tf`, `eks-cluster/Backend.tf`
   * region         = "your-aws-region-name"   By default us-east-1
 
 ### STEP 5: Set Bucket Name
-Add the name of your S3 bucket inside the `NGINX V5-NIC/NAP Destroy` workflow file, which is located in the Terraform _S3 job:
+Add the name of your S3 bucket inside the `destroy-nic-napv5` workflow file, which is located in the Terraform _S3 job:
   *      name: Set Bucket Name
   *      id: set_bucket
   *      run: |
