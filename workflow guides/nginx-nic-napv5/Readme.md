@@ -170,15 +170,15 @@ Users have the option to utilize the existing policy or, if preferred, create a 
 * **Step 1**: From your main branch, check out a new branch for the destroy workflow using the following naming convention  
   * nic-napv5 destroy branch: destroy-nic-napv5  
   
-  ![Add LB](assets/add-lb.png)
+  ![Add destroy](assets/destroy_checkout.png)
 
 * **Step 2**: Push your destroy branch to the forked repo  
 
-  ![Add LB](assets/add-lb.png)
+  ![Add LB](assets/destroy-push.png)
 
 * **Step 3**: Back in GitHub, navigate to the Actions tab of your forked repo and monitor your workflow
   
-   ![Actions](assets/actions.png)
+  ![Actions](assets/actions.png)
 
 * **Step 4**: Once the pipeline is completed, verify that your assets were destroyed  
 
