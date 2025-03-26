@@ -91,7 +91,7 @@ This workflow requires the following secrets to be configured in your GitHub rep
   | ------------ | ----------------- |
   | Destroy-nic-napv5| destroy-nic-napv5   |
 
-### STEP 2: Modify terraform.tfvars
+### STEP 2: Modify terraform. tfvars  
 Rename `infra/terraform.tfvars.examples` to `infra/terraform.tfvars` and add the following data:
   * project_prefix  = "Your project identifier name in **lower case** letters only - this will be applied as a prefix to all assets"
   * resource_owner = "Your-name"
@@ -159,12 +159,11 @@ The repository includes a default policy file named policy.json, which can be fo
 }
 ```hcl
 
+  
 Users have the option to utilize the existing policy or, if preferred, create a custom policy. To do this, place the custom policy in the designated policy folder and name it `policy.json` or any name you choose. If you decide to use a different name, update the corresponding name in the `destroy-nic-napv5.yml` workflow file accordingly.
 
-[destroy-nic-napv5.yml](https://github.com/f5devcentral/nginx_automation_examples/blob/main/.github/workflows/destroy-nic-napv5.yml "Click to view the workflow")
+        [destroy-nic-napv5.yml](https://github.com/f5devcentral/nginx_automation_examples/blob/main/.github/workflows/destroy-nic-napv5.yml "Click to view the workflow")
  
-
-.. figure:: assets/policy-2.png
 
 ### STEP 8: Deployment Workflow  
 
