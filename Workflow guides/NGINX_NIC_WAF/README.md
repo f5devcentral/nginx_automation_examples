@@ -1,5 +1,5 @@
-# Protect Modern Apps against OWASP top 10 attacks using NGINX One for Kubernetes
-=======================================================================================
+# Deploy NGINX Ingress Controller with App ProtectV5 in AWS Cloud
+====================================================================
 
 ## Table of Contents
 - [Introduction](#introduction)
