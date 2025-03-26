@@ -152,19 +152,19 @@ Users have the option to utilize the existing policy or, if preferred, create a 
 
  * nic-napv5 deployment branch: apply-nic-napv5
 
-.. figure:: assets/add-lb.png
+.. figure:: assets/branch.png
 
 * Step 2: Push your deploy branch to the forked repo
 
-.. figure:: assets/add-lb.png
+.. figure:: assets/push.png
 
 * Step 3: Back in GitHub, navigate to the Actions tab of your forked repo and monitor your build
 
-.. figure:: assets/add-lb.png
+.. figure:: assets/actions.png
 
 * Step 4: Once the pipeline completes, verify your assets were deployed to AWS 
 
-.. figure:: assets/add-lb.png
+.. figure:: assets/apply.png
 
 
 ### STEP 9: Destroy Workflow  
@@ -181,26 +181,26 @@ Users have the option to utilize the existing policy or, if preferred, create a 
 
 * Step 3: Back in GitHub, navigate to the Actions tab of your forked repo and monitor your workflow
 
-.. figure:: assets/add-lb.png
+.. figure:: assets/actions.png
 
 * Step 4: Once the pipeline is completed, verify that your assets were destroyed
 
-.. figure:: assets/add-lb.png
+.. figure:: assets/destroy.png
 
 
 ### STEP 10: Validation  
 
 Users can now access the application through the NGINX Ingress Controller Load Balancer, which enhances security for the backend application by implementing the configured Web Application Firewall (WAF) policies. This setup not only improves accessibility but also ensures that the application is protected from various web threats.
 
-.. figure:: assets/lb-domain-access.png
+.. figure:: assets/arcardia.png
 
 * With malicious attacks:
 
-.. figure:: assets/sql-inj.png
+.. figure:: assets/cross-site.png
 
 * Verify that the cross-site scripting is detected and blocked by NGINX App Protect.
 
-.. figure:: assets/sql-inj-detect.png
+.. figure:: assets/block.png
 
 
 
