@@ -151,38 +151,38 @@ Users have the option to utilize the existing policy or, if preferred, create a 
 * **Step 1**: Check out a branch for the deploy workflow using the following naming convention  
   * nic-napv5 deployment branch: apply-nic-napv5
     
-              ![Branch](assets/branch.png)
+   ![Branch](assets/branch.png)
 
 * **Step 2**: Push your deploy branch to the forked repo
    
-              ![Push](assets/push.png)
+   ![Push](assets/push.png)
 
 * **Step 3**: Back in GitHub, navigate to the Actions tab of your forked repo and monitor your build
   
-              ![Actions](assets/actions.png)
+   ![Actions](assets/actions.png)
 
 * **Step 4**: Once the pipeline completes, verify your assets were deployed to AWS  
 
-              ![Apply](assets/apply.png)
+  ![Apply](assets/apply.png)
 
 ### STEP 9: Destroy Workflow  
 
 * **Step 1**: From your main branch, check out a new branch for the destroy workflow using the following naming convention  
   * nic-napv5 destroy branch: destroy-nic-napv5  
   
-      ![Add LB](assets/add-lb.png)
+  ![Add LB](assets/add-lb.png)
 
 * **Step 2**: Push your destroy branch to the forked repo  
 
-      ![Add LB](assets/add-lb.png)
+  ![Add LB](assets/add-lb.png)
 
-* **Step 3**: Back in GitHub, navigate to the Actions tab of your forked repo and monitor your workflow  
-
-      ![Actions](assets/actions.png)
+* **Step 3**: Back in GitHub, navigate to the Actions tab of your forked repo and monitor your workflow
+  
+   ![Actions](assets/actions.png)
 
 * **Step 4**: Once the pipeline is completed, verify that your assets were destroyed  
 
-      ![Destroy](assets/destroy.png)
+  ![Destroy](assets/destroy.png)
 
 ### STEP 10: Validation  
 
@@ -190,13 +190,13 @@ Users can now access the application through the NGINX Ingress Controller Load B
 
     ![Arcadia](assets/arcardia.png)
 
-* With malicious attacks:  
+* With malicious attacks:
 
-     ![Cross-site](assets/cross-site.png)
+  ![Cross-site](assets/cross-site.png)
 
 * Verify that the cross-site scripting is detected and blocked by NGINX App Protect.  
 
-    ![Block](assets/block.png)
+  ![Block](assets/block.png)
 
 ### Conclusion  
 
