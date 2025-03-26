@@ -2,9 +2,9 @@
 
 ## Overview
 
-This is a consolidated automation repo for different verified designs customer use case examples using `F5 Nginx` utilizing Terraform. For more information on the use cases covered by this project, please see the following articles and workflow guides:
+This is a consolidated automation repo for different verified designs customer use case examples using [F5 NGINX One](https://www.f5.com/products/nginx/one) utilizing Terraform. For more information on the use cases covered by this project, please see the following articles and workflow guides:
 
-**NOTE: To learn about each use case check the devcentral article link provided in each scenario folder README** </br>
+**NOTE: To learn about each use case, check the DevCentral article link provided in each scenario folder README** </br>
 </br>
 
 
@@ -12,7 +12,7 @@ This is a consolidated automation repo for different verified designs customer u
 
   | **DevCentral Overview Articles**                                                                                                                          | **Use Case / Workflow Guides (SaaS Console, Automation)**                                                                                                                                                |
   | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | [Deploy NGINX Ingress Controller with App Proetctv5 in AWS Cloud](https://community.f5.com/t5/technical-articles/deploy-waf-on-any-edge-with-f5-distributed-cloud/ta-p/313079) | [Deploy NGINX Ingress Controller with App Proetctv5 in AWS Cloud](https://github.com/f5devcentral/nginx_automation_examples/blob/main/workflow-guides/NIC/NAPREADME.md)                         |
+  | [Deploy NGINX Ingress Controller with App Proetctv5 in AWS Cloud](Coming Soon) | [Deploy NGINX Ingress Controller with App Proetctv5 in AWS Cloud](https://github.com/f5devcentral/nginx_automation_examples/blob/main/workflow-guides/NIC/NAPREADME.md)                         |
 
 ## Getting Started
 
@@ -24,7 +24,7 @@ This is a consolidated automation repo for different verified designs customer u
 
 ## Support
 
-For support, please open a GitHub issue.  Note, the code in this repository is community supported and is not supported by F5 Networks.  
+For support, please open a GitHub issue.  Note that the code in this repository is community supported and is not supported by F5 Networks.  
 
 ## Community Code of Conduct
 
