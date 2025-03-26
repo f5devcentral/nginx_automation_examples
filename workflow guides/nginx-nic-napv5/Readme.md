@@ -134,15 +134,6 @@ Add the name of your S3 bucket inside the `destroy-nic-napv5` workflow file, whi
   
   * echo "bucket_name="your-unique-bucket-name" >> $GITHUB_OUTPUT
 
-### STEP 7: Commit and Push
-Commit and push your build branch to your forked repo.  
-The build will run and can be monitored in the GitHub Actions tab and TF Cloud console.
-
-### STEP 7: Verify Assets
-Once the pipeline is complete, verify that your assets were deployed or destroyed based on your workflow.  
-**NOTE:** The autocert process takes time. It may be 5 to 10 minutes before Let's Encrypt has provided the cert.
-
-
 
 
 ## Support
