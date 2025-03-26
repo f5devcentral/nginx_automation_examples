@@ -107,12 +107,34 @@ Modify the `Backend.tf` file in the `Infra/Backend.tf`, `eks-cluster/Backend.tf`
   * bucket         = "your-unique-bucket-name"  # Your S3 bucket name
   * region         = "your-aws-region-name"   By default us-east-1
 
-### STEP 5: Set Bucket Name
+### STEP 5:Configuring `data.tf` for Remote State
+
+Each `data.tf` file in the following directories needs to use the correct format:
+
+- `eks-cluster/data.tf`
+- `Nap/data.tf`
+- `Policy/data.tf`
+- `Arcadia/data.tf`
+
+### Example Configuration:
+
+```hcl
+data "terraform_remote_state" "infra" {
+  backend = "s3"
+  config = {
+    bucket         = "your-unique-bucket-name"   # Your S3 bucket name
+    key            = "path/to/your/statefile.tfstate"  # Path to your state file
+    region         = "us-west-2"                # AWS region
+  }
+}
+
+
+### STEP 6: Set Bucket Name
 Add the name of your S3 bucket inside the `destroy-nic-napv5` workflow file, which is located in the Terraform _S3 job:
   
   * echo "bucket_name="your-unique-bucket-name" >> $GITHUB_OUTPUT
 
-### STEP 6: Commit and Push
+### STEP 7: Commit and Push
 Commit and push your build branch to your forked repo.  
 The build will run and can be monitored in the GitHub Actions tab and TF Cloud console.
 
@@ -124,7 +146,7 @@ Once the pipeline is complete, verify that your assets were deployed or destroye
 
 
 ## Support
-For support, please open a GitHub issue. Note, the code in this repository is community-supported and is not supported by F5 Networks.
+For support, please open a GitHub issue. Note that the code in this repository is community-supported and is not supported by F5 Networks.
 
 ## Community Code of Conduct
 Please refer to the [F5 DevCentral Community Code of Conduct](code_of_conduct.md).
