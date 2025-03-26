@@ -372,3 +372,15 @@ jobs:
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
+
+      - name: Get Terraform Outputs
+        run: |
+          terraform output -json > outputs.json
+          EXTERNAL_NAME=$(jq -r '.external_name.value // empty' outputs.json)
+    
+          if [ -z "$EXTERNAL_NAME" ]; then
+            echo "::warning::No external_name output found"
+          else
+            echo "external_name=$EXTERNAL_NAME" >> $GITHUB_ENV
+            echo "NGINX Ingress External Name: $EXTERNAL_NAME"
+          fi
