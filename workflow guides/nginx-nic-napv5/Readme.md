@@ -20,7 +20,6 @@
     - [STEP 5: Set Bucket Name](#step-5-set-bucket-name)
     - [STEP 6: Commit and Push](#step-6-commit-and-push)
     - [STEP 7: Verify Assets](#step-7-verify-assets)
-  - [Development](#development)
   - [Support](#support)
   - [Community Code of Conduct](#community-code-of-conduct)
   - [License](#license)
