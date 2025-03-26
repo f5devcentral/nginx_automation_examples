@@ -26,7 +26,7 @@
 
 ## Introduction
 ---------------
-This demo guide offers a step-by-step walkthrough for configuring the NGINX Ingress Controller with NGINX App Protect v5 on AWS Cloud, using Terraform scripts to automate the deployment. Please refer to the [docs](https://docs.nginx.com/nginx-ingress-controller/installation/integrations/)for more information For more information, refer to the DevCentral article:  <Coming Soon>
+This demo guide provides a comprehensive, step-by-step walkthrough for configuring the NGINX Ingress Controller alongside NGINX App Protect v5 on the AWS Cloud platform. It utilizes Terraform scripts to automate the deployment process, making it more efficient and streamlined. For further details, please consult the official [documentation] (https://docs.nginx.com/nginx-ingress-controller/installation/integrations/). Also, you can find more insights in the DevCentral article: <Coming Soon>
 
 --------------
 
