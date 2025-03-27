@@ -61,15 +61,14 @@ This workflow requires the following secrets to be configured in your GitHub rep
 
 ### Required Secrets
 
-| Secret Name            | Type    | Description                                                                 | Example Value/Format        |
-|------------------------|---------|-----------------------------------------------------------------------------|----------------------------|
-| `AWS_ACCESS_KEY_ID`     | Secret  | AWS IAM user access key ID with sufficient permissions                     | `AKIAXXXXXXXXXXXXXXXX`     |
-| `AWS_SECRET_ACCESS_KEY` | Secret  | Corresponding secret access key for the AWS IAM user                       | (40-character mixed case string) |
-| `AWS_SESSION_TOKEN`     | Secret  | Session token for temporary AWS credentials (if using MFA)                 | (Base64-encoded string)    |
-| `NGINX_JWT`             | Secret  | JSON Web Token for NGINX license authentication                            | `eyJhbGciOi...` (JWT format) |
-| `NGINX_Repo_CRT`        | Secret  | NGINX Certificate in PKCS#12 format                                        | `api.p12` file contents    |
-| `NGINX_Repo_KEY`        | Secret  | Private key for securing HTTPS and verifying SSL/TLS certificates          | YourCertificatePrivatekey  |
-
+| Secret Name            | Type    | Description                                                              
+|------------------------|---------|----------------------------------------------------------------------|
+| `AWS_ACCESS_KEY_ID`     | Secret  | AWS IAM user access key ID with sufficient permissions              |      
+| `AWS_SECRET_ACCESS_KEY` | Secret  | Corresponding secret access key for the AWS IAM user                |  
+| `AWS_SESSION_TOKEN`     | Secret  | Session token for temporary AWS credentials (if using MFA)          |       
+| `NGINX_JWT`             | Secret  | JSON Web Token for NGINX license authentication                     |    
+| `NGINX_Repo_CRT`        | Secret  | NGINX Certificate                                                   | 
+| `NGINX_Repo_KEY`        | Secret  | Private key for securing HTTPS and verifying SSL/TLS certificates   |      
 ### How to Add Secrets
 
 1. Navigate to your GitHub repository
