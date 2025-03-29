@@ -43,6 +43,11 @@ variable "azs" {
   description = "Availability Zones"
   type        = list
 }
+
+locals {
+  azs = ["${var.AWS_REGION}a", "${var.AWS_REGION}b"]
+}
+
 variable "create_nat_gateway" {
   type        = bool
   default     = false
