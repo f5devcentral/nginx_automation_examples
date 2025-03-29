@@ -39,10 +39,10 @@ variable "cidr" {
   }
 }
 
-variable "azs" {
-  description = "Availability Zones"
-  type        = list
-}
+# variable "azs" {
+#   description = "Availability Zones"
+#   type        = list
+# }
 
 locals {
   azs = ["${var.AWS_REGION}a", "${var.AWS_REGION}b"]
