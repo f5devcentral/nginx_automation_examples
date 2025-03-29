@@ -17,11 +17,11 @@ variable "AWS_S3_BUCKET_NAME" {
   default     = ""
 }
 
-variable "aws_region" {
-  description = "aws region"
-  type        = string
-  default     = "ap-south-1"
-}
+# variable "aws_region" {
+#   description = "aws region"
+#   type        = string
+#   default     = "ap-south-1"
+# }
 
 variable "resource_owner" {
   type        = string
