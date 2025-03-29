@@ -12,7 +12,7 @@ output "build_suffix" {
 }
 
 # AWS Region and Availability Zones
-output "AWS_REGION" {
+output "aws_region" {
   value = var.AWS_REGION
 }
 
