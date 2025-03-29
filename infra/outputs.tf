@@ -12,12 +12,12 @@ output "build_suffix" {
 }
 
 # AWS Region and Availability Zones
-output "aws_region" {
-  value = var.aws_region
+output "AWS_REGION" {
+  value = var.AWS_REGION
 }
 
 output "azs" {
-  value = var.azs
+  value = local.azs
 }
 
 # VPC Details
