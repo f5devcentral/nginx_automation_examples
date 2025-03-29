@@ -38,8 +38,8 @@ resource "aws_iam_policy" "terraform_state_access" {
         "s3:ListBucket"
       ],
       Resource = [
-        "arn:aws:s3:::${var.tf_state_bucket}",
-        "arn:aws:s3:::${var.tf_state_bucket}/*"
+        "arn:aws:s3:::${var.AWS_S3_BUCKET_NAME}",
+        "arn:aws:s3:::${var.AWS_S3_BUCKET_NAME}/*"
       ]
     }]
   })

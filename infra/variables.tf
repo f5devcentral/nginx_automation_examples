@@ -5,11 +5,24 @@ variable "project_prefix" {
   description = "This value is inserted at the beginning of each AWS object (alpha-numeric, no special character)"
 }
 
+variable "AWS_REGION" {
+  description = "aws region"
+  type        = string
+  default     = ""
+}
+
+variable "AWS_S3_BUCKET_NAME" {
+  description = "aws s3 bucket name"
+  type        = string
+  default     = ""
+}
+
 variable "aws_region" {
   description = "aws region"
   type        = string
-  default     = "us-east-1"
+  default     = "ap-south-1"
 }
+
 variable "resource_owner" {
   type        = string
   description = "owner of the deployment, for tagging purposes"
@@ -24,8 +37,8 @@ variable "cidr" {
     condition     = can(regex("^([0-9]{1,3}.){3}[0-9]{1,3}($|/(15|16|24))$", var.cidr))
     error_message = "The value must conform to a CIDR block format."
   }
-
 }
+
 variable "azs" {
   description = "Availability Zones"
   type        = list
