@@ -62,44 +62,44 @@ output "management_cidr_blocks" {
 
 # Specific AZ Subnet CIDR Blocks
 output "public_az1_cidr_block" {
-  value = aws_subnet.external[element(tolist(var.azs), 0)].cidr_block  # Reference AZ1's public CIDR
+  value = aws_subnet.external[element(tolist(local.azs), 0)].cidr_block  # Reference AZ1's public CIDR
 }
 
 output "private_az1_cidr_block" {
-  value = aws_subnet.internal[element(tolist(var.azs), 0)].cidr_block  # Reference AZ1's private CIDR
+  value = aws_subnet.internal[element(tolist(local.azs), 0)].cidr_block  # Reference AZ1's private CIDR
 }
 
 output "public_az2_cidr_block" {
-  value = aws_subnet.external[element(tolist(var.azs), 1)].cidr_block  # Reference AZ2's public CIDR
+  value = aws_subnet.external[element(tolist(local.azs), 1)].cidr_block  # Reference AZ2's public CIDR
 }
 
 output "private_az2_cidr_block" {
-  value = aws_subnet.internal[element(tolist(var.azs), 1)].cidr_block  # Reference AZ2's private CIDR
+  value = aws_subnet.internal[element(tolist(local.azs), 1)].cidr_block  # Reference AZ2's private CIDR
 }
 
 # Subnet IDs for specific AZs
 output "ext_subnet_az1" {
-  value = aws_subnet.external[element(tolist(var.azs), 0)].id  # Reference AZ1's external subnet ID
+  value = aws_subnet.external[element(tolist(local.azs), 0)].id  # Reference AZ1's external subnet ID
 }
 
 output "ext_subnet_az2" {
-  value = aws_subnet.external[element(tolist(var.azs), 1)].id  # Reference AZ2's external subnet ID
+  value = aws_subnet.external[element(tolist(local.azs), 1)].id  # Reference AZ2's external subnet ID
 }
 
 output "int_subnet_az1" {
-  value = aws_subnet.internal[element(tolist(var.azs), 0)].id  # Reference AZ1's internal subnet ID
+  value = aws_subnet.internal[element(tolist(local.azs), 0)].id  # Reference AZ1's internal subnet ID
 }
 
 output "int_subnet_az2" {
-  value = aws_subnet.internal[element(tolist(var.azs), 1)].id  # Reference AZ2's internal subnet ID
+  value = aws_subnet.internal[element(tolist(local.azs), 1)].id  # Reference AZ2's internal subnet ID
 }
 
 output "mgmt_subnet_az1" {
-  value = aws_subnet.management[element(tolist(var.azs), 0)].id  # Reference AZ1's management subnet ID
+  value = aws_subnet.management[element(tolist(local.azs), 0)].id  # Reference AZ1's management subnet ID
 }
 
 output "mgmt_subnet_az2" {
-  value = aws_subnet.management[element(tolist(var.azs), 1)].id  # Reference AZ2's management subnet ID
+  value = aws_subnet.management[element(tolist(local.azs), 1)].id  # Reference AZ2's management subnet ID
 }
 
 # CIDR Block for Application and EKS Subnets
