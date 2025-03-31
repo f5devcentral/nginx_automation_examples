@@ -12,7 +12,7 @@
     - [How to Add Secrets](#how-to-add-secrets)
   - [Workflow Runs](#workflow-runs)
     - [STEP 1: Workflow Branches](#step-1-workflow-branches)
-    - [STEP 2: Modify terraform.tfvars](#step-2-modify-terraform.tfvars)
+    - [STEP 2: Modify terraform.tfvars](#step-2-Modify-terraform.tfvars)
     - [STEP 3: Modify variable.tf](#step-3-modify-variable.tf)
     - [STEP 4: Modify Backend.tf](#step-4-modify-backend.tf)
     - [STEP 5: Configuring data.tf for Remote State](#step-5-configuring-data.tf-for-Remote-State)
