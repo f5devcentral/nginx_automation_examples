@@ -15,7 +15,7 @@
     - [STEP 2: Modify terraform.tfvars](#step-2-modify-terraform.tfvars)
     - [STEP 3: Modify variable.tf](#step-3-modify-variable.tf)
     - [STEP 4: Modify Backend.tf](#step-4-modify-backend.tf)
-    - [STEP 5: Configuring data.tf for Remote State](#step-5-configuring-datatf-for-Remote-State)
+    - [STEP 5: Configuring data.tf for Remote State](#step-5-configuring-data.tf-for-Remote-State)
     - [STEP 6: Set Bucket Name](#step-6-set-bucket-name)
     - [STEP 7: Policy ](#step-7-Policy)
     - [STEP 8: Commit Changes](#step-8-Commit-Changes)
