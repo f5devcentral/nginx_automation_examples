@@ -5,10 +5,22 @@ variable "admin_src_addr" {
   default     = "0.0.0.0/0"
 }
 
+variable "AWS_REGION" {
+  description = "aws region"
+  type        = string
+  default     = ""
+}
+
+variable "AWS_S3_BUCKET_NAME" {
+  description = "aws s3 bucket name"
+  type        = string
+  default     = ""
+}
+
 variable "aws_region" {
   description = "The AWS region to deploy the EKS cluster"
   type        = string
-  default     = "us-east-1"
+  default     = "ap-south-1"
 }
 
 #AWS

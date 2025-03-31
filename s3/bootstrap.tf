@@ -3,7 +3,7 @@
 data "external" "bucket_check" {
   program = ["bash", "-c", <<EOT
     # Ensure consistent JSON output
-    output=$(aws s3api head-bucket --bucket ${var.tf_state_bucket} --region ${var.aws_region} 2>&1)
+    output=$(aws s3api head-bucket --bucket ${var.AWS_S3_BUCKET_NAME} --region ${var.AWS_REGION} 2>&1)
     status=$?
     
     if [ $status -eq 0 ]; then
@@ -23,7 +23,7 @@ data "external" "dynamodb_table_check" {
   program = ["bash", "-c", <<EOT
     if output=$(aws dynamodb describe-table \
       --table-name terraform-lock-table \
-      --region ${var.aws_region} 2>&1); then
+      --region ${var.AWS_REGION} 2>&1); then
       echo '{"exists":"true"}'
     elif echo "$output" | grep -q 'ResourceNotFoundException'; then
       echo '{"exists":"false"}'
@@ -49,14 +49,14 @@ locals {
   )
   
   # Generate unique bucket name if needed
-  unique_bucket_name = "${var.tf_state_bucket}-${data.aws_caller_identity.current.account_id}"
+  # unique_bucket_name = "${var.AWS_S3_BUCKET_NAME}-${data.aws_caller_identity.current.account_id}"
 }
 
 # S3 Bucket Resources
 resource "aws_s3_bucket" "terraform_state" {
   count = local.bucket_exists ? 0 : 1
 
-  bucket        = local.unique_bucket_name
+  bucket        = var.AWS_S3_BUCKET_NAME
   force_destroy = false
 
   tags = {

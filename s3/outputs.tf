@@ -6,7 +6,7 @@ output "s3_bucket_created" {
 }
 
 output "s3_bucket_name" {
-  value       = local.bucket_exists ? var.tf_state_bucket : aws_s3_bucket.terraform_state[0].bucket
+  value       = local.bucket_exists ? var.AWS_S3_BUCKET_NAME : aws_s3_bucket.terraform_state[0].bucket
   description = "Name of the S3 bucket used for Terraform state"
 }
 

@@ -10,7 +10,7 @@ module "vpc" {
 
   name = "${var.project_prefix}-vpc-${random_id.build_suffix.hex}"
   cidr = var.cidr
-  azs  = var.azs
+  azs  = local.azs
 
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -31,9 +31,9 @@ resource "aws_internet_gateway" "igw" {
 
 # Subnets
 resource "aws_subnet" "management" {
-  for_each          = toset(var.azs)
+  for_each          = toset(local.azs)
   vpc_id            = module.vpc.vpc_id
-  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 4)
+  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(local.azs, each.key) * 4)
   availability_zone = each.key
   tags = {
     Name = format("%s-mgmt-subnet-%s", var.project_prefix, each.key)
@@ -41,9 +41,9 @@ resource "aws_subnet" "management" {
 }
 
 resource "aws_subnet" "internal" {
-  for_each          = toset(var.azs)
+  for_each          = toset(local.azs)
   vpc_id            = module.vpc.vpc_id
-  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 4 + 1)
+  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(local.azs, each.key) * 4 + 1)
   availability_zone = each.key
   tags = {
     Name = format("%s-int-subnet-%s", var.project_prefix, each.key)
@@ -51,9 +51,9 @@ resource "aws_subnet" "internal" {
 }
 
 resource "aws_subnet" "external" {
-  for_each                = toset(var.azs)
+  for_each                = toset(local.azs)
   vpc_id                  = module.vpc.vpc_id
-  cidr_block              = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 4 + 2)
+  cidr_block              = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(local.azs, each.key) * 4 + 2)
   map_public_ip_on_launch = true
   availability_zone       = each.key
   tags = {
@@ -62,9 +62,9 @@ resource "aws_subnet" "external" {
 }
 
 resource "aws_subnet" "app_cidr" {
-  for_each          = toset(var.azs)
+  for_each          = toset(local.azs)
   vpc_id            = module.vpc.vpc_id
-  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(var.azs, each.key) * 4 + 3)
+  cidr_block        = cidrsubnet(module.vpc.vpc_cidr_block, 4, index(local.azs, each.key) * 4 + 3)
   availability_zone = each.key
   tags = {
     Name = format("%s-app-subnet-%s", var.project_prefix, each.key)
@@ -85,25 +85,25 @@ resource "aws_route_table" "main" {
 
 # Route Table Associations
 resource "aws_route_table_association" "subnet-association-internal" {
-  for_each       = toset(var.azs)
+  for_each       = toset(local.azs)
   subnet_id      = aws_subnet.internal[each.key].id
   route_table_id = aws_route_table.main.id
 }
 
 resource "aws_route_table_association" "subnet-association-management" {
-  for_each       = toset(var.azs)
+  for_each       = toset(local.azs)
   subnet_id      = aws_subnet.management[each.key].id
   route_table_id = aws_route_table.main.id
 }
 
 resource "aws_route_table_association" "subnet-association-external" {
-  for_each       = toset(var.azs)
+  for_each       = toset(local.azs)
   subnet_id      = aws_subnet.external[each.key].id
   route_table_id = aws_route_table.main.id
 }
 
 resource "aws_route_table_association" "subnet-association-app-cidr" {
-  for_each       = toset(var.azs)
+  for_each       = toset(local.azs)
   subnet_id      = aws_subnet.app_cidr[each.key].id
   route_table_id = aws_route_table.main.id
 }
