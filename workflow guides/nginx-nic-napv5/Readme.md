@@ -68,7 +68,9 @@ This workflow requires the following secrets to be configured in your GitHub rep
 | `AWS_SESSION_TOKEN`     | Secret  | Session token for temporary AWS credentials (if using MFA)          |       
 | `NGINX_JWT`             | Secret  | JSON Web Token for NGINX license authentication                     |    
 | `NGINX_Repo_CRT`        | Secret  | NGINX Certificate                                                   | 
-| `NGINX_Repo_KEY`        | Secret  | Private key for securing HTTPS and verifying SSL/TLS certificates   |      
+| `NGINX_Repo_KEY`        | Secret  | Private key for securing HTTPS and verifying SSL/TLS certificates   |
+| `TF_VAR_AWS_S3_BUCKET_NAME`  | Secret  | Unique S3 bucket name                                            | 
+| `TF_VAR_AWS_REGION`        | Secret  | AWS region. Note: The region should support atleast two availability zones   |
 ### How to Add Secrets
 
 1. Navigate to your GitHub repository
@@ -95,65 +97,8 @@ This workflow requires the following secrets to be configured in your GitHub rep
 Rename `infra/terraform.tfvars.examples` to `infra/terraform.tfvars` and add the following data:
   * project_prefix  = "Your project identifier name in **lower case** letters only - this will be applied as a prefix to all assets"
   * resource_owner = "Your-name"
-  * aws_region     = "AWS Region" ex. us-east-1
-  * azs            = ["us-east-1a", "us-east1b"] - Change to Correct Availability Zones based on selected Region
 
-### STEP 3: Modify variable.tf
-Modify the `S3/variable.tf` file inside the `S3 directory`:
-
-### Example Configuration:
-```hcl
-variable "tf_state_bucket" {
-  type        = string
-  description = "S3 bucket for Terraform state"
-  default     = "your-unique-bucket-name" 
-}
-```
-### STEP 4: Configure Backend.tf
-Add the S3 bucket name to the `Backend.tf` file in the `Infra/Backend.tf`, `eks-cluster/Backend.tf`, `Nap/Backend.tf`, `Policy/Backend.tf`, and `Arcadia/Backend.tf` directories. 
-
-### Example Configuration:
-
-```hcl
-terraform {
-  backend "s3" {
-    bucket         = "your-unique-bucket-name"       # Your S3 bucket name
-    key            = "infra/terraform.tfstate"       # Path to state file
-    region         = "us-east-1"                     # AWS region
-    dynamodb_table = "terraform-lock-table"          # DynamoDB table for state locking
-    encrypt        = true                        
-  }
-}
-```
-
-### STEP 5: Configuring `data.tf` for Remote State
-
-Each `data.tf` file in the following directories needs to use the correct format:
-
-- `eks-cluster/data.tf`
-- `Nap/data.tf`
-- `Policy/data.tf`
-- `Arcadia/data.tf`
-
-### Example Configuration:
-
-```hcl
-data "terraform_remote_state" "infra" {
-  backend = "s3"
-  config = {
-    bucket         = "your-unique-bucket-name"   # Your S3 bucket name
-    key            = "infra/terraform.tfstate"  # Path to your state file
-    region         = "us-east-1"                # AWS region
-  }
-}
-```
-### STEP 6: Set Bucket Name
-Add the name of your S3 bucket inside the and  [`destroy-nic-napv5.yml`](https://github.com/f5devcentral/nginx_automation_examples/blob/main/.github/workflows/destroy-nic-napv5.yml) workflow file, which is located in the Terraform _S3 job:
-  
-  * echo "bucket_name="your-unique-bucket-name" >> $GITHUB_OUTPUT
-
-
-### STEP 7: Policy 
+### STEP 3: Policy 
 
 The repository includes a default policy file named `policy.json`, which can be found in the `policy` directory.
 
@@ -175,13 +120,13 @@ Users have the option to utilize the existing policy or, if preferred, create a 
    ![Push](assets/policy.png)
 
 
-### STEP 8: Commit changes
+### STEP 4: Commit changes
 
 
    ![commit](assets/commit.png)
    
 
-### STEP 9: Deployment Workflow  
+### STEP 5: Deployment Workflow  
 
 * **Step 1**: Check out a branch for the deploy workflow using the following naming convention  
   * nic-napv5 deployment branch: apply-nic-napv5
@@ -201,7 +146,7 @@ Users have the option to utilize the existing policy or, if preferred, create a 
   ![Apply](assets/apply.png)
 
 
-### STEP 10: Validation  
+### STEP 6: Validation  
 
 Users can now access the application through the NGINX Ingress Controller Load Balancer, which enhances security for the backend application by implementing the configured Web Application Firewall (WAF) policies. This setup not only improves accessibility but also ensures that the application is protected from various web threats.
 
@@ -216,7 +161,7 @@ Users can now access the application through the NGINX Ingress Controller Load B
   ![Block](assets/block.png)
   
 
-### STEP 11: Destroy Workflow  
+### STEP 7: Destroy Workflow  
 
 * **Step 1**: From your main branch, check out a new branch for the destroy workflow using the following naming convention  
   * nic-napv5 destroy branch: destroy-nic-napv5  
