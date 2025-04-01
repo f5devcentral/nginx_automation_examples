@@ -12,7 +12,7 @@ This repository serves as a comprehensive hub that consolidates a variety of aut
 
   | **DevCentral Overview Articles**                                                                                                                          | **Use Case / Workflow Guides (SaaS Console, Automation)**                                                                                                                                                |
   | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | [Deploy NGINX Ingress Controller with App ProtectV5 in AWS Cloud](https://community.f5.com/kb/technicalarticles/f5-nginx-automation-examples-part-1-deploy-f5-nginx-ingress-controller-with-app-/340500) | [Deploy NGINX Ingress Controller with App ProtectV5 in AWS Cloud](https://github.com/f5devcentral/nginx_automation_examples/blob/main/workflow%20guides/nginx-nic-napv5/Readme.md)                         |
+  | [Deploy NGINX Ingress Controller with App ProtectV5 in AWS Cloud](https://community.f5.com/t5/technical-articles/deploy-waf-on-any-edge-with-f5-distributed-cloud/ta-p/313079) | [Deploy NGINX Ingress Controller with App ProtectV5 in AWS Cloud](https://github.com/f5devcentral/nginx_automation_examples/blob/main/workflow%20guides/nginx-nic-napv5/Readme.md)                         |
 
 ## Getting Started
 
