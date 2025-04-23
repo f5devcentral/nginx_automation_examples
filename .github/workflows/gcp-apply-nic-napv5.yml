@@ -1,39 +1,41 @@
-name: "NGINX NIC/NAP-V5 AWS Deployment"
+name: "NGINX NIC/NAP-V5 GCP Deployment"
 on:
   push:
-    branches: apply-nic-napv5
+    branches: gcp-apply-nic-napv5
 env:
-  TF_VAR_AWS_S3_BUCKET_NAME: ${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}
-  TF_VAR_AWS_REGION: ${{ secrets.TF_VAR_AWS_REGION }}
+  TF_VAR_GCP_BUCKET_NAME: ${{ vars.TF_VAR_GCP_BUCKET_NAME }}
+  TF_VAR_GCP_REGION: ${{ vars.TF_VAR_GCP_REGION }}
+  TF_VAR_project_prefix: ${{ vars.TF_VAR_PROJECT_PREFIX }}
+  TF_VAR_GCP_PROJECT_ID: ${{ secrets.TF_VAR_GCP_PROJECT_ID }}
+  TF_VAR_GOOGLE_CREDENTIALS: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
+  WORKSPACE_PATH: "./GCP/nap"
+  nginx_jwt: ${{ secrets.NGINX_JWT }}
+
 jobs:
   terraform_bootstrap:
-    name: "Bootstrap S3/DynamoDB"
+    name: "GCP Bucket"
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./AWS/s3
+        working-directory: ./GCP/gcs
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
+      - name: Set up Google Cloud Authentication
+        uses: google-github-actions/auth@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+          credentials_json: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Initialize Terraform (S3 Backend)
-        run: |
-          terraform init
+      - name: Initialize Terraform
+        run: terraform init
 
       - name: Terraform Plan
         run: terraform plan -no-color -input=false -out=tfplan
-      
+
       - name: Check for Changes
         id: check_changes
         run: |
@@ -44,40 +46,35 @@ jobs:
           fi
 
       - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/gcp-apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
 
   terraform_infra:
-    name: "AWS Infra"
+    name: "GCP Infra"
     runs-on: ubuntu-latest
     needs:  terraform_bootstrap
     permissions:
       contents: read
     defaults:
       run:
-        working-directory: ./AWS/infra
+        working-directory: ./GCP/infra
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
+      - name: Set up Google Cloud Authentication
+        uses: google-github-actions/auth@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+          credentials_json: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-
-      - name: Initialize Terraform (S3 Backend)
+      - name: Initialize Terraform (GCS Backend)
         run: |
           terraform init \
-            -backend-config="bucket=${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}" \
-            -backend-config="region=${{ secrets.TF_VAR_AWS_REGION }}"
+            -backend-config="bucket=$TF_VAR_GCP_BUCKET_NAME"
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
@@ -85,47 +82,42 @@ jobs:
           terraform plan -no-color -input=false -out=tfplan
           terraform show -no-color tfplan > plan.txt
 
-      - name: Check Changes
+      - name: Check for Changes
         id: check_changes
         run: |
-          if grep -q "No changes." plan.txt; then
+          if grep -q "No changes." <(terraform show -no-color tfplan); then
             echo "has_changes=false" >> $GITHUB_OUTPUT
           else
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/gcp-apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
-      
-  terraform_eks:
-    name: "AWS EKS"
+
+  terraform_gke:
+    name: "GCP GKE"
     runs-on: ubuntu-latest
     needs: terraform_infra
     defaults:
       run:
-        working-directory: ./AWS/eks-cluster
+        working-directory: ./GCP/gke
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
+      - name: Set up Google Cloud Authentication
+        uses: google-github-actions/auth@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+          credentials_json: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-   
 
-      - name: Terraform Init
+      - name: Initialize Terraform (GCS Backend)
         run: |
           terraform init \
-            -backend-config="bucket=${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}" \
-            -backend-config="region=${{ secrets.TF_VAR_AWS_REGION }}"
+            -backend-config="bucket=$TF_VAR_GCP_BUCKET_NAME"
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
@@ -133,46 +125,42 @@ jobs:
           terraform plan -no-color -input=false  -out=tfplan
           terraform show -no-color tfplan > plan.txt
 
-      - name: Check Changes
+      - name: Check for Changes
         id: check_changes
         run: |
-          if grep -q "No changes." plan.txt; then
+          if grep -q "No changes." <(terraform show -no-color tfplan); then
             echo "has_changes=false" >> $GITHUB_OUTPUT
           else
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/gcp-apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
 
   terraform_nap:
     name: "NGINX App Protect"
     runs-on: ubuntu-latest
-    needs: terraform_eks
+    needs: terraform_gke
     defaults:
       run:
-        working-directory: ./AWS/nap
+        working-directory: ./GCP/nap
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
+      - name: Set up Google Cloud Authentication
+        uses: google-github-actions/auth@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+          credentials_json: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Init
+      - name: Initialize Terraform (GCS Backend)
         run: |
           terraform init \
-            -backend-config="bucket=${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}" \
-            -backend-config="region=${{ secrets.TF_VAR_AWS_REGION }}"
+            -backend-config="bucket=$TF_VAR_GCP_BUCKET_NAME"
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
@@ -182,9 +170,6 @@ jobs:
             -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
             -var="nginx_pwd=none"
           terraform show -no-color tfplan > plan.txt
-        env:
-           WORKSPACE_PATH: "./AWS/nap"
-         
 
       - name: Check Changes
         id: check_changes
@@ -196,7 +181,7 @@ jobs:
           fi
 
       - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/gcp-apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve -lock=false tfplan
 
   terraform_policy:
@@ -205,42 +190,51 @@ jobs:
     needs: terraform_nap
     defaults:
       run:
-       working-directory: ./AWS/policy
+       working-directory: ./GCP/policy
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v3
+    - name: Set up Google Cloud Authentication
+      uses: google-github-actions/auth@v2
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-        aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+        credentials_json: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
-    - name: Terraform Init (EKS)
+    - name: Terraform Init (GKE)
       run: |
         terraform init \
-          -backend-config="bucket=${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}" \
-          -backend-config="region=${{ secrets.TF_VAR_AWS_REGION }}"
-      working-directory: ./AWS/eks-cluster
+          -backend-config="bucket=$TF_VAR_GCP_BUCKET_NAME"
+      working-directory: ./GCP/gke
 
-    - name: Print EKS Terraform Outputs
+    - name: Print GKE Terraform Outputs
       run: terraform output
-      working-directory: ./AWS/eks-cluster
+      working-directory: ./GCP/gke
 
-    - name: Fetch EKS Cluster Name and Region
+    - name: Authenticate to Google Cloud
       run: |
-        echo "EKS_CLUSTER_NAME=$(terraform output -raw cluster_name)" >> $GITHUB_ENV
-        echo "AWS_REGION=$AWS_REGION" >> $GITHUB_ENV
-      working-directory: ./AWS/eks-cluster
+        echo "$TF_VAR_GOOGLE_CREDENTIALS" | gcloud auth activate-service-account --key-file=-
 
-    - name: Configure kubectl for EKS
+    - name: Fetch GKE Cluster Name and Region
       run: |
-        aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+        echo "GKE_CLUSTER_NAME=$data.terraform_remote_state.gke.outputs.kubernetes_cluster_name" >> $GITHUB_ENV
+        echo "GCP_REGION=$TF_VAR_GCP_REGION" >> $GITHUB_ENV
+      working-directory: ./GCP/gke
+
+    - name: Install gke-gcloud-auth-plugin
+      run: |
+        sudo apt-get update
+        sudo apt-get install apt-transport-https ca-certificates gnupg curl
+        curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+        echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+        sudo apt-get update && sudo apt-get install google-cloud-cli
+        sudo apt-get install google-cloud-cli-gke-gcloud-auth-plugin
+
+    - name: Configure kubectl for GKE
+      run: |
+        gcloud container clusters get-credentials ${{ env.TF_VAR_project_prefix }}-gke --region $GCP_REGION --project $TF_VAR_GCP_PROJECT_ID
 
     - name: Verify kubectl connectivity
       run: kubectl get nodes -n nginx-ingress
@@ -289,22 +283,21 @@ jobs:
 
     - name: Ensure correct permissions for nap/charts directory
       run: |
-        sudo chown -R $USER:$USER ${{ github.workspace }}/AWS
-        sudo chmod -R 777 ${{ github.workspace }}/AWS
+        sudo chown -R $USER:$USER ${{ github.workspace }}/GCP
+        sudo chmod -R 777 ${{ github.workspace }}/GCP
 
     - name: Run Docker Container as Root
       run: |
         docker run --rm \
-            -v ${{ github.workspace }}/AWS:/workspace \
+            -v ${{ github.workspace }}/GCP:/workspace \
               waf-compiler-5.4.0:custom \
             -p /workspace/policy/policy.json -o /workspace/policy/compiled_policy.tgz
 
     - name: Fix permissions for compiled files
       run: |
-        sudo chown -R $USER:$USER ${{ github.workspace }}/AWS/policy
-        chmod 644 ${{ github.workspace }}/AWS/policy/compiled_policy.tgz
-        ls -lh ${{ github.workspace }}/AWS/policy
-
+        sudo chown -R $USER:$USER ${{ github.workspace }}/GCP/policy
+        chmod 644 ${{ github.workspace }}/GCP/policy/compiled_policy.tgz
+        ls -lh ${{ github.workspace }}/GCP/policy
 
     - name: Copy Compiled Policy to NGINX Ingress Controller
       run: |
@@ -313,13 +306,12 @@ jobs:
           echo "Error: NGINX Ingress Controller pod not found!"
           exit 1
         fi
-        kubectl cp ${{ github.workspace }}/AWS/policy/compiled_policy.tgz $NGINX_POD:/etc/app_protect/bundles/compiled_policy.tgz -n nginx-ingress 
+        kubectl cp ${{ github.workspace }}/GCP/policy/compiled_policy.tgz $NGINX_POD:/etc/app_protect/bundles/compiled_policy.tgz -n nginx-ingress
 
-    - name: Terraform Init
+    - name: Initialize Terraform (GCS Backend)
       run: |
         terraform init \
-          -backend-config="bucket=${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}" \
-          -backend-config="region=${{ secrets.TF_VAR_AWS_REGION }}"
+          -backend-config="bucket=$TF_VAR_GCP_BUCKET_NAME"
 
     - name: Terraform Plan
       run: |
@@ -336,7 +328,7 @@ jobs:
         fi
 
     - name: Terraform Apply
-      if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+      if: github.event_name == 'push' && github.ref == 'refs/heads/gcp-apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
       run: terraform apply -auto-approve tfplan
 
   terraform_arcadia:
@@ -345,27 +337,23 @@ jobs:
     needs: terraform_policy
     defaults:
       run:
-        working-directory: ./AWS/arcadia
+        working-directory: ./GCP/arcadia
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
+      - name: Set up Google Cloud Authentication
+        uses: google-github-actions/auth@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+          credentials_json: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Terraform Init
+      - name: Initialize Terraform (GCS Backend)
         run: |
           terraform init \
-            -backend-config="bucket=${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}" \
-            -backend-config="region=${{ secrets.TF_VAR_AWS_REGION }}"
+            -backend-config="bucket=$TF_VAR_GCP_BUCKET_NAME"
 
       - name: Terraform Validate
         run: terraform validate -no-color
@@ -386,14 +374,14 @@ jobs:
           fi
 
       - name: Terraform Apply
-        if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/gcp-apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
 
       - name: Get Terraform Outputs
         run: |
           terraform output -json > outputs.json
           EXTERNAL_NAME=$(jq -r '.external_name.value // empty' outputs.json)
-    
+
           if [ -z "$EXTERNAL_NAME" ]; then
             echo "::warning::No external_name output found"
           else

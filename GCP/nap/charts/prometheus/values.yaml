@@ -1,0 +1,11 @@
+---
+prometheus:
+  pushgateway:
+    enabled: false
+  server:
+    persistentVolume:
+      enabled: true  
+  alertmanager:
+    persistentVolume:
+      enabled: true  
+

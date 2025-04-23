@@ -1,0 +1,338 @@
+name: "NGINX NIC/NAPV5 Destroy in Azure"
+on:
+  push:
+    branches: az-destroy-nic-napv5
+env:
+    TF_VAR_project_prefix : ${{ vars.project_prefix }}
+    TF_VAR_azure_region: ${{ vars.azure_region }}
+    TF_VAR_azure_credentials : ${{ secrets.azure_credentials }}
+    TF_VAR_resource_group_name : ${{ vars.project_prefix }}-rg
+    TF_VAR_storage_account_name : ${{ vars.storage_account_name }}
+    TF_VAR_container_name : ${{ vars.storage_account_name }}-container
+
+jobs:
+  terraform_arcadia:
+    name: "Destroy Arcadia WebApp"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./azure/arcadia
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Azure Credentials
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.azure_credentials }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize Terraform (Azure Backend)
+        run: |
+          terraform init \
+          -backend-config="resource_group_name=${{ vars.project_prefix }}-rg" \
+          -backend-config="storage_account_name=${{ vars.storage_account_name}}" \
+          -backend-config="container_name=${{ vars.storage_account_name }}-container"
+
+      - name: Terraform Validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan (Destroy)
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          terraform plan -destroy -no-color -input=false -lock=false -out=tfplan
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terraform Destroy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/az-destroy-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+        run: terraform destroy -auto-approve -lock=false -input=false
+
+  terraform_policy:
+    name: "Destroy NGINX Policy"
+    runs-on: ubuntu-latest
+    needs: terraform_arcadia
+    defaults:
+      run:
+        working-directory: ./azure/policy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Azure Credentials
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.azure_credentials }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize Terraform (Azure Backend)
+        run: |
+          terraform init \
+          -backend-config="resource_group_name=${{ vars.project_prefix }}-rg" \
+          -backend-config="storage_account_name=${{ vars.storage_account_name}}" \
+          -backend-config="container_name=${{ vars.storage_account_name }}-container"
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve -lock=false
+
+  terraform_nap:
+    name: "Destroy NGINX NIC/App Protect"
+    runs-on: ubuntu-latest
+    needs: terraform_policy
+    defaults:
+      run:
+        working-directory: ./azure/nap
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Azure Credentials
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.azure_credentials }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize Terraform (Azure Backend)
+        run: |
+          terraform init \
+          -backend-config="resource_group_name=${{ vars.project_prefix }}-rg" \
+          -backend-config="storage_account_name=${{ vars.storage_account_name}}" \
+          -backend-config="container_name=${{ vars.storage_account_name }}-container"
+
+      - name: Terraform Plan (Destroy)
+        run: |
+          terraform plan -destroy -no-color -input=false -lock=false -out=tfplan \
+            -var="workspace_path=${{ env.WORKSPACE_PATH }}" \
+            -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
+            -var="nginx_pwd=none"
+        env:
+          WORKSPACE_PATH: "./azure/nap"
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terraform Destroy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/az-destroy-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          terraform destroy -auto-approve -input=false -lock=false \
+            -var="workspace_path=${{ env.WORKSPACE_PATH }}" \
+            -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
+            -var="nginx_pwd=none"
+        env:
+          WORKSPACE_PATH: "./azure/nap"
+
+  terraform_aks:
+    name: "Destroy AKS"
+    runs-on: ubuntu-latest
+    needs: terraform_nap
+    defaults:
+      run:
+        working-directory: ./azure/aks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Azure Credentials
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.azure_credentials }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize Terraform (Azure Backend)
+        run: |
+          terraform init \
+          -backend-config="resource_group_name=${{ vars.project_prefix }}-rg" \
+          -backend-config="storage_account_name=${{ vars.storage_account_name}}" \
+          -backend-config="container_name=${{ vars.storage_account_name }}-container"
+
+      - name: Terraform Plan (Destroy)
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terraform Destroy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/az-destroy-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+        run: terraform destroy -auto-approve -input=false -lock=false
+
+  terraform_infra:
+    name: "Destroy Azure Infra"
+    runs-on: ubuntu-latest
+    needs: terraform_aks
+    defaults:
+      run:
+        working-directory: ./azure/infra
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Azure Credentials
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.azure_credentials }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize Terraform (Azure Backend)
+        run: |
+          terraform init \
+          -backend-config="resource_group_name=${{ vars.project_prefix }}-rg" \
+          -backend-config="storage_account_name=${{ vars.storage_account_name}}" \
+          -backend-config="container_name=${{ vars.storage_account_name }}-container"
+
+      - name: Terraform Plan (Destroy)
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terraform Destroy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/az-destroy-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+        run: terraform destroy -auto-approve -input=false -lock=false
+
+
+  terraform_blob:
+    name: "Delete Blob Storage"
+    needs: terraform_infra
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./azure/blob
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Configure Azure Credentials
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.azure_credentials }}
+
+      - name: 🔑 Get Storage Account Key
+        env:
+          STORAGE_ACCOUNT_NAME: ${{ vars.storage_account_name }}
+          RESOURCE_GROUP_NAME: ${{ vars.project_prefix }}-rg
+        id: get_key
+        run: |
+          echo "Fetching storage account key..."
+          STORAGE_KEY=$(az storage account keys list \
+            --resource-group $RESOURCE_GROUP_NAME \
+            --account-name $STORAGE_ACCOUNT_NAME \
+            --query "[0].value" \
+            --output tsv)
+          echo "::add-mask::$STORAGE_KEY"
+          echo "STORAGE_KEY=$STORAGE_KEY" >> $GITHUB_ENV
+
+      - name: Nuclear Azure Blob Container Deletion
+        env:
+          STORAGE_ACCOUNT_NAME: ${{ vars.storage_account_name }}
+          RESOURCE_GROUP_NAME : ${{ vars.project_prefix }}-rg
+
+        run: |
+          set -e
+          CONTAINER_NAME="${{ vars.storage_account_name }}-container"
+
+          # Azure login should be done before running this script, using the az login or azure/login action in GitHub Actions
+
+          echo "🔐 Logging into Azure Storage..."
+
+          # List blobs and snapshots in the container
+          az storage blob list \
+            --account-name $STORAGE_ACCOUNT_NAME \
+            --container-name $CONTAINER_NAME \
+            --account-key $STORAGE_KEY \
+            --include sv \
+            --output json > blobs.json
+
+          echo "🔥 Deleting ALL blobs, snapshots, and versions..."
+
+          # Loop through each blob and delete it, including snapshots
+          cat blobs.json | jq -r '.[].name' | while read blob_name; do
+            echo "Deleting blob: $blob_name"
+            az storage blob delete \
+              --account-name $STORAGE_ACCOUNT_NAME \
+              --container-name $CONTAINER_NAME \
+              --account-key $STORAGE_KEY \
+              --name "$blob_name" \
+              --delete-snapshots include || true
+          done
+
+          # Clean up the blobs.json file
+          rm blobs.json
+
+          echo "🚀 Deleting container..."
+          az storage container delete \
+            --account-name $STORAGE_ACCOUNT_NAME \
+            --account-key $STORAGE_KEY \
+            --name $CONTAINER_NAME || true
+
+          echo "🔍 Verifying container deletion..."
+          if az storage container show \
+              --account-name $STORAGE_ACCOUNT_NAME \
+              --name $CONTAINER_NAME \
+              --account-key $STORAGE_KEY &> /dev/null; then
+            echo "::error::Container $CONTAINER_NAME still exists after deletion attempts!"
+            exit 1
+          else
+            echo "✅ Container $CONTAINER_NAME successfully deleted"
+          fi
+
+          echo "🚀 Deleting Resource Group..."
+          az group delete \
+            --name $RESOURCE_GROUP_NAME \
+            --yes --no-wait || true
+
+          echo "🔍 Verifying Resource Group deletion..."
+          # Wait for a bit before verifying the resource group deletion
+          sleep 120  # Add a brief sleep to give Azure time to process deletion
+
+          if az group show --name $RESOURCE_GROUP_NAME &> /dev/null; then
+            echo "::error::Resource Group $RESOURCE_GROUP_NAME still exists after deletion attempts!"
+            exit 1
+          else
+            echo "✅ Resource Group $RESOURCE_GROUP_NAME successfully deleted"
+          fi

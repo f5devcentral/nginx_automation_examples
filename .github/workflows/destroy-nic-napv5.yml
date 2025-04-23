@@ -1,11 +1,8 @@
-name: "NGINX NIC/NAPV5 Destroy"
+name: "NGINX NIC/NAP-V5 AWS Destroy"
 on:
   push:
-    branches:
-      - destroy-nic-napv5
-  pull_request:
+    branches: destroy-nic-napv5
 env:
-#  AWS_REGION: us-east-1
   TF_VAR_AWS_S3_BUCKET_NAME: ${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}
   TF_VAR_AWS_REGION: ${{ secrets.TF_VAR_AWS_REGION }}
 jobs:
@@ -14,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./arcadia
+        working-directory: ./AWS/arcadia
 
     steps:
       - name: Checkout
@@ -65,7 +62,7 @@ jobs:
     needs: terraform_arcadia
     defaults:
       run:
-        working-directory: ./policy
+        working-directory: ./AWS/policy
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -96,7 +93,7 @@ jobs:
     needs: terraform_policy
     defaults:
       run:
-        working-directory: ./nap
+        working-directory: ./AWS/nap
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -125,7 +122,7 @@ jobs:
             -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
             -var="nginx_pwd=none"
         env:
-          WORKSPACE_PATH: "./nap"
+          WORKSPACE_PATH: "./AWS/nap"
  
       - name: Check Changes
         id: check_changes
@@ -144,7 +141,7 @@ jobs:
             -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
             -var="nginx_pwd=none"
         env:
-          WORKSPACE_PATH: "./nap"
+          WORKSPACE_PATH: "./AWS/nap"
 
   terraform_eks:
     name: "Destroy AWS EKS"
@@ -152,7 +149,7 @@ jobs:
     needs: terraform_nap
     defaults:
       run:
-        working-directory: ./eks-cluster
+        working-directory: ./AWS/eks-cluster
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -199,7 +196,7 @@ jobs:
     needs: terraform_eks
     defaults:
       run:
-        working-directory: ./infra
+        working-directory: ./AWS/infra
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -247,7 +244,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./s3
+        working-directory: ./AWS/s3
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -379,4 +376,4 @@ jobs:
             exit 1
           else
             echo "IAM Role deleted successfully"
-          fi      
+          fi
