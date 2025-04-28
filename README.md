@@ -12,8 +12,11 @@ This repository serves as a comprehensive hub that consolidates a variety of aut
 
   | **DevCentral Overview Articles**                                                                                                                          | **Use Case / Workflow Guides (SaaS Console, Automation)**                                                                                                                                                |
   | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  |[Deploy NGINX Ingress Controller with App ProtectV5 in AWS Cloud](https://community.f5.com/kb/technicalarticles/f5-nginx-automation-examples-part-1-deploy-f5-nginx-ingress-controller-with-app-/340500) | [Deploy NGINX Ingress Controller with App ProtectV5 in AWS Cloud](https://github.com/f5devcentral/nginx_automation_examples/blob/main/workflow%20guides/nginx-nic-napv5/Readme.md)                         |
-
+  |[Deploy NGINX Ingress Controller with App ProtectV5 in AWS Cloud](https://community.f5.com/kb/technicalarticles/f5-nginx-automation-examples-part-1-deploy-f5-nginx-ingress-controller-with-app-/340500) | [Deploy NGINX Ingress Controller with App ProtectV5 in AWS Cloud](https://github.com/f5devcentral/nginx_automation_examples/blob/main/workflow%20guides/nginx-nic-napv5/Readme.md)   
+   [Deploy NGINX Ingress Controller with App Protect V5 in GCP Cloud]                                                                                                                                       | [Deploy NGINX Ingress Controller with App ProtectV5 in GCP Cloud](https://github.com/f5devcentral/nginx_automation_examples/tree/main/workflow%20guides/gcp-nginx-nic-napv5)
+   [Deploy NGINX Ingress Controller with App Protect V5 in Azure ]                                                                                                                                          | [Deploy NGINX Ingress Controller with App ProtectV5 in Azure](https://github.com/f5devcentral/nginx_automation_examples/tree/main/workflow%20guides/azure-nginx-nic-napv5)
+   
+      
 ## Getting Started
 
 * [AWS Account](https://aws.amazon.com) - Due to the assets being created, free tier will not work.
