@@ -1,0 +1,316 @@
+name: "NGINX NIC/NAP-V5 GCP Destroy"
+on:
+  push:
+    branches: gcp-destroy-nic-napv5
+env:
+  TF_VAR_GCP_BUCKET_NAME: ${{ vars.TF_VAR_GCP_BUCKET_NAME }}
+  TF_VAR_GCP_REGION: ${{ vars.TF_VAR_GCP_REGION }}
+  TF_VAR_project_prefix: ${{ vars.TF_VAR_PROJECT_PREFIX }}
+  TF_VAR_GCP_PROJECT_ID: ${{ secrets.TF_VAR_GCP_PROJECT_ID }}
+  TF_VAR_GOOGLE_CREDENTIALS: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
+  WORKSPACE_PATH: "./GCP/nap"
+  nginx_jwt: ${{ secrets.NGINX_JWT }}
+
+jobs:
+  terraform_arcadia:
+    name: "Destroy Arcadia WebApp"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./GCP/arcadia
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Google Cloud Authentication
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize Terraform (GCS Backend)
+        run: |
+          terraform init \
+            -backend-config="bucket=$TF_VAR_GCP_BUCKET_NAME"
+
+      - name: Terraform Validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan (Destroy)
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          terraform plan -destroy -no-color -input=false -lock=false -out=tfplan
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terraform Destroy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/gcp-destroy-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+        run: terraform destroy -auto-approve -lock=false -input=false
+
+  terraform_policy:
+    name: "Destroy NGINX Policy"
+    runs-on: ubuntu-latest
+    needs: terraform_arcadia
+    defaults:
+      run:
+        working-directory: ./GCP/policy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Google Cloud Authentication
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize Terraform (GCS Backend)
+        run: |
+          terraform init \
+            -backend-config="bucket=$TF_VAR_GCP_BUCKET_NAME"
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve -lock=false
+
+  terraform_nap:
+    name: "Destroy NGINX NIC/App Protect"
+    runs-on: ubuntu-latest
+    needs: terraform_policy
+    defaults:
+      run:
+        working-directory: ./GCP/nap
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Google Cloud Authentication
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize Terraform (GCS Backend)
+        run: |
+          terraform init \
+            -backend-config="bucket=$TF_VAR_GCP_BUCKET_NAME"
+
+      - name: Terraform Plan (Destroy)
+        run: |
+          terraform plan -destroy -no-color -input=false -lock=false -out=tfplan \
+            -var="workspace_path=${{ env.WORKSPACE_PATH }}" \
+            -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
+            -var="nginx_pwd=none"
+ 
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terraform Destroy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/gcp-destroy-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          terraform destroy -auto-approve -input=false -lock=false \
+            -var="workspace_path=${{ env.WORKSPACE_PATH }}" \
+            -var="nginx_jwt=${{ secrets.NGINX_JWT }}" \
+            -var="nginx_pwd=none"
+
+  terraform_eks:
+    name: "Destroy GKE"
+    runs-on: ubuntu-latest
+    needs: terraform_nap
+    defaults:
+      run:
+        working-directory: ./GCP/gke
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Google Cloud Authentication
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize Terraform (GCS Backend)
+        run: |
+          terraform init \
+            -backend-config="bucket=$TF_VAR_GCP_BUCKET_NAME"
+
+      - name: Terraform Plan (Destroy)
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terraform Destroy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/gcp-destroy-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+        run: terraform destroy -auto-approve -input=false -lock=false
+
+  terraform_infra:
+    name: "Destroy Infra"
+    runs-on: ubuntu-latest
+    needs: terraform_eks
+    defaults:
+      run:
+        working-directory: ./GCP/infra
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Google Cloud Authentication
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Initialize Terraform (GCS Backend)
+        run: |
+          terraform init \
+            -backend-config="bucket=$TF_VAR_GCP_BUCKET_NAME"
+
+      - name: Terraform Plan (Destroy)
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          terraform plan -destroy -no-color -input=false -out=tfplan -lock=false
+          terraform show -no-color tfplan > plan.txt
+
+      - name: Check Changes
+        id: check_changes
+        run: |
+          if grep -q "No changes." plan.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terraform Destroy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/gcp-destroy-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
+        run: terraform destroy -auto-approve -input=false -lock=false
+
+  
+  terraform_gcs:
+    name: "Destroy GCP Bucket"
+    needs: terraform_infra
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./GCP/gcs
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Set up Google Cloud Authentication
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.TF_VAR_GOOGLE_CREDENTIALS }}
+
+      - name: Configure gcloud
+        run: echo "$TF_VAR_GOOGLE_CREDENTIALS" | gcloud auth activate-service-account --key-file=-
+
+      - name: GCP Bucket Deletion
+        run: |
+          set -e
+          BUCKET_NAME="$TF_VAR_GCP_BUCKET_NAME"
+          
+          # 1. Delete all object versions (with null checks)
+          echo "🔥 Deleting ALL object versions..."
+
+          # List all object versions
+          versions=$(gsutil -q ls -r gs://$BUCKET_NAME/** | while read -r object; do
+            gsutil -q ls -L "$object" | grep "Generation" | awk '{print $2}' | while read -r version; do
+              echo "$object#$version"
+            done
+          done)
+
+          # Check if there are any versions to delete
+          if [ -n "$versions" ]; then
+            # Delete all versions
+            for version in $versions; do
+              gsutil -m rm -r "$version"
+            done
+          fi
+
+          # 2. Delete all delete markers (with null checks)
+          echo "🗑️ Deleting ALL delete markers..."
+
+          # List all object versions (including "deleted" versions)
+          markers_to_delete=$(gsutil -q ls -r gs://$BUCKET_NAME/** | while read -r object; do
+            # Check for versions with generation info (non-current versions)
+            gsutil -q ls -L "$object" | grep "Generation" | awk '{print $2}' | while read -r version; do
+              # Assuming delete markers are versions that are marked with 'generation' but not the current one
+              if gsutil -q stat "$object#$version" 2>/dev/null; then
+                echo "$object#$version"
+              fi
+            done
+          done)
+
+          # Check if there are any delete markers to delete
+          if [ -n "$markers_to_delete" ]; then
+            for marker in $markers_to_delete; do
+              gsutil -m rm -r "$marker"
+            done
+          fi
+
+          # 3. Force delete any remaining objects
+          echo "💥 Force deleting any remaining objects..."
+          gsutil -m rm -r gs://$BUCKET_NAME/** || true
+
+          # 4. Delete bucket
+          echo "🚀 Deleting bucket..."
+          gsutil rm -r gs://$BUCKET_NAME || true
+          
+          # 5. Final verification
+          if gsutil -q ls gs://$BUCKET_NAME; then
+            echo "::error::Bucket $BUCKET_NAME still exists after deletion attempts!"
+            exit 1
+          else
+            echo "✅ Bucket $BUCKET_NAME successfully deleted"
+          fi
+
+      - name: Verify Deletion
+        run: |
+          echo "✅ Verification:"
+          
+          # Verify GCP bucket
+          BUCKET_NAME="$TF_VAR_GCP_BUCKET_NAME"
+          if gsutil -q ls "gs://$BUCKET_NAME"; then
+            echo "::error::Bucket $BUCKET_NAME still exists!"
+            exit 1
+          else
+            echo "Bucket $BUCKET_NAME deleted successfully"
+          fi

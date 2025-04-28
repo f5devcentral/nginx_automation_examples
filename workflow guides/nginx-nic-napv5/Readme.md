@@ -97,7 +97,7 @@ Rename `infra/terraform.tfvars.examples` to `infra/terraform.tfvars` and add the
 
 ### STEP 3: Policy 
 
-The repository includes a default policy file named `policy.json`, which can be found in the `policy` directory.
+The repository includes a default policy file named `policy.json`, which can be found in the `AWS/policy` directory.
 
 ```hcl
 {
@@ -112,7 +112,7 @@ The repository includes a default policy file named `policy.json`, which can be 
  
 Users have the option to utilize the existing policy or, if preferred, create a custom policy. To do this, place the custom policy in the designated policy folder and name it `policy.json` or any name you choose. If you decide to use a different name, update the corresponding name in the [`apply-nic-napv5.yml`](https://github.com/f5devcentral/nginx_automation_examples/blob/main/.github/workflows/apply-nic-napv5.yml) and  [`destroy-nic-napv5.yml`](https://github.com/f5devcentral/nginx_automation_examples/blob/main/.github/workflows/destroy-nic-napv5.yml) workflow files accordingly.
 
-  In the workflies, locate the terraform_policy job and rename `policy.json` to your preferred name if you've decided to change it.
+  In the workflow files, locate the terraform_policy job and rename `policy.json` to your preferred name if you've decided to change it.
   
    ![Push](assets/policy.png)
 
@@ -189,10 +189,4 @@ Copyright 2014-2020 F5 Networks Inc.
 
 ### F5 Networks Contributor License Agreement
 Before you start contributing to any project sponsored by F5 Networks, Inc. (F5) on GitHub, you will need to sign a Contributor License Agreement (CLA).
-
-
-
-
-
-
 
