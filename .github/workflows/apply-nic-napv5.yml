@@ -3,8 +3,10 @@ on:
   push:
     branches: apply-nic-napv5
 env:
-  TF_VAR_AWS_S3_BUCKET_NAME: ${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}
-  TF_VAR_AWS_REGION: ${{ secrets.TF_VAR_AWS_REGION }}
+  TF_VAR_AWS_S3_BUCKET_NAME: ${{ vars.TF_VAR_AWS_S3_BUCKET_NAME }}
+  TF_VAR_AWS_REGION: ${{ vars.TF_VAR_AWS_REGION }}
+  TF_VAR_project_prefix: ${{ vars.TF_VAR_PROJECT_PREFIX }}
+  TF_VAR_resource_owner: ${{ vars.TF_VAR_RESOURCE_OWNER }}
 jobs:
   terraform_bootstrap:
     name: "Bootstrap S3/DynamoDB"
@@ -22,7 +24,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+          aws-region: ${{ vars.TF_VAR_AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -33,7 +35,7 @@ jobs:
 
       - name: Terraform Plan
         run: terraform plan -no-color -input=false -out=tfplan
-      
+
       - name: Check for Changes
         id: check_changes
         run: |
@@ -67,7 +69,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+          aws-region: ${{ vars.TF_VAR_AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -76,8 +78,8 @@ jobs:
       - name: Initialize Terraform (S3 Backend)
         run: |
           terraform init \
-            -backend-config="bucket=${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}" \
-            -backend-config="region=${{ secrets.TF_VAR_AWS_REGION }}"
+            -backend-config="bucket=$TF_VAR_AWS_S3_BUCKET_NAME" \
+            -backend-config="region=$TF_VAR_AWS_REGION"
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
@@ -97,7 +99,7 @@ jobs:
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/apply-nic-napv5' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -auto-approve tfplan
-      
+
   terraform_eks:
     name: "AWS EKS"
     runs-on: ubuntu-latest
@@ -115,17 +117,17 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+          aws-region: ${{ vars.TF_VAR_AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-   
+
 
       - name: Terraform Init
         run: |
           terraform init \
-            -backend-config="bucket=${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}" \
-            -backend-config="region=${{ secrets.TF_VAR_AWS_REGION }}"
+            -backend-config="bucket=$TF_VAR_AWS_S3_BUCKET_NAME" \
+            -backend-config="region=$TF_VAR_AWS_REGION"
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
@@ -163,7 +165,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+          aws-region: ${{ vars.TF_VAR_AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -171,8 +173,8 @@ jobs:
       - name: Terraform Init
         run: |
           terraform init \
-            -backend-config="bucket=${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}" \
-            -backend-config="region=${{ secrets.TF_VAR_AWS_REGION }}"
+            -backend-config="bucket=$TF_VAR_AWS_S3_BUCKET_NAME" \
+            -backend-config="region=$TF_VAR_AWS_REGION"
 
       - name: Terraform Plan
         if: github.event_name == 'pull_request' || github.event_name == 'push'
@@ -184,7 +186,7 @@ jobs:
           terraform show -no-color tfplan > plan.txt
         env:
            WORKSPACE_PATH: "./AWS/nap"
-         
+
 
       - name: Check Changes
         id: check_changes
@@ -216,7 +218,7 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-        aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+        aws-region: ${{ vars.TF_VAR_AWS_REGION }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -224,8 +226,8 @@ jobs:
     - name: Terraform Init (EKS)
       run: |
         terraform init \
-          -backend-config="bucket=${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}" \
-          -backend-config="region=${{ secrets.TF_VAR_AWS_REGION }}"
+          -backend-config="bucket=$TF_VAR_AWS_S3_BUCKET_NAME" \
+          -backend-config="region=$TF_VAR_AWS_REGION"
       working-directory: ./AWS/eks-cluster
 
     - name: Print EKS Terraform Outputs
@@ -318,8 +320,8 @@ jobs:
     - name: Terraform Init
       run: |
         terraform init \
-          -backend-config="bucket=${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}" \
-          -backend-config="region=${{ secrets.TF_VAR_AWS_REGION }}"
+          -backend-config="bucket=$TF_VAR_AWS_S3_BUCKET_NAME" \
+          -backend-config="region=$TF_VAR_AWS_REGION"
 
     - name: Terraform Plan
       run: |
@@ -356,7 +358,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+          aws-region: ${{ vars.TF_VAR_AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -364,8 +366,8 @@ jobs:
       - name: Terraform Init
         run: |
           terraform init \
-            -backend-config="bucket=${{ secrets.TF_VAR_AWS_S3_BUCKET_NAME }}" \
-            -backend-config="region=${{ secrets.TF_VAR_AWS_REGION }}"
+            -backend-config="bucket=$TF_VAR_AWS_S3_BUCKET_NAME" \
+            -backend-config="region=$TF_VAR_AWS_REGION"
 
       - name: Terraform Validate
         run: terraform validate -no-color
