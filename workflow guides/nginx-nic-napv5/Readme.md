@@ -7,28 +7,24 @@
   - [Prerequisites](#prerequisites)
   - [Assets](#assets)
   - [Tools](#tools)
-  - [GitHub Secrets Configuration](#github-secrets-configuration)
-    - [Required Secrets](#required-secrets)
+  - [GitHub Configurations](#github-configurations)
     - [How to Add Secrets](#how-to-add-secrets)
+    - [How to Add Variables](#how-to-add-variables)
+    - [Required Secrets and Variables](#required-secrets-and-variables)
   - [Workflow Runs](#workflow-runs)
     - [STEP 1: Workflow Branches](#step-1-workflow-branches)
-    - [STEP 2: Modify terraform.tfvars](#step-2-Modify-terraform-tfvars)
-    - [STEP 3: Policy ](#step-3-Policy)
-    - [STEP 4: Commit Changes](#step-4-Commit-Changes)
-    - [STEP 5: Deployment Workflow](#step-5-Deployment-workflow)
-    - [STEP 6: Validation](#step-6-validation)
-    - [STEP 7: Destroy Workflow](#step-7-Destroy-workflow)
+    - [STEP 2: Policy ](#step-2-Policy)
+    - [STEP 3: Deploy Workflow](#step-3-deploy-workflow)
+    - [STEP 4: Monitor the Workflow](#step-4-Monitor-the-workflow)
+    - [STEP 5: Validation](#step-5-validation)
+    - [STEP 6: Destroy Workflow](#step-6-Destroy-workflow)
   - [Conclusion](#conclusion)
   - [Support](#support)
   - [Copyright](#copyright)
     - [F5 Networks Contributor License Agreement](#f5-networks-contributor-license-agreement)
 
 ## Introduction
----------------
 This demo guide provides a comprehensive, step-by-step walkthrough for configuring the NGINX Ingress Controller alongside NGINX App Protect v5 on the AWS Cloud platform. It utilizes Terraform scripts to automate the deployment process, making it more efficient and streamlined. For further details, please consult the official [documentation](https://docs.nginx.com/nginx-ingress-controller/installation/integrations/). Also, you can find more insights in the DevCentral article [F5 NGINX Automation Examples [Part 1-Deploy F5 NGINX Ingress Controller with App ProtectV5]](https://community.f5.com/kb/technicalarticles/f5-nginx-automation-examples-part-1-deploy-f5-nginx-ingress-controller-with-app-/340500).
-
-
---------------
 
 ## Architecture Diagram
 ![System Architecture](assets/AWS.jpeg)
@@ -52,22 +48,10 @@ This demo guide provides a comprehensive, step-by-step walkthrough for configuri
 * **IAC State:** Amazon S3
 * **CI/CD:** GitHub Actions
 
-## GitHub Secrets Configuration
+## GitHub Configurations
 
-This workflow requires the following secrets to be configured in your GitHub repository:
+First of all, fork and clone the repo. Next, create the following GitHub Actions secrets and variable in your forked repo.
 
-### Required Secrets
-
-| Secret Name            | Type    | Description                                                              
-|------------------------|---------|----------------------------------------------------------------------|
-| `AWS_ACCESS_KEY_ID`     | Secret  | AWS IAM user access key ID with sufficient permissions              |      
-| `AWS_SECRET_ACCESS_KEY` | Secret  | Corresponding secret access key for the AWS IAM user                |  
-| `AWS_SESSION_TOKEN`     | Secret  | Session token for temporary AWS credentials (if using MFA)          |       
-| `NGINX_JWT`             | Secret  | JSON Web Token for NGINX license authentication                     |    
-| `NGINX_Repo_CRT`        | Secret  | NGINX Certificate                                                   | 
-| `NGINX_Repo_KEY`        | Secret  | Private key for securing HTTPS and verifying SSL/TLS certificates   |
-| `TF_VAR_AWS_S3_BUCKET_NAME`  | Secret  | Unique S3 bucket name                                            | 
-| `TF_VAR_AWS_REGION`        | Secret  | AWS region. Note: The region should support atleast two availability zones   |
 ### How to Add Secrets
 
 1. Navigate to your GitHub repository
@@ -77,25 +61,59 @@ This workflow requires the following secrets to be configured in your GitHub rep
 5. Paste the secret value
 6. Click **Add secret**
 
+### How to Add Variables
+
+1. Navigate to your GitHub repository
+2. Go to **Settings** → **Secrets and variables** → **Actions**
+3. Click **Variables** tab
+4. Click **New repository variable**
+5. Enter the variable name exactly as shown above
+6. Paste the variable value
+7. Click **Add variable**
+
+This workflow requires the following secrets and variable to be configured in your GitHub repository:
+
+### Required Secrets and Variables
+
+| Secret Name            | Type    | Description                                                                                             
+|------------------------|---------|---------------------------------------------------------------------------------------------------------|
+| `AWS_ACCESS_KEY_ID`     | Secret  | AWS IAM user access key ID with sufficient permissions                                                  |      
+| `AWS_SECRET_ACCESS_KEY` | Secret  | Corresponding secret access key for the AWS IAM user                                                    |  
+| `AWS_SESSION_TOKEN`     | Secret  | Session token for temporary AWS credentials (if using MFA)                                              |       
+| `NGINX_JWT`             | Secret  | JSON Web Token for NGINX license authentication                                                         |    
+| `NGINX_Repo_CRT`        | Secret  | NGINX Certificate                                                                                       | 
+| `NGINX_Repo_KEY`        | Secret  | Private key for securing HTTPS and verifying SSL/TLS certificates                                       |
+| `TF_VAR_PROJECT_PREFIX`     | Variable | Your project identifier name in lowercase letters only - this will be applied as a prefix to all assets | 
+| `TF_VAR_AWS_S3_BUCKET_NAME`  | Variable  | Unique S3 bucket name                                                                                   | 
+| `TF_VAR_AWS_REGION`        | Variable  | AWS region. Note: The region should support atleast two availability zones                              |
+| `TF_VAR_RESOURCE_OWNER`     | Variable | Resource owner name                                                                                     | 
+
+### Github Secrets
+ ![secrets](assets/secrets.png)
+
+### Github Variables
+![variables](assets/variables.png)
+
 ## Workflow Runs
 
 ### STEP 1: Workflow Branches
+
+Check out a branch with the branch name as suggested below for the workflow you wish to run using the following naming convention.
+
 **DEPLOY**
-  | Workflow     | Branch Name      |
-  | ------------ | ---------------- |
-  |Apply-nic-napv5| apply-nic-napv5   |
+```sh
+git checkout -b gcp-apply-nic-napv5
+```
+  | Workflow        | Branch Name     |
+  |-----------------|-----------------|
+  | apply-nic-napv5 | apply-nic-napv5 |
 
 **DESTROY**
-  | Workflow     | Branch Name       |
-  | ------------ | ----------------- |
-  | Destroy-nic-napv5| destroy-nic-napv5   |
 
-### STEP 2: Modify terraform. tfvars  
-Rename `infra/terraform.tfvars.examples` to `infra/terraform.tfvars` and add the following data:
-  * project_prefix  = "Your project identifier name in **lower case** letters only - this will be applied as a prefix to all assets"
-  * resource_owner = "Your-name"
-
-### STEP 3: Policy 
+  | Workflow          | Branch Name       |
+  |-------------------|-------------------|
+  | destroy-nic-napv5 | destroy-nic-napv5 |
+### STEP 2: Policy 
 
 The repository includes a default policy file named `policy.json`, which can be found in the `AWS/policy` directory.
 
@@ -114,79 +132,59 @@ Users have the option to utilize the existing policy or, if preferred, create a 
 
   In the workflow files, locate the terraform_policy job and rename `policy.json` to your preferred name if you've decided to change it.
   
-   ![Push](assets/policy.png)
+   ![policy](assets/policy.png)
 
 
-### STEP 4: Commit changes
+### STEP 3: Deploy Workflow
+ 
+Commit the changes, checkout a branch with name **`deploy-nic-napv5`** and push your deploy branch to the forked repo
+```sh
+git commit --allow-empty -m "AWS Deploy"
+git push origin apply-nic-napv5
+```
+
+### STEP 4: Monitor the workflow
+
+Back in GitHub, navigate to the Actions tab of your forked repo and monitor your build. Once the pipeline completes, verify your assets were deployed in GCP
+
+  ![deploy](assets/deploy.png)
 
 
-   ![commit](assets/commit.png)
-   
-
-### STEP 5: Deployment Workflow  
-
-* **Step 1**: Check out a branch for the deploy workflow using the following naming convention  
-  * nic-napv5 deployment branch: apply-nic-napv5
-    
-   ![Branch](assets/branch.png)
-
-* **Step 2**: Push your deploy branch to the forked repo
-   
-   ![Push](assets/push.png)
-
-* **Step 3**: Back in GitHub, navigate to the Actions tab of your forked repo and monitor your build
-  
-   ![Actions](assets/actions.png)
-
-* **Step 4**: Once the pipeline completes, verify your assets were deployed to AWS  
-
-  ![Apply](assets/apply.png)
-
-
-### STEP 6: Validation  
+### STEP 5: Validation  
 
 Users can now access the application through the NGINX Ingress Controller Load Balancer, which enhances security for the backend application by implementing the configured Web Application Firewall (WAF) policies. This setup not only improves accessibility but also ensures that the application is protected from various web threats.
 
-  ![Arcadia](assets/arcardia.png)
+  ![IP](assets/ext_ip.png)
 
-* With malicious attacks:
+* Access the application:
 
-  ![Cross-site](assets/cross-site.png)
+  ![arcadia](assets/arcadia.png)
 
 * Verify that the cross-site scripting is detected and blocked by NGINX App Protect.  
 
-  ![Block](assets/block.png)
+  ![block](assets/mitigation.png)
   
 
-### STEP 7: Destroy Workflow  
+### STEP 6: Destroy Workflow  
 
-* **Step 1**: From your main branch, check out a new branch for the destroy workflow using the following naming convention  
-  * nic-napv5 destroy branch: destroy-nic-napv5  
+If you want to destroy the entire setup, checkout a branch with name **`destroy-nic-napv5`** and push your destroy branch to the forked repo.
+```sh
+git checkout -b destroy-nic-napv5
+git commit --allow-empty -m "AWS Destroy"
+git push origin destroy-nic-napv5
+```
+
+Back in GitHub, navigate to the Actions tab of your forked repo and monitor your workflow
   
-  ![Add destroy](assets/destroy_checkout.png)
+Once the pipeline is completed, verify that your assets were destroyed  
 
-* **Step 2**: Push your destroy branch to the forked repo  
-
-  ![Add LB](assets/destroy-push.png)
-
-* **Step 3**: Back in GitHub, navigate to the Actions tab of your forked repo and monitor your workflow
-  
-  ![Actions](assets/actions.png)
-
-* **Step 4**: Once the pipeline is completed, verify that your assets were destroyed  
-
-  ![Destroy](assets/destroy.png)
-
-
-
-
+  ![destroy](assets/destroy.png)
 
 ## Support
 For support, please open a GitHub issue. Note that the code in this repository is community-supported and is not supported by F5 Networks.
 
 ## Copyright
-Copyright 2014-2020 F5 Networks Inc.
+Copyright 2014-2025 F5 Networks Inc.
 
 ### F5 Networks Contributor License Agreement
 Before you start contributing to any project sponsored by F5 Networks, Inc. (F5) on GitHub, you will need to sign a Contributor License Agreement (CLA).
-
