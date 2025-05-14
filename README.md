@@ -21,9 +21,9 @@ This repository serves as a comprehensive hub that consolidates a variety of aut
 
 * [AWS Account](https://aws.amazon.com) - Due to the assets being created, free tier will not work.
   * Please make sure resources like VPC and Elastic IP's are below the threshold limit in that aws region
+* [Azure Account](https://azure.microsoft.com) - Due to the assets being created, free tier will not work.
+* [Google Account](https://cloud.google.com/) - Due to the assets being created, free tier will not work.
 * [GitHub Account](https://github.com)
-
-
 
 ## Support
 
