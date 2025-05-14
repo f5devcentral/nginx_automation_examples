@@ -14,7 +14,7 @@ Deploy NGINX Ingress Controller with App ProtectV5 in GCP Cloud
   - [Workflow Runs](#workflow-runs)
     - [STEP 1: Workflow Branches](#step-1-workflow-branches)
     - [STEP 2: Policy ](#step-2-Policy)
-    - [STEP 3: Commit and Push Changes](#step-3-commit-and-push-changes)
+    - [STEP 3: Deploy Workflow](#step-3-deploy-workflow)
     - [STEP 4: Monitor the Workflow](#step-4-Monitor-the-workflow)
     - [STEP 5: Validation](#step-5-validation)
     - [STEP 6: Destroy Workflow](#step-6-Destroy-workflow)
@@ -77,7 +77,7 @@ This workflow requires the following secrets and variable to be configured in yo
 
 | Secret Name                 | Type     | Description                                                                                             |
 |-----------------------------|----------|---------------------------------------------------------------------------------------------------------|
-| `TF_VAR_GOOGLE_CREDENTIALS` | Secret   | GCP Service Account Credentials in JSON format (in a single line)                                       |      
+| `TF_VAR_GOOGLE_CREDENTIALS` | Secret   | GCP Service Account Credentials in JSON format                                                          |      
 | `TF_VAR_GCP_PROJECT_ID`     | Secret   | GCP Project ID available in GCP landing page                                                            | 
 | `NGINX_JWT`                 | Secret   | JSON Web Token for NGINX license authentication                                                         |    
 | `NGINX_REPO_CRT`            | Secret   | NGINX Certificate                                                                                       | 
@@ -99,7 +99,9 @@ This workflow requires the following secrets and variable to be configured in yo
 Check out a branch with the branch name as suggested below for the workflow you wish to run using the following naming convention.
 
 **DEPLOY**
-
+```sh
+git checkout -b gcp-apply-nic-napv5
+```
   | Workflow            | Branch Name         |
   |---------------------|---------------------|
   | gcp-apply-nic-napv5 | gcp-apply-nic-napv5 |
@@ -131,9 +133,13 @@ Users have the option to utilize the existing policy or, if preferred, create a 
    ![policy](assets/policy.png)
 
 
-### STEP 3: Commit and Push changes
+### STEP 3: Deploy Workflow
  
-Commit the changes and push your deploy branch to the forked repo
+Commit the changes, checkout a branch with name **`gcp-deploy-nic-napv5`** and push your deploy branch to the forked repo
+```sh
+git commit --allow-empty -m "GCP Deploy"
+git push origin gcp-apply-nic-napv5
+```
 
 ### STEP 4: Monitor the workflow
 
@@ -159,7 +165,12 @@ Users can now access the application through the NGINX Ingress Controller Load B
 
 ### STEP 6: Destroy Workflow  
 
-If you want to destroy the entire setup, checkout a branch with name **`gcp-destroy-nic-napv5`** and push your destroy branch to the forked repo. 
+If you want to destroy the entire setup, checkout a branch with name **`gcp-destroy-nic-napv5`** and push your destroy branch to the forked repo.
+```sh
+git checkout -b gcp-destroy-nic-napv5
+git commit --allow-empty -m "GCP Destroy"
+git push origin gcp-destroy-nic-napv5
+```
 
 Back in GitHub, navigate to the Actions tab of your forked repo and monitor your workflow
   
@@ -171,9 +182,7 @@ Once the pipeline is completed, verify that your assets were destroyed
 For support, please open a GitHub issue. Note that the code in this repository is community-supported and is not supported by F5 Networks.
 
 ## Copyright
-Copyright 2014-2020 F5 Networks Inc.
+Copyright 2014-2025 F5 Networks Inc.
 
 ### F5 Networks Contributor License Agreement
 Before you start contributing to any project sponsored by F5 Networks, Inc. (F5) on GitHub, you will need to sign a Contributor License Agreement (CLA).
-
-
