@@ -102,7 +102,7 @@ Check out a branch with the branch name as suggested below for the workflow you 
 
 **DEPLOY**
 ```sh
-git checkout -b gcp-apply-nic-napv5
+git checkout -b apply-nic-napv5
 ```
   | Workflow        | Branch Name     |
   |-----------------|-----------------|
@@ -137,7 +137,7 @@ Users have the option to utilize the existing policy or, if preferred, create a 
 
 ### STEP 3: Deploy Workflow
  
-Commit the changes, checkout a branch with name **`deploy-nic-napv5`** and push your deploy branch to the forked repo
+Commit the changes and push your apply branch to the forked repo
 ```sh
 git commit --allow-empty -m "AWS Deploy"
 git push origin apply-nic-napv5

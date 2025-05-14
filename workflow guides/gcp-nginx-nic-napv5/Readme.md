@@ -135,7 +135,7 @@ Users have the option to utilize the existing policy or, if preferred, create a 
 
 ### STEP 3: Deploy Workflow
  
-Commit the changes, checkout a branch with name **`gcp-deploy-nic-napv5`** and push your deploy branch to the forked repo
+Commit the changes and push your apply branch to the forked repo
 ```sh
 git commit --allow-empty -m "GCP Deploy"
 git push origin gcp-apply-nic-napv5
