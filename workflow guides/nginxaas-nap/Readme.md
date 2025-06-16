@@ -143,7 +143,10 @@ Users can now access the application through the NGINXaaS endpoint IP, which enh
 
   ![IP](assets/ext_ip.png)
 
+
 * Access the application:
+
+When you refresh the page, you should be able to see the tea and coffee application. 
 
   ![coffee](assets/validateapplciation.png)
 
