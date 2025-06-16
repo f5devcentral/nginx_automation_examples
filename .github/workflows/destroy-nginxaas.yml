@@ -30,8 +30,7 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-        env:
-          TF_VAR_storage_account_name: ${{ vars.storage_account_name }}
+      
 
       - name: Terraform Plan Destroy
         id: plan_destroy
