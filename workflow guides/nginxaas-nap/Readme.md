@@ -87,9 +87,20 @@ This workflow requires the following secrets and variables to be configured in y
 
 ### Modify terraform.tfvars.example 
 
-Replace the grafana_admin_object_ids variable in terraform.tfvars with your Azure AD Object ID (unique to your user account).  Then change the filename to terraform.tfvars.
+1. Open the `terraform.tfvars.example` file.
+2. Replace the value of `grafana_admin_object_ids` with **your own Azure Object ID**.
 
-![terraformvar](assets/terraform.png)
+   ![terraformvar](assets/terraform.png)
+
+3. Then save the file and name it `terraform.tfvars`.
+
+   How to find your Object ID:
+
+- Go to the [Azure Portal](https://portal.azure.com)
+- Navigate to: **Azure Active Directory** → **Users**
+- Click on your user account
+- Copy the **"Object ID"**
+  
 
 ## Workflow Runs
 
