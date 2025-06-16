@@ -13,7 +13,7 @@
     - [How to Add Variables](#how-to-add-variables)
     - [Required Secrets and Variables](#required-secrets-and-variables)
     - [Edit and modify the `terraform.tfvars.example`](#edit-and-modify-the-terraformtfvarsexample)
-    - [Workflow Runs](#workflow-runs)
+- [Workflow Runs](#workflow-runs)
     - [STEP 1: Workflow Branches](#step-1-workflow-branches)
     - [STEP 2: Deploy Workflow](#step-2-deploy-workflow)
     - [STEP 3: Monitor the Workflow](#step-3-Monitor-the-workflow)
