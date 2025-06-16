@@ -1,5 +1,5 @@
 
-# Deploy F5 NGINX as a Service for Azure with App Protect, a Demo Application, and Azure Grafana.
+# Deploy F5 NGINXaaS for Azure with App Protect, a Demo Application, and Azure Grafana.
 ==================================================================================================
 
 ## Table of Contents
@@ -25,23 +25,23 @@
     - [F5 Networks Contributor License Agreement](#f5-networks-contributor-license-agreement)
 
 ## Introduction
-This demo guide provides a comprehensive, step-by-step walkthrough for configuring  It utilizes Terraform scripts to automate the deployment process, making it more efficient and streamlined. For further details, please consult the official [documentation](https://docs.nginx.com/nginx-ingress-controller/installation/integrations/). Also, you can find more insights in the DevCentral article [F5 NGINX Automation Examples [Part 1-Deploy F5 NGINX Ingress Controller with App ProtectV5]](https://community.f5.com/kb/technicalarticles/f5-nginx-automation-examples-part-1-deploy-f5-nginx-ingress-controller-with-app-/340500).
+This demo guide serves as a valuable resource, offering a detailed step-by-step process for setting up a Terraform deployment that creates an F5 NGINX as a Service (NGINXaaS) on Azure with NGINX App Protect. The NGINXaaS will provide advanced load balancing for demo applications that operate across two virtual machines. Furthermore, this guide will help you deploy Azure Grafana to effectively visualize the metrics of NGINX and the virtual machines, allowing you to assess system performance and optimize your deployment.
 
 ## Architecture Diagram
 ![System Architecture](assets/AWS.jpeg)
 
+
 ## Prerequisites
-* [NGINX Plus with App Protect and NGINX Ingress Controller license](https://www.nginx.com/free-trial-request/)
-* [AWS Account](https://aws.amazon.com) - Due to the assets being created, the free tier will not work.
+* [Azure Account](https://portal.azure.com/) - Due to the assets being created, the free tier will not work.
 * [GitHub Account](https://github.com)
 
 ## Assets
-* **n:**       NGINX Ingress Controller for Kubernetes with NGINX App Protect (WAF and API Protection)
-* **infra:**     AWS Infrastructure (VPC, IGW, etc.)
-* **eks:**       AWS Elastic Kubernetes Service
-* **Arcadia:**   Arcadia Finance test web application and API
-* **policy:**    NGINX WAF Compiler Docker and Policy
-* **S3:**        Amazon S3 bucket and IAM role and policy for storage.
+* **Log:**       Azure logging for NGINXaaS
+* **Infra:**     NIGNXaaS and Virtual machine Infrastructure (Vnet, Subnets)
+* **NIC/NAP:**   NGINX Ingress Controller for Kubernetes with NGINX App Protect (WAF and API Protection)
+* **Policy:**    NGINX WAF Compiler Docker and Policy
+* **NGINX:**     NGINX configuration files
+  
 
 ## Tools
 * **Cloud Provider:** Azure
@@ -77,16 +77,13 @@ This workflow requires the following secrets and variable to be configured in yo
 
 | Secret Name            | Type    | Description                                                                                             
 |------------------------|---------|---------------------------------------------------------------------------------------------------------|
-| `AWS_ACCESS_KEY_ID`     | Secret  | AWS IAM user access key ID with sufficient permissions                                                  |      
-| `AWS_SECRET_ACCESS_KEY` | Secret  | Corresponding secret access key for the AWS IAM user                                                    |  
-| `AWS_SESSION_TOKEN`     | Secret  | Session token for temporary AWS credentials (if using MFA)                                              |       
-| `NGINX_JWT`             | Secret  | JSON Web Token for NGINX license authentication                                                         |    
-| `NGINX_Repo_CRT`        | Secret  | NGINX Certificate                                                                                       | 
-| `NGINX_Repo_KEY`        | Secret  | Private key for securing HTTPS and verifying SSL/TLS certificates                                       |
-| `TF_VAR_PROJECT_PREFIX`     | Variable | Your project identifier name in lowercase letters only - this will be applied as a prefix to all assets | 
-| `TF_VAR_AWS_S3_BUCKET_NAME`  | Variable  | Unique S3 bucket name                                                                                   | 
-| `TF_VAR_AWS_REGION`        | Variable  | AWS region. Note: The region should support atleast two availability zones                              |
-| `TF_VAR_RESOURCE_OWNER`     | Variable | Resource owner name                                                                                     | 
+|`AZURE_CREDENTIALS`    | Secret   | Azure credentials in json format {"clientId":"yout client ID","clientSecret":"your client secret","subscriptionId":"your subscription ID","tenantId":"your tenant ID"} |      
+| `AZURE_REGION`         | Variable | Azure region name in which you would like to deploy your resources                                                   |                                            |    
+| `TF_VAR_ssh_public_key` | Secret  |  Public key of your laptop to ssh into VM
+| `TF_VAR_PROJECT_PREFIX` | Variable | Your project identifier name in lowercase letters only - this will be applied as a prefix to all assets  | 
+| `TF_VAR_admin_ip`       | Variable | Your local machine ip                                                    | 
+| `TF_VAR_azure_region`   | Variable  | Azure region                           |
+| `TF_VAR_RESOURCE_OWNER` | Variable | Resource owner name                                                                                     | 
 
 ### Github Secrets
  ![secrets](assets/secrets.png)
