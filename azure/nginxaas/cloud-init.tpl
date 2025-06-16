@@ -3,45 +3,26 @@ package_update: true
 package_upgrade: true
 packages:
   - ca-certificates
-  - apt-transport-https
   - lsb-release
   - gnupg
-  - wget
   - curl
+  - wget
 
 write_files:
-  - path: /etc/ssl/nginx/nginx-repo.crt
-    permissions: '0644'
-    content: |
-      ${nginx_cert}
-
-  - path: /etc/ssl/nginx/nginx-repo.key
-    permissions: '0644'
-    content: |
-      ${nginx_key}
-
-  - path: /etc/nginx/license.jwt
-    permissions: '0644'
-    content: |
-      ${nginx_jwt}
-
   - path: /usr/share/nginx/html/${html_filename}
     permissions: '0644'
     content: |
       ${html_content}
 
 runcmd:
-  - mkdir -p /etc/ssl/nginx
   - apt update
-  - apt install -y apt-transport-https lsb-release ca-certificates wget gnupg2 ubuntu-keyring
-  - wget -qO - https://cs.nginx.com/static/keys/nginx_signing.key | gpg --dearmor | sudo tee  /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null
-  - printf "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] https://pkgs.nginx.com/plus/ubuntu $(lsb_release -cs) nginx-plus\n" | sudo tee /etc/apt/sources.list.d/nginx-plus.list
-  - wget -P /etc/apt/apt.conf.d https://cs.nginx.com/static/files/90pkgs-nginx
+  - curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg > /dev/null
+  - echo "deb [signed-by=/etc/apt/keyrings/nginx.gpg] http://nginx.org/packages/ubuntu `lsb_release -cs` nginx" | tee /etc/apt/sources.list.d/nginx.list
   - apt update
-  - apt install -y nginx-plus
+  - apt install -y nginx
   - |
     cat <<'EOF' > /etc/nginx/nginx.conf
-    user nginx;
+    user www-data;
     worker_processes auto;
     error_log /var/log/nginx/error.log notice;
     pid /run/nginx.pid;
