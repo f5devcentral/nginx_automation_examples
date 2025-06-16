@@ -1,0 +1,128 @@
+name: 'NGINXaaS WAF Destroy'
+
+on:
+  push:
+    branches:
+      - destroy-nginxaas
+
+jobs:
+  terraform-destroy:
+    name: 'Destroy NGINXaaS WAF Resources'
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: ./azure/nginxaas
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.3.0
+
+      - name: Terraform Init
+        run: terraform init
+        env:
+          TF_VAR_storage_account_name: ${{ vars.storage_account_name }}
+
+      - name: Terraform Plan Destroy
+        id: plan_destroy
+        run: |
+          terraform plan -destroy -out=tfplan
+          if terraform show -no-color tfplan | grep -q "No changes."; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+        env:
+          TF_VAR_subscription_id: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
+          TF_VAR_admin_ip: ${{ secrets.ADMIN_IP }}
+          TF_VAR_project_prefix: ${{ vars.project_prefix }}
+          TF_VAR_azure_region: ${{ vars.azure_region }}
+          TF_VAR_ssh_public_key: ${{ secrets.ssh_public_key }}
+
+      - name: Terraform Apply Destroy
+        if: steps.plan_destroy.outputs.has_changes == 'true'
+        run: terraform apply -destroy -auto-approve tfplan
+        env:
+          TF_VAR_subscription_id: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
+          TF_VAR_admin_ip: ${{ secrets.ADMIN_IP }}
+          TF_VAR_project_prefix: ${{ vars.project_prefix }}
+          TF_VAR_azure_region: ${{ vars.azure_region }}
+          TF_VAR_ssh_public_key: ${{ secrets.ssh_public_key }}
+
+
+      - name: Cleanup Diagnostic Settings and Grafana
+        run: |
+          RG_NAME="${{ vars.project_prefix }}-rg"
+          SUBSCRIPTION_ID="${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}"
+
+          NGINX_RESOURCE_ID="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_NAME/providers/Nginx.NginxPlus/nginxDeployments/akash-deploy"
+          GRAFANA_RESOURCE_ID=$(az grafana list --resource-group $RG_NAME --query "[0].id" -o tsv || echo "")
+
+          echo "🔍 Deleting NGINX Diagnostic Settings..."
+          DIAG_SETTINGS=$(az monitor diagnostic-settings list --resource $NGINX_RESOURCE_ID --query "[].name" -o tsv 2>/dev/null || echo "")
+          if [ -z "$DIAG_SETTINGS" ]; then
+            echo "No diagnostic settings found or resource not present, skipping."
+          else
+            for setting in $DIAG_SETTINGS; do
+              echo "Deleting diagnostic setting $setting..."
+              az monitor diagnostic-settings delete --name "$setting" --resource $NGINX_RESOURCE_ID || echo "Failed to delete diagnostic setting $setting, continuing..."
+            done
+          fi
+
+          if [ -n "$GRAFANA_RESOURCE_ID" ]; then
+            echo "🔍 Deleting Grafana resource $GRAFANA_RESOURCE_ID..."
+            az resource delete --ids $GRAFANA_RESOURCE_ID || echo "Failed to delete Grafana resource, continuing..."
+          else
+            echo "No Grafana resource found to delete."
+          fi
+
+      - name: Delete Resource Group with Existence Check
+        run: |
+          RG_NAME="${{ vars.project_prefix }}-rg"
+          echo "Checking if resource group $RG_NAME exists..."
+          EXISTS=$(az group exists --name "$RG_NAME")
+
+          if [ "$EXISTS" = "true" ]; then
+            echo "Resource group $RG_NAME exists. Deleting..."
+            az group delete --name "$RG_NAME" --yes --no-wait
+
+            echo "Waiting for resource group deletion to complete..."
+            for i in {1..60}; do
+              sleep 10
+              EXISTS_AGAIN=$(az group exists --name "$RG_NAME")
+              if [ "$EXISTS_AGAIN" = "false" ]; then
+                echo "✅ Resource group $RG_NAME successfully deleted."
+                exit 0
+              fi
+              echo "⌛ Still deleting resource group... ($i/60)"
+            done
+
+            echo "::error::Resource group $RG_NAME still exists after waiting."
+            exit 1
+          else
+            echo "Resource group $RG_NAME does not exist, skipping deletion."
+          fi
+
+      - name: Unregister NGINX Resource Provider (Optional)
+        run: |
+          echo "Checking NGINX.NGINXPLUS provider registration state..."
+          STATE=$(az provider show --namespace NGINX.NGINXPLUS --query registrationState -o tsv 2>/dev/null || echo "NotFound")
+
+          if [[ "$STATE" == "Registered" ]]; then
+            echo "Unregistering NGINX.NGINXPLUS provider..."
+            az provider unregister --namespace NGINX.NGINXPLUS --wait || echo "Provider unregister failed or timed out."
+          else
+            echo "NGINX provider already unregistered or not found."
+          fi
+
+      
