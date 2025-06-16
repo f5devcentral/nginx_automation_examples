@@ -18,7 +18,9 @@
     - [STEP 3: Deploy Workflow](#step-3-deploy-workflow)
     - [STEP 4: Monitor the Workflow](#step-4-Monitor-the-workflow)
     - [STEP 5: Validation](#step-5-validation)
-    - [STEP 6: Destroy Workflow](#step-6-Destroy-workflow)
+    - [STEP 6: Visualize the metrics in Azure Grafana](#step-6-Visualize-the-metrics-in-Azure-Grafana)
+    - [STEP 7: Analyze NGINX logs in Azure Log Analytics workspaces](#step-7-Analyze-NGINX-logs-in-Azure-Log-Analytics-workspaces)             
+    - [STEP 8: Destroy Workflow](#step-7-Destroy-workflow)
   - [Conclusion](#conclusion)
   - [Support](#support)
   - [Copyright](#copyright)
@@ -77,9 +79,9 @@ This workflow requires the following secrets and variables to be configured in y
 
 | Secret Name            | Type    | Description                                                                                             
 |------------------------|---------|---------------------------------------------------------------------------------------------------------|
-|`AZURE_CREDENTIALS`    | Secret   | Azure credentials in json format {"clientId":"yout client ID","clientSecret":"your client secret","subscriptionId":"your subscription ID","tenantId":"your tenant ID"} |      
+|`AZURE_CREDENTIALS`    | Secret   | Azure credentials in JSON format {"clientId":"yout client ID","clientSecret":"your client secret","subscriptionId":"your subscription ID","tenantId":"your tenant ID"} |      
 | `AZURE_REGION`         | Variable | Azure region name in which you would like to deploy your resources                                                   |                                            |    
-| `TF_VAR_ssh_public_key` | Secret  |  Public key of your laptop to ssh into VM
+| `TF_VAR_ssh_public_key` | Secret  |  Public key of your laptop to SSH into the VM
 | `PROJECT_PREFIX` | Variable | Your project identifier name in lowercase letters only - this will be applied as a prefix to all assets  | 
 | `ADMIN_IP`       | Secret | Your local machine ip                                                    | 
 | `AZURE_REGION`   | Variable  | Azure region                           |                                                                                   | 
@@ -98,7 +100,7 @@ Check out a branch with the branch name as suggested below for the workflow you 
 
 **DEPLOY**
 ```sh
-git checkout -b apply-nic-napv5
+git checkout -b nginxaas-apply
 ```
   | Workflow        | Branch Name     |
   |-----------------|-----------------|
@@ -118,20 +120,20 @@ git checkout -b apply-nic-napv5
  
 Commit the changes and push your apply branch to the forked repo
 ```sh
-git commit --allow-empty -m "AWS Deploy"
-git push origin apply-nic-napv5
+git commit --allow-empty -m "NGINXaaS Deploy"
+git push origin nginxaas-apply
 ```
 
 ### STEP 4: Monitor the workflow
 
-Back in GitHub, navigate to the Actions tab of your forked repo and monitor your build. Once the pipeline completes, verify your assets were deployed in GCP.
+Back in GitHub, navigate to the Actions tab of your forked repo and monitor your build. Once the pipeline is complete, verify that your assets were deployed in Azure.
 
   ![deploy](assets/deploy.png)
 
 
 ### STEP 5: Validation  
 
-Users can now access the application through the NGINX Ingress Controller Load Balancer, which enhances security for the backend application by implementing the configured Web Application Firewall (WAF) policies. This setup not only improves accessibility but also ensures that the application is protected from various web threats.
+Users can now access the application through the NGINXaaS endpoint IP, which enhances security for the upstream application by implementing the configured Web Application Firewall (WAF) policies. This setup not only improves accessibility but also ensures that the application is protected from various web threats.
 
   ![IP](assets/ext_ip.png)
 
@@ -142,22 +144,49 @@ Users can now access the application through the NGINX Ingress Controller Load B
 * Verify that the cross-site scripting is detected and blocked by NGINX App Protect.  
 
   ![block](assets/mitigation.png)
-  
 
-### STEP 6: Destroy Workflow  
 
-If you want to destroy the entire setup, checkout a branch with name **`destroy-nic-napv5`** and push your destroy branch to the forked repo.
-```sh
-git checkout -b destroy-nic-napv5
-git commit --allow-empty -m "AWS Destroy"
-git push origin destroy-nic-napv5
-```
 
-Back in GitHub, navigate to the Actions tab of your forked repo and monitor your workflow
-  
-Once the pipeline is completed, verify that your assets were destroyed  
+### STEP 6: Visualize the metrics in Azure Grafana  
+
+To visualize NGINX and virtual machine metrics effectively, you can leverage Grafana, a robust analytics and monitoring platform. With Grafana, you can create customizable dashboards that offer an intuitive interface for tracking various performance metrics. This makes it easier to gain insights and optimize your systems effectively.
+
+Within the repository, you'll find a dashboard.json file. To use it, update the file with your resource group name, region, NGINXaaS name, and the names of your virtual machines. 
+
+ ![destroy](assets/destroy.png)
+
+After you’ve made those updates to the dashboard.json file, import it into Grafana to start visualizing the metrics for NGINXaaS and your virtual machines.
+
+ ![destroy](assets/destroy.png)
+ 
+ 
+### STEP 7: Analyze NGINX logs in Azure Log Analytics workspaces
+
+To effectively check the NGINX and security logs, start by navigating to the Azure portal and selecting your NGINXaaS deployment. From there, head to the monitoring tab and choose the logs option. 
+
+Here, you can utilize KQL queries to analyze and review the logs. This will help you gain valuable insights into your deployment’s performance and security.
+
 
   ![destroy](assets/destroy.png)
+  
+You can find a sample KQL query on the NGINXaaS documentation page [documentation](https://docs.nginx.com/nginxaas/azure/app-protect/enable-logging//).
+
+### STEP 8: Destroy Workflow  
+
+If you want to destroy the entire setup, checkout a branch with name **`destroy-nginxaas`** and push your destroy branch to the forked repo.
+```sh
+git checkout -b destroy-nginxaas
+git commit -- allow-empty -m "NGINXaaS Destroy"
+git push origin destroy-nginxaas
+```
+
+Back in GitHub, navigate to the Actions tab of your forked repo and monitor your workflow.
+  
+Once the pipeline is completed, verify that your assets were destroyed.  
+
+  ![destroy](assets/destroy.png)
+
+  
 
 ## Support
 For support, please open a GitHub issue. Note that the code in this repository is community-supported and is not supported by F5 Networks.
