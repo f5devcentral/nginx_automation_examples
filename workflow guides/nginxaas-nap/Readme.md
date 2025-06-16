@@ -148,7 +148,7 @@ Users can now access the application through the NGINXaaS endpoint IP, which enh
 
 When you refresh the page, you should be able to see the tea and coffee application. 
 
-  ![coffee](assets/validateapplciation.png)
+  ![coffee](assets/coffee.png)
 
 
   ![tea](assets/tea.png)
@@ -157,8 +157,6 @@ When you refresh the page, you should be able to see the tea and coffee applicat
 * Verify that the cross-site scripting is detected and blocked by NGINX App Protect.  
 
   ![block](assets/block.png)
-
-
 
 ### STEP 6: Visualize the metrics in Azure Grafana  
 
