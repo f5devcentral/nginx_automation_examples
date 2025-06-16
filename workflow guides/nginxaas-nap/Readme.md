@@ -153,7 +153,49 @@ To visualize NGINX and virtual machine metrics effectively, you can leverage Gra
 
 Within the repository, you'll find a dashboard.json file. To use it, update the file with your resource group name, region, NGINXaaS name, and the names of your virtual machines. 
 
- ![destroy](assets/destroy.png)
+### Grafana Dashboard Templating Variables
+
+```json
+"templating": {
+  "list": [
+    {
+      "name": "resourceGroup",
+      "type": "constant",
+      "query": "YOUR RESOURCE GROUP NAME",
+      "label": "Resource Group",
+      "hide": 2
+    },
+    {
+      "name": "region",
+      "type": "constant",
+      "query": "YOUR AZURE REGION NAME",
+      "label": "Region",
+      "hide": 2
+    },
+    {
+      "name": "nginxResource",
+      "type": "constant",
+      "query": "YOUR NGINXaaS NAME",
+      "label": "NGINX Resource",
+      "hide": 2
+    },
+    {
+      "name": "vm1",
+      "type": "constant",
+      "query": "YOUR VM-1 NAME",
+      "label": "VM 1",
+      "hide": 2
+    },
+    {
+      "name": "vm2",
+      "type": "constant",
+      "query": "YOUR VM-2 NAME",
+      "label": "VM 2",
+      "hide": 2
+    }
+  ]
+}
+
 
 After you’ve made those updates to the dashboard.json file, import it into Grafana to start visualizing the metrics for NGINXaaS and your virtual machines.
 
