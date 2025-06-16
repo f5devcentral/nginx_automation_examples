@@ -92,6 +92,10 @@ This workflow requires the following secrets and variables to be configured in y
 ### Github Variables
 ![variables](assets/variables.png)
 
+### Modify terraform.tfvars.example 
+
+Replace the grafana_admin_object_ids variable in terraform.tfvars with your Azure AD Object ID (unique to your user account).  Then change the filename to terraform.tfvars.
+
 ## Workflow Runs
 
 ### STEP 1: Workflow Branches
