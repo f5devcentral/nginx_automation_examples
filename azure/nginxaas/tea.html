@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tea</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    header {
+        background-color: #6C7A89;
+        color: #fff;
+        text-align: center;
+        padding: 20px;
+        position: relative;
+    }
+
+    .cart {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #4CAF50;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+    .user-container {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 20px;
+    }
+
+    .user {
+        width: 30%;
+        padding: 20px;
+        box-sizing: border-box;
+        text-align: center;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+    }
+
+    .user img {
+        max-width: 100px;
+        max-height: 100px;
+        border-radius: 50%;
+        margin-bottom: 10px;
+    }
+
+    .tea-section {
+        text-align: center;
+        margin-top: 50px;
+    }
+
+    .tea-item {
+        display: inline-block;
+        width: 30%;
+        margin: 10px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .tea-item img {
+        max-width: 100%;
+        border-radius: 5px;
+    }
+
+    .add-to-cart {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin-top: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .add-to-cart:hover {
+        background-color: #45a049;
+    }
+
+    .quantity {
+        width: 50px;
+        text-align: center;
+    }
+
+    /* Dialog styles */
+    .dialog-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .dialog-box {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        max-width: 80%;
+        text-align: left;
+    }
+
+    .dialog-content {
+        margin-bottom: 20px;
+    }
+
+    .modify-orders {
+        background-color: #E33611;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .pay-now {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .modify-orders:hover, .pay-now:hover {
+        opacity: 0.9;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Tea</h1>
+    <div class="cart" id="cart">Cart: $<span id="cart-total">0.00</span></div>
+</header>
+
+<div class="tea-section">
+    <div class="tea-item">
+        <img src="https://plcbcontent-plcb002.cec.ocp.oraclecloud.com/content/assets/image-1481786555838-cocktail-recipe-peach-tea-1382989541-800x400/Medium/Cocktail-Recipe-Peach-tea-1382989541-800x400.jpg?format=webp&type=responsiveimage&channelToken=ae8bcfe34a14444fafcadba1b2fef71e" alt="Ice tea">
+        <p>Ice Tea</p>
+        <p>$3.99</p>
+        <input type="number" class="quantity" value="0" min="0" max="10">
+        <button class="add-to-cart" data-name="Ice Tea" data-price="3.99" onclick="addToCart(this)">Add to Cart</button>
+    </div>
+
+    <div class="tea-item">
+        <!-- Fixed Green Matcha Tea Image -->
+        <img src="https://images.unsplash.com/photo-1558160074-4d7d8bdf4256?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" alt="Green Matcha Tea">
+        <p>Green Matcha Tea</p>
+        <p>$4.99</p>
+        <input type="number" class="quantity" value="0" min="0" max="10">
+        <button class="add-to-cart" data-name="Green Matcha Tea" data-price="4.99" onclick="addToCart(this)">Add to Cart</button>
+    </div>
+
+    <div class="tea-item">
+        <img src="https://oleofats.com/wp-content/uploads/2024/03/milk-tea-banner.jpg" alt="Boba Tea">
+        <p>Boba Tea</p>
+        <p>$5.99</p>
+        <input type="number" class="quantity" value="0" min="0" max="10">
+        <button class="add-to-cart" data-name="Boba Tea" data-price="5.99" onclick="addToCart(this)">Add to Cart</button>
+    </div>
+</div>
+
+<div class="user-container">
+    <div class="user">
+        <img src="https://static.vecteezy.com/system/resources/previews/020/429/953/non_2x/admin-icon-vector.jpg" alt="Admin">
+        <h2><a href="#">Admin</a></h2>
+        <button class="add-to-cart" onclick="navigateToAdminPage()">Add or Remove</button>
+    </div>
+
+    <div class="user">
+        <img src="https://cdn-icons-png.flaticon.com/512/7182/7182499.png" alt="Customer">
+        <h2><a href="#" onclick="showOrderSummary()">Customer</a></h2>
+        <button class="add-to-cart" onclick="showOrderSummary()">Buy Now</button>
+    </div>
+
+    <div class="user">
+        <img src="https://cdn-icons-png.flaticon.com/512/3126/3126647.png" alt="People">
+        <h2><a href="#">People</a></h2>
+        <p>View Menu</p>
+    </div>
+</div>
+
+<div class="dialog-overlay" id="dialog-overlay">
+    <div class="dialog-box">
+        <div class="dialog-content">
+            <h2>Order Summary</h2>
+            <div id="order-items"></div>
+            <p>Tax (10%): $<span id="tax-amount">0.00</span></p>
+            <p>Tip (15%): $<span id="tip-amount">0.00</span></p>
+            <hr>
+            <p id="total">Total: $<span id="total-amount">0.00</span></p>
+        </div>
+        <button class="modify-orders" onclick="modifyOrder()">Cancel</button>
+        <button class="pay-now" onclick="payNow()">Pay Now</button>
+    </div>
+</div>
+
+<script>
+    let cartItems = [];
+
+    function addToCart(button) {
+        const itemDiv = button.parentNode;
+        const name = button.getAttribute('data-name');
+        const price = parseFloat(button.getAttribute('data-price'));
+        const quantity = parseInt(itemDiv.querySelector('.quantity').value);
+
+        if (quantity > 0) {
+            cartItems.push({ name, price, quantity });
+            updateCartTotal();
+        }
+    }
+
+    function updateCartTotal() {
+        let total = 0;
+        cartItems.forEach(item => {
+            total += item.price * item.quantity;
+        });
+        document.getElementById('cart-total').textContent = total.toFixed(2);
+    }
+
+    function showOrderSummary() {
+        if (cartItems.length === 0) {
+            alert('Your cart is empty!');
+            return;
+        }
+
+        const orderItemsDiv = document.getElementById('order-items');
+        orderItemsDiv.innerHTML = '';
+
+        let subtotal = 0;
+        cartItems.forEach(item => {
+            subtotal += item.price * item.quantity;
+            orderItemsDiv.innerHTML += `<p>${item.name} x ${item.quantity} = $${(item.price * item.quantity).toFixed(2)}</p>`;
+        });
+
+        const tax = subtotal * 0.1;
+        const tip = subtotal * 0.15;
+        const total = subtotal + tax + tip;
+
+        document.getElementById('tax-amount').textContent = tax.toFixed(2);
+        document.getElementById('tip-amount').textContent = tip.toFixed(2);
+        document.getElementById('total-amount').textContent = total.toFixed(2);
+
+        document.getElementById('dialog-overlay').style.display = 'flex';
+    }
+
+    function modifyOrder() {
+        document.getElementById('dialog-overlay').style.display = 'none';
+    }
+
+    function payNow() {
+        alert('Payment successful!');
+        cartItems = [];
+        updateCartTotal();
+        modifyOrder();
+    }
+</script>
+
+</body>
+</html>
