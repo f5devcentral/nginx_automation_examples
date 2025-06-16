@@ -12,7 +12,7 @@
     - [How to Add Secrets](#how-to-add-secrets)
     - [How to Add Variables](#how-to-add-variables)
     - [Required Secrets and Variables](#required-secrets-and-variables)
-    - [Modify terraform.tfvars.example](#Modify-terraform.tfvars.example)
+    - [Edit and modify the terraform.tfvars.example ](#Edit-and-modify-the-terraform.tfvars.example)
   - [Workflow Runs](#workflow-runs)
     - [STEP 1: Workflow Branches](#step-1-workflow-branches)
     - [STEP 2: Deploy Workflow](#step-2-deploy-workflow)
@@ -27,7 +27,7 @@
     - [F5 Networks Contributor License Agreement](#f5-networks-contributor-license-agreement)
 
 ## Introduction
-This demo guide serves as a valuable resource, offering a detailed step-by-step process for setting up a Terraform deployment that creates an F5 NGINX as a Service (NGINXaaS) on Azure with NGINX App Protect. The NGINXaaS will provide advanced load balancing for demo applications that operate across two virtual machines. Furthermore, this guide will help you deploy Azure Grafana to effectively visualize the metrics of NGINX and the virtual machines, allowing you to assess system performance and optimize your deployment.
+This demo guide serves as a valuable resource, offering a detailed step-by-step process for setting up a Terraform deployment that creates an F5 NGINX as a Service (NGINXaaS) on Azure with NGINX App Protect. The NGINXaaS will provide advanced load balancing for demo applications, such as tea and coffee, that operate across two virtual machines. Furthermore, this guide will help you deploy Azure Grafana to effectively visualize the metrics of NGINX and the virtual machines, allowing you to assess system performance and optimize your deployment.
 
 ## Architecture Diagram
 ![System Architecture](assets/NGINXaaS.svg)
@@ -37,7 +37,6 @@ This demo guide serves as a valuable resource, offering a detailed step-by-step 
 * [Azure Account](https://portal.azure.com/) - Due to the assets being created, the free tier will not work.
 * [GitHub Account](https://github.com)
 
-  
 ## Tools
 * **Cloud Provider:** Azure
 * **IAC:** Terraform
@@ -85,22 +84,22 @@ This workflow requires the following secrets and variables to be configured in y
 ### Github Variables
 ![variables](assets/variables.png)
 
-### Modify terraform.tfvars.example 
+### Edit and modify the terraform.tfvars.example 
 
 1. Open the `terraform.tfvars.example` file.
 2. Replace the value of `grafana_admin_object_ids` with **your own Azure Object ID**.
 
-   ![terraformvar](assets/terraform.png)
-
-3. Then save the file and name it `terraform.tfvars`.
-
-   How to find your Object ID:
+3. How to find your Object ID:
 
 - Go to the [Azure Portal](https://portal.azure.com)
 - Navigate to: **Azure Active Directory** → **Users**
 - Click on your user account
 - Copy the **"Object ID"**
-  
+
+   ![terraformvar](assets/terraform.png)
+
+4. Then save the file and name it `terraform.tfvars`.
+
 
 ## Workflow Runs
 
