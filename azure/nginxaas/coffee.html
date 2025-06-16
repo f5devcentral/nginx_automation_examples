@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>coffee</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    header {
+        background-color: #D0CBC9;
+        color: #564A48;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .cart {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #4CAF50;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+    .user-container {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 20px;
+    }
+
+    .user {
+        width: 30%;
+        padding: 20px;
+        box-sizing: border-box;
+        text-align: center;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+    }
+
+    .user img {
+        max-width: 100px;
+        max-height: 100px;
+        border-radius: 50%;
+        margin-bottom: 10px;
+    }
+
+    /* New Section Styles */
+    .coffee-section {
+        text-align: center;
+        margin-top: 50px;
+    }
+
+    .coffee-item {
+        display: inline-block;
+        width: 30%;
+        margin: 10px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .coffee-item img {
+        max-width: 100%;
+        border-radius: 5px;
+    }
+
+    .add-to-cart {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin-top: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .add-to-cart:hover {
+        background-color: #45a049;
+    }
+
+    .quantity {
+        width: 50px;
+        text-align: center;
+    }
+
+    #cart {
+        position: absolute;
+        top: 60px;
+        right: 10px;
+        background-color: #4f4545;
+        padding: 10px;
+        border-radius: 5px;
+        display: none;
+    }
+
+    /* Style for order summary dialog */
+    .dialog-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .dialog-box {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        max-width: 80%;
+        text-align: left;
+    }
+
+    .dialog-content {
+        margin-bottom: 20px;
+    }
+
+    .close-dialog {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .modify-orders {
+        background-color: #E33611;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .modify-orders:hover {
+        background-color: #E33611;
+    }
+
+    .pay-now {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .pay-now:hover {
+        background-color: #45a049;
+    }
+</style>
+</head>
+<body>
+<header>
+    <h1>Coffee</h1>
+    <div class="cart" id="cart">Cart: $<span id="cart-total">0.00</span></div>
+</header>
+
+<!-- New Section for coffee -->
+<div class="coffee-section">
+
+    <div class="coffee-item">
+       <img src="https://static.vecteezy.com/system/resources/thumbnails/023/010/444/small_2x/the-side-angle-view-of-a-cup-of-coffee-on-the-table-with-ai-generated-free-photo.jpg" alt="Black Coffee">
+        <p>Black Coffee</p>
+        <p> $2.99 </p>
+        <input type="number" class="quantity" value="0" min="0" max="10">
+        <button class="add-to-cart" data-price="2.99" onclick="addToCart(this)">Add to Cart</button>
+    </div>
+    <div class="coffee-item">
+      <img src="https://www.getsiply.com/wp-content/uploads/2020/09/IMG_2950-800x400.jpg" alt="Latte Coffee">
+        <p>Latte</p>
+        <p> $5.99 </p>
+        <input type="number" class="quantity" value="0" min="0" max="10">
+        <button class="add-to-cart" data-price="5.99" onclick="addToCart(this)">Add to Cart</button>
+    </div>
+    <div class="coffee-item">
+        <img src="https://blog.bestbuy.ca/wp-content/uploads/2015/05/coffee.jpg" alt="Cold Coffee">
+        <p>Cold Coffee</p>
+        <p> $3.99</p>
+        <input type="number" class="quantity" value="0" min="0" max="10">
+        <button class="add-to-cart" data-price="3.99" onclick="addToCart(this)">Add to Cart</button>
+    </div>
+</div>
+
+<div class="user-container">
+    <div class="user">
+        <img src="https://static.vecteezy.com/system/resources/previews/020/429/953/non_2x/admin-icon-vector.jpg" alt="Admin">
+        <h2><a href="#">Admin </a></h2>
+        <button class="add-to-cart" onclick="navigateToNewAdminPage()">Add or remove</button>
+    </div>
+    <div class="user">
+    <img src="https://cdn-icons-png.flaticon.com/512/7182/7182499.png" alt="Customer">
+              <h2><a href="#" id="show-cart" onclick="showOrderSummary()">Customer</a></h2>
+        <button class="add-to-cart" onclick="showOrderSummary()">Buy Now</button>
+    </div>
+    
+        <div class="user">
+    <img src="https://cdn-icons-png.flaticon.com/512/3126/3126647.png" alt="People">
+              <h2><a href="#" id="show-cart" onclick="showOrderSummary()">People</a></h2>
+        <p>View Menu</p>
+    </div>
+    
+</div>
+
+<div id="cart-content" style="display: none;">
+    <h2>Cart Summary</h2>
+    <div id="cart-items"></div>
+</div>
+
+<div class="dialog-overlay" id="dialog-overlay">
+    <div class="dialog-box">
+        <div class="dialog-content">
+            <h2>Order Summary</h2>
+            <div id="order-items"></div>
+            <p>Tax (10%): $<span id="tax-amount">0.00</span></p>
+            <p>Tip (15%): $<span id="tip-amount">0.00</span></p>
+            <hr>
+            <p id="total">Total: $<span id="total-amount">0.00</span></p>
+        </div>
+        <button class="modify-orders" onclick="modifyOrder()">Cancel</button>
+        <button class="pay-now" onclick="payNow()">Pay Now</button>
+    </div>
+</div>
+
+<script>
+    function addToCart(btn) {
+        var item = btn.parentNode;
+        var quantity = parseInt(item.querySelector('.quantity').value);
+        var price = parseFloat(btn.getAttribute('data-price')); // Get custom price
+        var total = parseFloat(document.getElementById('cart-total').textContent);
+        total += quantity * price;
+        document.getElementById('cart-total').textContent = total.toFixed(2);
+        document.getElementById('cart').style.display = 'block';
+        document.getElementById('show-cart').style.display = 'inline-block'; // Show View Cart button
+        document.querySelector('.buy-now').style.display = 'inline-block'; // Show Buy Now button
+    }
+
+    function updateCartTotal() {
+        var total = 0;
+        var items = document.querySelectorAll('.coffee-item');
+        items.forEach(function(item) {
+            var quantity = parseInt(item.querySelector('.quantity').value);
+            var price = parseFloat(item.querySelector('.add-to-cart').getAttribute('data-price'));
+            total += quantity * price;
+        });
+        document.getElementById('cart-total').textContent = total.toFixed(2);
+    }
+
+    function showCart() {
+        var cartContent = document.getElementById('cart-content');
+        var cartItems = document.getElementById('cart-items');
+        var items = document.querySelectorAll('.coffee-item');
+        cartItems.innerHTML = ''; // Clear previous content
+        items.forEach(function(item) {
+            var quantity = parseInt(item.querySelector('.quantity').value);
+            if (quantity > 0) { // Show only items with non-zero quantity
+                var coffeeName = item.querySelector('p').textContent;
+                cartItems.innerHTML += '<p>' + coffeeName + ': $' + (quantity * parseFloat(item.querySelector('.add-to-cart').getAttribute('data-price'))).toFixed(2) + '</p>';
+            }
+        });
+        cartContent.style.display = 'block';
+    }
+
+    function showOrderSummary() {
+        var total = parseFloat(document.getElementById('cart-total').textContent);
+        if (total > 0) { // Show dialog only if items are added to the cart
+            var dialogOverlay = document.getElementById('dialog-overlay');
+            dialogOverlay.style.display = 'flex'; // Display the dialog box
+
+            var orderItems = document.getElementById('order-items');
+            var items = document.querySelectorAll('.coffee-item');
+            orderItems.innerHTML = ''; // Clear previous content
+            items.forEach(function(item) {
+                var quantity = parseInt(item.querySelector('.quantity').value);
+                if (quantity > 0) { // Show only items with non-zero quantity
+                    var coffeeName = item.querySelector('p').textContent;
+                    orderItems.innerHTML += '<p>' + coffeeName + ': $' + (quantity * parseFloat(item.querySelector('.add-to-cart').getAttribute('data-price'))).toFixed(2) + '</p>';
+                }
+            });
+
+            // Calculate total
+            var taxAmount = total * 0.1; // 10% tax
+            var tipAmount = total * 0.15; // 15% tip
+            var totalAmount = total + taxAmount + tipAmount; // Total including tax and tip
+
+            document.getElementById('tax-amount').textContent = taxAmount.toFixed(2);
+            document.getElementById('tip-amount').textContent = tipAmount.toFixed(2);
+            document.getElementById('total-amount').textContent = totalAmount.toFixed(2);
+        }
+    }
+
+    function payNow() {
+        alert('Redirecting to payment gateway...');
+    }
+
+    function modifyOrder() {
+        document.getElementById('dialog-overlay').style.display = 'none'; // Hide the dialog box
+    }
+
+    // Event listener for quantity input fields
+    var quantityInputs = document.querySelectorAll('.quantity');
+    quantityInputs.forEach(function(input) {
+        input.addEventListener('change', function() {
+            updateCartTotal();
+        });
+    });
+    
+        // Function to navigate to a new Admin page
+    function navigateToNewAdminPage() {
+        window.location.href = "admin.html"; // Change "newpage.html" to the desired URL
+    }
+    
+</script>
+
+</body>
+</html>
