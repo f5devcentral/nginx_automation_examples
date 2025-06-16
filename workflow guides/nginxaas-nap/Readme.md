@@ -151,9 +151,7 @@ Users can now access the application through the NGINXaaS endpoint IP, which enh
 
 To visualize NGINX and virtual machine metrics effectively, you can leverage Grafana, a robust analytics and monitoring platform. With Grafana, you can create customizable dashboards that offer an intuitive interface for tracking various performance metrics. This makes it easier to gain insights and optimize your systems effectively.
 
-Within the repository, you'll find a dashboard.json file. To use it, update the file with your resource group name, region, NGINXaaS name, and the names of your virtual machines. 
-
-### Grafana Dashboard Templating Variables
+Within the repository, you'll find a `dashboard.json` file. To use it, update the file with your resource group name, region, NGINXaaS name, and the names of your virtual machines. 
 
 ```json
 "templating": {
@@ -195,6 +193,7 @@ Within the repository, you'll find a dashboard.json file. To use it, update the 
     }
   ]
 }
+
 
 
 After you’ve made those updates to the dashboard.json file, import it into Grafana to start visualizing the metrics for NGINXaaS and your virtual machines.
