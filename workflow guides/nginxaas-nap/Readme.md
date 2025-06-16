@@ -37,14 +37,7 @@ This demo guide serves as a valuable resource, offering a detailed step-by-step 
 * [Azure Account](https://portal.azure.com/) - Due to the assets being created, the free tier will not work.
 * [GitHub Account](https://github.com)
 
-## Assets
-* **Log:**       Azure logging for NGINXaaS
-* **Infra:**     NIGNXaaS and Virtual machine Infrastructure (Vnet, Subnets)
-* **NIC/NAP:**   NGINX Ingress Controller for Kubernetes with NGINX App Protect (WAF and API Protection)
-* **Policy:**    NGINX WAF Compiler Docker and Policy
-* **NGINX:**     NGINX configuration files
   
-
 ## Tools
 * **Cloud Provider:** Azure
 * **IAC:** Terraform
@@ -95,6 +88,8 @@ This workflow requires the following secrets and variables to be configured in y
 ### Modify terraform.tfvars.example 
 
 Replace the grafana_admin_object_ids variable in terraform.tfvars with your Azure AD Object ID (unique to your user account).  Then change the filename to terraform.tfvars.
+
+![terraformvar](assets/terraform.png)
 
 ## Workflow Runs
 
