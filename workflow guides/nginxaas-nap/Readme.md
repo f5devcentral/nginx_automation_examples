@@ -198,18 +198,20 @@ Within the repository, you'll find a `dashboard.json` file. To use it, update th
 
 After you’ve made those updates to the dashboard.json file, import it into Grafana to start visualizing the metrics for NGINXaaS and your virtual machines.
 
- ![destroy](assets/destroy.png)
+ ![grafana](assets/grafana.png)
  
  
 ### STEP 7: Analyze NGINX logs in Azure Log Analytics workspaces
 
-To effectively check the NGINX and security logs, start by navigating to the Azure portal and selecting your NGINXaaS deployment. From there, head to the monitoring tab and choose the logs option. 
+To effectively check the NGINX and security logs, start by navigating to the Azure portal and selecting your NGINXaaS deployment. From there, head to the monitoring tab and choose the logs option.
+
+ ![logging](assets/log1.png)
 
 Here, you can utilize KQL queries to analyze and review the logs. This will help you gain valuable insights into your deployment’s performance and security.
 
+ ![logging](assets/log2.png)
+ 
 
-  ![destroy](assets/destroy.png)
-  
 You can find a sample KQL query on the NGINXaaS documentation page [documentation](https://docs.nginx.com/nginxaas/azure/app-protect/enable-logging//).
 
 ### STEP 8: Destroy Workflow  
