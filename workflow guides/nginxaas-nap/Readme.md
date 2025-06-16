@@ -30,7 +30,7 @@
 This demo guide serves as a valuable resource, offering a detailed step-by-step process for setting up a Terraform deployment that creates an F5 NGINX as a Service (NGINXaaS) on Azure with NGINX App Protect. The NGINXaaS will provide advanced load balancing for demo applications that operate across two virtual machines. Furthermore, this guide will help you deploy Azure Grafana to effectively visualize the metrics of NGINX and the virtual machines, allowing you to assess system performance and optimize your deployment.
 
 ## Architecture Diagram
-![System Architecture](assets/AWS.jpeg)
+![System Architecture](assets/NGINXaaS(2).svg)
 
 
 ## Prerequisites
