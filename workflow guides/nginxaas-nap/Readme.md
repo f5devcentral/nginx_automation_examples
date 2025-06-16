@@ -139,11 +139,15 @@ Users can now access the application through the NGINXaaS endpoint IP, which enh
 
 * Access the application:
 
-  ![arcadia](assets/arcadia.png)
+  ![coffee](assets/validateapplciation.png)
+
+
+  ![tea](assets/tea.png)
+  
 
 * Verify that the cross-site scripting is detected and blocked by NGINX App Protect.  
 
-  ![block](assets/mitigation.png)
+  ![block](assets/block.png)
 
 
 
