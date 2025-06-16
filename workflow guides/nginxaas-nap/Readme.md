@@ -75,8 +75,7 @@ This workflow requires the following secrets and variables to be configured in y
 | `AZURE_REGION`         | Variable | Azure region name in which you would like to deploy your resources                                                   |                                            |    
 | `TF_VAR_ssh_public_key` | Secret  |  Public key of your laptop to SSH into the VM
 | `PROJECT_PREFIX` | Variable | Your project identifier name in lowercase letters only - this will be applied as a prefix to all assets  | 
-| `ADMIN_IP`       | Secret | Your local machine ip                                                    | 
-| `AZURE_REGION`   | Variable  | Azure region                           |                                                                                   | 
+| `ADMIN_IP`       | Secret | Your local machine ip                                                    |                                                                                | 
 
 ### Github Secrets
  ![secrets](assets/secrets.png)
