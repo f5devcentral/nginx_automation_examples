@@ -71,7 +71,7 @@ First of all, fork and clone the repo. Next, create the following GitHub Actions
 6. Paste the variable value
 7. Click **Add variable**
 
-This workflow requires the following secrets and variable to be configured in your GitHub repository:
+This workflow requires the following secrets and variables to be configured in your GitHub repository:
 
 ### Required Secrets and Variables
 
@@ -80,10 +80,9 @@ This workflow requires the following secrets and variable to be configured in yo
 |`AZURE_CREDENTIALS`    | Secret   | Azure credentials in json format {"clientId":"yout client ID","clientSecret":"your client secret","subscriptionId":"your subscription ID","tenantId":"your tenant ID"} |      
 | `AZURE_REGION`         | Variable | Azure region name in which you would like to deploy your resources                                                   |                                            |    
 | `TF_VAR_ssh_public_key` | Secret  |  Public key of your laptop to ssh into VM
-| `TF_VAR_PROJECT_PREFIX` | Variable | Your project identifier name in lowercase letters only - this will be applied as a prefix to all assets  | 
-| `TF_VAR_admin_ip`       | Variable | Your local machine ip                                                    | 
-| `TF_VAR_azure_region`   | Variable  | Azure region                           |
-| `TF_VAR_RESOURCE_OWNER` | Variable | Resource owner name                                                                                     | 
+| `PROJECT_PREFIX` | Variable | Your project identifier name in lowercase letters only - this will be applied as a prefix to all assets  | 
+| `ADMIN_IP`       | Secret | Your local machine ip                                                    | 
+| `AZURE_REGION`   | Variable  | Azure region                           |                                                                                   | 
 
 ### Github Secrets
  ![secrets](assets/secrets.png)
@@ -103,33 +102,16 @@ git checkout -b apply-nic-napv5
 ```
   | Workflow        | Branch Name     |
   |-----------------|-----------------|
-  | apply-nic-napv5 | apply-nic-napv5 |
+  | nginxaas-apply | nginxaas-apply |
 
 **DESTROY**
 
   | Workflow          | Branch Name       |
   |-------------------|-------------------|
-  | destroy-nic-napv5 | destroy-nic-napv5 |
+  | destroy-nginxaas | destroy-nginxaas |
+
 ### STEP 2: Policy 
 
-The repository includes a default policy file named `policy.json`, which can be found in the `AWS/policy` directory.
-
-```hcl
-{
-    "policy": {
-        "name": "policy_name",
-        "template": { "name": "POLICY_TEMPLATE_NGINX_BASE" },
-        "applicationLanguage": "utf-8",
-        "enforcementMode": "blocking"
-    }
-}
-```
- 
-Users have the option to utilize the existing policy or, if preferred, create a custom policy. To do this, place the custom policy in the designated policy folder and name it `policy.json` or any name you choose. If you decide to use a different name, update the corresponding name in the [`apply-nic-napv5.yml`](https://github.com/f5devcentral/nginx_automation_examples/blob/main/.github/workflows/apply-nic-napv5.yml) and  [`destroy-nic-napv5.yml`](https://github.com/f5devcentral/nginx_automation_examples/blob/main/.github/workflows/destroy-nic-napv5.yml) workflow files accordingly.
-
-  In the workflow files, locate the terraform_policy job and rename `policy.json` to your preferred name if you've decided to change it.
-  
-   ![policy](assets/policy.png)
 
 
 ### STEP 3: Deploy Workflow
@@ -142,7 +124,7 @@ git push origin apply-nic-napv5
 
 ### STEP 4: Monitor the workflow
 
-Back in GitHub, navigate to the Actions tab of your forked repo and monitor your build. Once the pipeline completes, verify your assets were deployed in GCP
+Back in GitHub, navigate to the Actions tab of your forked repo and monitor your build. Once the pipeline completes, verify your assets were deployed in GCP.
 
   ![deploy](assets/deploy.png)
 
