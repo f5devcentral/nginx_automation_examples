@@ -193,7 +193,7 @@ Within the repository, you'll find a `dashboard.json` file. To use it, update th
     }
   ]
 }
-```json
+```
 
 
 After you’ve made those updates to the dashboard.json file, import it into Grafana to start visualizing the metrics for NGINXaaS and your virtual machines.
