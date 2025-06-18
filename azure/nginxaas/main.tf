@@ -24,13 +24,27 @@ resource "null_resource" "validate_admin_ip" {
 }
 
 
-data "azurerm_resource_provider" "nginx" {
-  name = "NGINX.NGINXPLUS"
+# Step 1: Check if the NGINX provider is already registered using Azure CLI
+data "external" "nginx_provider_check" {
+  program = [
+    "bash", "-c",
+    <<-EOT
+      PROVIDER_STATUS=$(az provider show --namespace NGINX.NGINXPLUS --query "registrationState" -o tsv)
+      # Output in proper JSON format for Terraform
+      if [ "$PROVIDER_STATUS" == "Registered" ]; then
+        echo '{"is_registered": "true"}'
+      else
+        echo '{"is_registered": "false"}'
+      fi
+    EOT
+  ]
 }
 
+# Step 2: Conditionally apply the registration resource based on the check
 resource "azurerm_resource_provider_registration" "nginx" {
-  count = data.azurerm_resource_provider.nginx.registration_state == "Registered" ? 0 : 1
-  name  = "NGINX.NGINXPLUS"
+  count = data.external.nginx_provider_check.result["is_registered"] == "false" ? 1 : 0
+
+  name = "NGINX.NGINXPLUS"
 }
 
 resource "time_sleep" "wait_1_minutes" {
