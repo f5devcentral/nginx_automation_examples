@@ -115,7 +115,7 @@ git checkout -b nginxaas-apply
   | destroy-nginxaas | destroy-nginxaas |
 
 
-### STEP 3: Deploy Workflow
+### STEP 2: Deploy Workflow
  
 Commit the changes and push your apply branch to the forked repo
 ```sh
@@ -123,14 +123,14 @@ git commit --allow-empty -m "NGINXaaS Deploy"
 git push origin nginxaas-apply
 ```
 
-### STEP 4: Monitor the workflow
+### STEP 3: Monitor the workflow
 
 Back in GitHub, navigate to the Actions tab of your forked repo and monitor your build. Once the pipeline is complete, verify that your assets were deployed in Azure.
 
   ![deploy](assets/deploy.png)
 
 
-### STEP 5: Validation  
+### STEP 4: Validation  
 
 Users can now access the application through the NGINXaaS endpoint IP, which enhances security for the upstream application by implementing the configured Web Application Firewall (WAF) policies. This setup not only improves accessibility but also ensures that the application is protected from various web threats.
 
@@ -151,7 +151,7 @@ When you refresh the page, you should be able to see the tea and coffee applicat
 
   ![block](assets/block.png)
 
-### STEP 6: Visualize the metrics in Azure Grafana  
+### STEP 5: Visualize the metrics in Azure Grafana  
 
 To visualize NGINX and virtual machine metrics effectively, you can leverage Grafana, a robust analytics and monitoring platform. With Grafana, you can create customizable dashboards that offer an intuitive interface for tracking various performance metrics. This makes it easier to gain insights and optimize your systems effectively.
 
@@ -205,7 +205,7 @@ After you’ve made those updates to the dashboard.json file, import it into Gra
  ![grafana](assets/grafana.png)
  
  
-### STEP 7: Analyze NGINX logs in Azure Log Analytics workspaces
+### STEP 6: Analyze NGINX logs in Azure Log Analytics workspaces
 
 To effectively check the NGINX and security logs, start by navigating to the Azure portal and selecting your NGINXaaS deployment. From there, head to the monitoring tab and choose the logs option.
 
@@ -218,7 +218,7 @@ Here, you can utilize KQL queries to analyze and review the logs. This will help
 
 You can find a sample KQL query on the NGINXaaS documentation page [documentation](https://docs.nginx.com/nginxaas/azure/app-protect/enable-logging//).
 
-### STEP 8: Destroy Workflow  
+### STEP 7: Destroy Workflow  
 
 If you want to destroy the entire setup, checkout a branch with name **`destroy-nginxaas`** and push your destroy branch to the forked repo.
 ```sh
