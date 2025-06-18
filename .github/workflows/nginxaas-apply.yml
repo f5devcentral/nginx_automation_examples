@@ -4,6 +4,14 @@ on:
   push:
     branches: [nginxaas-apply]
   workflow_dispatch:
+env:
+  TF_VAR_grafana_admin_object_ids: ${{ secrets.grafana_admin_object_ids }}
+  TF_VAR_subscription_id: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
+  TF_VAR_admin_ip: ${{ secrets.ADMIN_IP }}
+  TF_VAR_project_prefix: ${{ vars.project_prefix }}
+  TF_VAR_resource_group_name: ${{ vars.resource_group_name }}
+  TF_VAR_azure_region: ${{ vars.azure_region }}
+  TF_VAR_ssh_public_key: ${{ secrets.ssh_public_key }}
 
 jobs:
   terraform:
@@ -35,14 +43,6 @@ jobs:
 
       - name: Terraform Plan
         run: terraform plan -input=false -out=tfplan
-        env:
-          TF_VAR_grafana_admin_object_ids: ${{ secrets.grafana_admin_object_ids }}
-          TF_VAR_subscription_id: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
-          TF_VAR_admin_ip: ${{ secrets.ADMIN_IP }}
-          TF_VAR_project_prefix: ${{ vars.project_prefix }}
-          TF_VAR_resource_group_name: ${{ vars.resource_group_name }}
-          TF_VAR_azure_region: ${{ vars.azure_region }}
-          TF_VAR_ssh_public_key: ${{ secrets.ssh_public_key }}
 
       - name: Check for Changes
         id: check_changes
@@ -59,11 +59,3 @@ jobs:
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/nginxaas-apply' && steps.check_changes.outputs.has_changes == 'true'
         run: terraform apply -input=false -auto-approve tfplan
-        env:
-          TF_VAR_grafana_admin_object_ids: ${{ secrets.grafana_admin_object_ids }}
-          TF_VAR_subscription_id: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
-          TF_VAR_resource_group_name: ${{ vars.resource_group_name }}
-          TF_VAR_admin_ip: ${{ secrets.ADMIN_IP }}
-          TF_VAR_project_prefix: ${{ vars.project_prefix }}
-          TF_VAR_azure_region: ${{ vars.azure_region }}
-          TF_VAR_ssh_public_key: ${{ secrets.ssh_public_key }}
