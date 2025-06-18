@@ -13,7 +13,7 @@
     - [Required Secrets and Variables](#required-secrets-and-variables)
   - [Workflow Runs](#workflow-runs)
     - [STEP 1: Workflow Branches](#step-1-workflow-branches)
-    - [STEP 2: How to find your Object ID ](#step-2-How to find your Object ID )     
+    - [STEP 2: How to find your Object ID ](#step-2-How-to-find-your-Object-ID)     
     - [STEP 3: Deploy Workflow](#step-3-deploy-workflow)
     - [STEP 4: Monitor the Workflow](#step-4-Monitor-the-workflow)
     - [STEP 5: Validation](#step-5-validation)
