@@ -6,7 +6,6 @@
   - [Introduction](#introduction)
   - [Architecture Diagram](#architecture-diagram)
   - [Prerequisites](#prerequisites)
-  - [Assets](#assets)
   - [Tools](#tools)
   - [GitHub Configurations](#github-configurations)
     - [How to Add Secrets](#how-to-add-secrets)
@@ -14,7 +13,7 @@
     - [Required Secrets and Variables](#required-secrets-and-variables)
   - [Workflow Runs](#workflow-runs)
     - [STEP 1: Workflow Branches](#step-1-workflow-branches)
-    - [STEP 2: Edit and modify the terraform.tfvars.example ](#step-2-Edit-and-modify-the-terraformtfvarsexample )     
+    - [STEP 2: How to find your Object ID ](#step-2-How-to-find-your-Object-ID)     
     - [STEP 3: Deploy Workflow](#step-3-deploy-workflow)
     - [STEP 4: Monitor the Workflow](#step-4-Monitor-the-workflow)
     - [STEP 5: Validation](#step-5-validation)
@@ -69,13 +68,14 @@ This workflow requires the following secrets and variables to be configured in y
 
 ### Required Secrets and Variables
 
-| Secret Name            | Type    | Description                                                                                             
-|------------------------|---------|---------------------------------------------------------------------------------------------------------|
+| Secret Name            | Type    | Description                                                                                                                                                            
+|------------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |`AZURE_CREDENTIALS`    | Secret   | Azure credentials in JSON format {"clientId":"yout client ID","clientSecret":"your client secret","subscriptionId":"your subscription ID","tenantId":"your tenant ID"} |      
-| `AZURE_REGION`         | Variable | Azure region name in which you would like to deploy your resources                                                   |                                            |    
-| `TF_VAR_ssh_public_key` | Secret  |  Public key of your laptop to SSH into the VM
-| `PROJECT_PREFIX` | Variable | Your project identifier name in lowercase letters only - this will be applied as a prefix to all assets  | 
-| `ADMIN_IP`       | Secret | Your local machine ip                                                    |                                                                                | 
+| `AZURE_REGION`         | Variable | Azure region name in which you would like to deploy your resources                                                                                                     |                                            |    
+| `TF_VAR_ssh_public_key` | Secret  | Public key of your machine to SSH into the VM(ssh-keygen can be used to generate)                                                                                                                         
+| `PROJECT_PREFIX` | Variable | Your project identifier name in lowercase letters only - this will be applied as a prefix to all assets                                                                | 
+| `ADMIN_IP`       | Secret | Public IP of your local machine(curl ifconfig.me)                                                                                                                      |                                                                                | 
+| `GRAFANA_ADMIN_OBJECT_IDS`       | Secret | Azure User Object ID in format ["your user objectid"]                                                                                                                                        |  
 
 ### Github Secrets
  ![secrets](assets/secrets.png)
@@ -106,21 +106,12 @@ git checkout -b nginxaas-apply
 
 
 
-### STEP 2: Edit and modify the terraform.tfvars.example 
-
-1. Open the `terraform.tfvars.example` file.
-2. Replace the value of `grafana_admin_object_ids` with **your own Azure Object ID**.
-
-3. How to find your Object ID:
+### STEP 2: How to find your Object ID
 
 - Go to the [Azure Portal](https://portal.azure.com)
-- Navigate to: **Azure Active Directory** → **Users**
-- Click on your user account
-- Copy the **"Object ID"**
-
-   ![terraformvar](assets/terraform.png)
-
-4. Then save the file and name it `terraform.tfvars`.
+- Search for **Users** in top search bar and Select **Users**
+- Click on your user account under **All Users**
+- Copy the **Object ID** and store it in GitHub secrets for **GRAFANA_ADMIN_OBJECT_IDS** in format ["your user objectid"]
 
 ### STEP 3: Deploy Workflow
  
@@ -141,7 +132,7 @@ Back in GitHub, navigate to the Actions tab of your forked repo and monitor your
 
 Users can now access the application through the NGINXaaS endpoint IP, which enhances security for the upstream application by implementing the configured Web Application Firewall (WAF) policies. This setup not only improves accessibility but also ensures that the application is protected from various web threats.
 
-  ![IP](assets/ext_ip.png)
+  ![IP](assets/IP.png)
 
 
 * Access the application:
@@ -230,7 +221,7 @@ You can find a sample KQL query on the NGINXaaS documentation page [documentatio
 If you want to destroy the entire setup, checkout a branch with name **`destroy-nginxaas`** and push your destroy branch to the forked repo.
 ```sh
 git checkout -b destroy-nginxaas
-git commit -- allow-empty -m "NGINXaaS Destroy"
+git commit --allow-empty -m "NGINXaaS Destroy"
 git push origin destroy-nginxaas
 ```
 

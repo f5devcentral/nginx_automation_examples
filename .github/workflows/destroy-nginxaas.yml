@@ -5,6 +5,15 @@ on:
     branches:
       - destroy-nginxaas
 
+env:
+  TF_VAR_grafana_admin_object_ids: ${{ secrets.grafana_admin_object_ids }}
+  TF_VAR_subscription_id: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
+  TF_VAR_admin_ip: ${{ secrets.ADMIN_IP }}
+  TF_VAR_project_prefix: ${{ vars.project_prefix }}
+  TF_VAR_azure_region: ${{ vars.azure_region }}
+  TF_VAR_ssh_public_key: ${{ secrets.ssh_public_key }}
+  TF_VAR_resource_group_name: ${{ vars.project_prefix }}-rg
+
 jobs:
   terraform-destroy:
     name: 'Destroy NGINXaaS WAF Resources'
@@ -41,30 +50,18 @@ jobs:
           else
             echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
-        env:
-          TF_VAR_subscription_id: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
-          TF_VAR_admin_ip: ${{ secrets.ADMIN_IP }}
-          TF_VAR_project_prefix: ${{ vars.project_prefix }}
-          TF_VAR_azure_region: ${{ vars.azure_region }}
-          TF_VAR_ssh_public_key: ${{ secrets.ssh_public_key }}
 
       - name: Terraform Apply Destroy
         if: steps.plan_destroy.outputs.has_changes == 'true'
         run: terraform apply -destroy -auto-approve tfplan
-        env:
-          TF_VAR_subscription_id: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
-          TF_VAR_admin_ip: ${{ secrets.ADMIN_IP }}
-          TF_VAR_project_prefix: ${{ vars.project_prefix }}
-          TF_VAR_azure_region: ${{ vars.azure_region }}
-          TF_VAR_ssh_public_key: ${{ secrets.ssh_public_key }}
-
 
       - name: Cleanup Diagnostic Settings and Grafana
         run: |
           RG_NAME="${{ vars.project_prefix }}-rg"
+          NAAS_NAME="${{ vars.project_prefix }}-nginxaas"
           SUBSCRIPTION_ID="${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}"
 
-          NGINX_RESOURCE_ID="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_NAME/providers/Nginx.NginxPlus/nginxDeployments/akash-deploy"
+          NGINX_RESOURCE_ID="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_NAME/providers/Nginx.NginxPlus/nginxDeployments/$NAAS_NAME"
           GRAFANA_RESOURCE_ID=$(az grafana list --resource-group $RG_NAME --query "[0].id" -o tsv || echo "")
 
           echo "🔍 Deleting NGINX Diagnostic Settings..."
