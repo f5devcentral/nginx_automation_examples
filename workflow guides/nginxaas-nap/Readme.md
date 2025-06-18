@@ -111,8 +111,7 @@ git checkout -b nginxaas-apply
 - Go to the [Azure Portal](https://portal.azure.com)
 - Search for **Users** in top search bar and Select
 - Click on your user account under **All Users**
-- Copy the **"Object ID"** and store it in GitHub secrets in below format
-["<your user objectid>"]
+- Copy the **Object ID** and store it in GitHub secrets for **GRAFANA_ADMIN_OBJECT_IDS** in format ["your user objectid"]
 
 ### STEP 3: Deploy Workflow
  
