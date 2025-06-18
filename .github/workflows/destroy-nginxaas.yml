@@ -55,14 +55,13 @@ jobs:
         if: steps.plan_destroy.outputs.has_changes == 'true'
         run: terraform apply -destroy -auto-approve tfplan
 
-      - name: Cleanup Diagnostic Settings and Grafana
+      - name: Cleanup Diagnostic Settings 
         run: |
           RG_NAME="${{ vars.project_prefix }}-rg"
           NAAS_NAME="${{ vars.project_prefix }}-nginxaas"
           SUBSCRIPTION_ID="${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}"
 
           NGINX_RESOURCE_ID="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_NAME/providers/Nginx.NginxPlus/nginxDeployments/$NAAS_NAME"
-          GRAFANA_RESOURCE_ID=$(az grafana list --resource-group $RG_NAME --query "[0].id" -o tsv || echo "")
 
           echo "🔍 Deleting NGINX Diagnostic Settings..."
           DIAG_SETTINGS=$(az monitor diagnostic-settings list --resource $NGINX_RESOURCE_ID --query "[].name" -o tsv 2>/dev/null || echo "")
@@ -73,13 +72,6 @@ jobs:
               echo "Deleting diagnostic setting $setting..."
               az monitor diagnostic-settings delete --name "$setting" --resource $NGINX_RESOURCE_ID || echo "Failed to delete diagnostic setting $setting, continuing..."
             done
-          fi
-
-          if [ -n "$GRAFANA_RESOURCE_ID" ]; then
-            echo "🔍 Deleting Grafana resource $GRAFANA_RESOURCE_ID..."
-            az resource delete --ids $GRAFANA_RESOURCE_ID || echo "Failed to delete Grafana resource, continuing..."
-          else
-            echo "No Grafana resource found to delete."
           fi
 
       - name: Delete Resource Group with Existence Check
