@@ -23,8 +23,14 @@ resource "null_resource" "validate_admin_ip" {
   }
 }
 
-resource "azurerm_resource_provider_registration" "nginx" {
+
+data "azurerm_resource_provider" "nginx" {
   name = "NGINX.NGINXPLUS"
+}
+
+resource "azurerm_resource_provider_registration" "nginx" {
+  count = data.azurerm_resource_provider.nginx.registration_state == "Registered" ? 0 : 1
+  name  = "NGINX.NGINXPLUS"
 }
 
 resource "time_sleep" "wait_1_minutes" {
