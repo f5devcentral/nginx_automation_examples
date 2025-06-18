@@ -109,7 +109,7 @@ git checkout -b nginxaas-apply
 ### STEP 2: How to find your Object ID
 
 - Go to the [Azure Portal](https://portal.azure.com)
-- Search for **Users** in top search bar and Select
+- Search for **Users** in top search bar and Select **Users**
 - Click on your user account under **All Users**
 - Copy the **Object ID** and store it in GitHub secrets for **GRAFANA_ADMIN_OBJECT_IDS** in format ["your user objectid"]
 
