@@ -109,11 +109,10 @@ git checkout -b nginxaas-apply
 ### STEP 2: How to find your Object ID
 
 - Go to the [Azure Portal](https://portal.azure.com)
-- Navigate to: **Azure Active Directory** → **Users**
-- Click on your user account
-- Copy the **"Object ID"**
-
-   ![terraformvar](assets/terraform.png)
+- Search for **Users** in top search bar and Select
+- Click on your user account under **All Users**
+- Copy the **"Object ID"** and store it in GitHub secrets in below format
+["<your user objectid>"]
 
 ### STEP 3: Deploy Workflow
  
