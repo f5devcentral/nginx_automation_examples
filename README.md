@@ -17,12 +17,14 @@ This repository serves as a comprehensive hub that consolidates a variety of aut
    [Deploy NGINX Ingress Controller with App Protect V5 in Azure ](https://community.f5.com/kb/technicalarticles/f5-nginx-automation-examples-part-1-deploy-f5-nginx-ingress-controller-with-app-/340500)                                                                                                                                             | [Deploy NGINX Ingress Controller with App ProtectV5 in Azure](https://github.com/f5devcentral/nginx_automation_examples/tree/main/workflow%20guides/azure-nginx-nic-napv5)
 
 
-   ### **NGINX as a Service for Azure **
+
+### **NGINX as a Service for Azure**
 
   | **DevCentral Overview Articles**                                                                                                                          | **Use Case / Workflow Guides (SaaS Console, Automation)**                                                                                                                                                |
   | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-          |[Deploying F5 NGINXaaS on Azure with App Protect and Grafana Integration](Article coming soon) |       [Deploying F5 NGINXaaS on Azure with App Protect and Grafana Integration](https://github.com/akananth/nginx_automation_examples/tree/main/workflow%20guides/nginxaas-nap))                 
-      
+  |[Deploying F5 NGINXaaS on Azure with App Protect and Grafana Integration](Devcentral artricle Coming soon) | [Deploying F5 NGINXaaS on Azure with App Protect and Grafana Integration](https://github.com/akananth/nginx_automation_examples/tree/main/workflow%20guides/nginxaas-nap)   
+
+
 ## Getting Started
 
 * [AWS Account](https://aws.amazon.com) - Due to the assets being created, free tier will not work.
