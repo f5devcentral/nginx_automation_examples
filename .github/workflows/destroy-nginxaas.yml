@@ -6,6 +6,7 @@ on:
       - destroy-nginxaas
 
 env:
+  TF_VAR_grafana_admin_object_ids: ${{ secrets.grafana_admin_object_ids }}
   TF_VAR_subscription_id: ${{ fromJson(secrets.AZURE_CREDENTIALS).subscriptionId }}
   TF_VAR_admin_ip: ${{ secrets.ADMIN_IP }}
   TF_VAR_project_prefix: ${{ vars.project_prefix }}
