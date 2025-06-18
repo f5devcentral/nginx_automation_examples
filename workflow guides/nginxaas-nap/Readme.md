@@ -75,7 +75,7 @@ This workflow requires the following secrets and variables to be configured in y
 | `ssh_public_key`       | Secret  | Public key of your machine to SSH into the VM(ssh-keygen can be used to generate)                                                                                                                         
 | `PROJECT_PREFIX`      | Variable | Your project identifier name in lowercase letters only - this will be applied as a prefix to all assets                                                                | 
 | `ADMIN_IP`             | Secret | Public IP of your local machine(curl ifconfig.me)                                                                                                                      |                                                               
-| `GRAFANA_ADMIN_OBJECT_IDS`       | Secret | Azure User Object ID in format ["your user objectid"]      |      
+| `GRAFANA_ADMIN_OBJECT_IDS`       | Secret | Azure User Object ID in format ["paste your user objectid"] example ["12345678"]    |      
 
 
   
