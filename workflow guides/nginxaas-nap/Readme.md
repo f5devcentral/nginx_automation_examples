@@ -10,16 +10,16 @@
   - [GitHub Configurations](#github-configurations)
     - [How to Add Secrets](#how-to-add-secrets)
     - [How to Add Variables](#how-to-add-variables)
+      - [How to find User Object ID](#How-to-find-User-Object-ID)    
     - [Required Secrets and Variables](#required-secrets-and-variables)
   - [Workflow Runs](#workflow-runs)
     - [STEP 1: Workflow Branches](#step-1-workflow-branches)
-    - [STEP 2: How to find your Object ID ](#step-2-How-to-find-your-Object-ID)     
-    - [STEP 3: Deploy Workflow](#step-3-deploy-workflow)
-    - [STEP 4: Monitor the Workflow](#step-4-Monitor-the-workflow)
-    - [STEP 5: Validation](#step-5-validation)
-    - [STEP 6: Visualize the metrics in Azure Grafana](#step-6-Visualize-the-metrics-in-Azure-Grafana)
-    - [STEP 7: Analyze NGINX logs in Azure Log Analytics workspaces](#step-7-Analyze-NGINX-logs-in-Azure-Log-Analytics-workspaces)             
-    - [STEP 8: Destroy Workflow](#step-8-Destroy-workflow)
+    - [STEP 2: Deploy Workflow](#step-2-deploy-workflow)
+    - [STEP 3: Monitor the Workflow](#step-3-Monitor-the-workflow)
+    - [STEP 4: Validation](#step-4-validation)
+    - [STEP 5: Visualize the metrics in Azure Grafana](#step-5-Visualize-the-metrics-in-Azure-Grafana)
+    - [STEP 6: Analyze NGINX logs in Azure Log Analytics workspaces](#step-6-Analyze-NGINX-logs-in-Azure-Log-Analytics-workspaces)             
+    - [STEP 7: Destroy Workflow](#step-7-Destroy-workflow)
   - [Conclusion](#conclusion)
   - [Support](#support)
   - [Copyright](#copyright)
@@ -72,10 +72,20 @@ This workflow requires the following secrets and variables to be configured in y
 |------------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |`AZURE_CREDENTIALS`    | Secret   | Azure credentials in JSON format {"clientId":"yout client ID","clientSecret":"your client secret","subscriptionId":"your subscription ID","tenantId":"your tenant ID"} |      
 | `AZURE_REGION`         | Variable | Azure region name in which you would like to deploy your resources                                                                                                     |                                            |    
-| `TF_VAR_ssh_public_key` | Secret  | Public key of your machine to SSH into the VM(ssh-keygen can be used to generate)                                                                                                                         
-| `PROJECT_PREFIX` | Variable | Your project identifier name in lowercase letters only - this will be applied as a prefix to all assets                                                                | 
-| `ADMIN_IP`       | Secret | Public IP of your local machine(curl ifconfig.me)                                                                                                                      |                                                                                | 
-| `GRAFANA_ADMIN_OBJECT_IDS`       | Secret | Azure User Object ID in format ["your user objectid"]                                                                                                                                        |  
+| `ssh_public_key`       | Secret  | Public key of your machine to SSH into the VM(ssh-keygen can be used to generate)                                                                                                                         
+| `PROJECT_PREFIX`      | Variable | Your project identifier name in lowercase letters only - this will be applied as a prefix to all assets                                                                | 
+| `ADMIN_IP`             | Secret | Public IP of your local machine(curl ifconfig.me)                                                                                                                      |                                                               
+| `GRAFANA_ADMIN_OBJECT_IDS`       | Secret | Azure User Object ID in format ["your user objectid"]      |      
+
+
+  
+  ### How to find User Object ID
+
+  - Go to the [Azure Portal](https://portal.azure.com)
+  - Search for **Users** in top search bar and Select **Users**
+  - Click on your user account under **All Users**
+  - Copy the **Object ID** and store it in GitHub secrets for **GRAFANA_ADMIN_OBJECT_IDS** in format ["your user objectid"]
+  
 
 ### Github Secrets
  ![secrets](assets/secrets.png)
@@ -104,14 +114,6 @@ git checkout -b nginxaas-apply
   |-------------------|-------------------|
   | destroy-nginxaas | destroy-nginxaas |
 
-
-
-### STEP 2: How to find your Object ID
-
-- Go to the [Azure Portal](https://portal.azure.com)
-- Search for **Users** in top search bar and Select **Users**
-- Click on your user account under **All Users**
-- Copy the **Object ID** and store it in GitHub secrets for **GRAFANA_ADMIN_OBJECT_IDS** in format ["your user objectid"]
 
 ### STEP 3: Deploy Workflow
  
