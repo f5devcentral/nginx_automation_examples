@@ -134,7 +134,7 @@ Back in GitHub, navigate to the Actions tab of your forked repo and monitor your
 
 Users can now access the application through the NGINXaaS endpoint IP, which enhances security for the upstream application by implementing the configured Web Application Firewall (WAF) policies. This setup not only improves accessibility but also ensures that the application is protected from various web threats.
 
-  ![IP](assets/ext_ip.png)
+  ![IP](assets/IP.png)
 
 
 * Access the application:
