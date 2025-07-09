@@ -1,5 +1,5 @@
 
-# Deploying F5 NGINXaaS on Azure with App Protect and Grafana Integration
+# Deploying F5 NGINXaaS on Azure with App Protect and Azure Grafana Integration
 ==================================================================================================
 
 ## Table of Contents
