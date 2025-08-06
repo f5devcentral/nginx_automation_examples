@@ -22,7 +22,7 @@ This repository serves as a comprehensive hub that consolidates a variety of aut
 
   | **DevCentral Overview Articles**                                                                                                                          | **Use Case / Workflow Guides (SaaS Console, Automation)**                                                                                                                                                |
   | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  |[Deploying F5 NGINXaaS on Azure with App Protect and Grafana Integration]([Devcentral artricle Coming soon](https://community.f5.com/kb/technicalarticles/f5-nginx-automation-examples-part-2-deploying-nginxaas-with-app-protect-and-graf/342561)) | [Deploying F5 NGINXaaS on Azure with App Protect and Grafana Integration](https://github.com/akananth/nginx_automation_examples/tree/main/workflow%20guides/nginxaas-nap)   
+  |[Deploying F5 NGINXaaS on Azure with App Protect and Grafana Integration](https://community.f5.com/kb/technicalarticles/f5-nginx-automation-examples-part-2-deploying-nginxaas-with-app-protect-and-graf/342561) | [Deploying F5 NGINXaaS on Azure with App Protect and Grafana Integration](https://github.com/akananth/nginx_automation_examples/tree/main/workflow%20guides/nginxaas-nap)   
 
 
 ## Getting Started
