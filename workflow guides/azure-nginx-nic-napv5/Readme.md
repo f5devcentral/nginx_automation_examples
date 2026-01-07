@@ -1,4 +1,4 @@
-Deploy NGINX Ingress Controller with App ProtectV5 in Azure
+Deploy the F5 NGINX Ingress Controller with WAF for NGINX on Azure
 ==================================================================================================
 
 ## Table of Contents
@@ -17,7 +17,7 @@ Deploy NGINX Ingress Controller with App ProtectV5 in Azure
     - [F5 Networks Contributor License Agreement](#f5-networks-contributor-license-agreement)
 
 ## Introduction
-This demo guide provides a comprehensive, step-by-step walkthrough for configuring the NGINX Ingress Controller alongside NGINX App Protect v5 on the Azure Cloud platform. It utilizes Terraform scripts to automate the deployment process, making it more efficient and streamlined. For further details, please refer the official [documentation](https://docs.nginx.com/nginx-ingress-controller/installation/integrations/). Also, you can find more insights in the DevCentral article [F5 NGINX Automation Examples [Part 1-Deploy F5 NGINX Ingress Controller with App ProtectV5]](https://community.f5.com/kb/technicalarticles/f5-nginx-automation-examples-part-1-deploy-f5-nginx-ingress-controller-with-app-/340500).
+This demo guide provides a comprehensive, step-by-step walkthrough for configuring the F5 NGINX Ingress Controller alongside WAF for NGINX on the Azure Cloud platform. It utilizes Terraform scripts to automate the deployment process, making it more efficient and streamlined. For further details, please refer the official [documentation](https://docs.nginx.com/nginx-ingress-controller/installation/integrations/). Also, you can find more insights in the DevCentral article [F5 NGINX Automation Examples [Part 1-Deploy F5 NGINX Ingress Controller with WAF for NGINX]](https://community.f5.com/kb/technicalarticles/f5-nginx-automation-examples-part-1-deploy-f5-nginx-ingress-controller-with-app-/340500).
 
 ## Architecture Diagram
 ![System Architecture](assets/Azure.png)
@@ -31,7 +31,7 @@ This demo guide provides a comprehensive, step-by-step walkthrough for configuri
 * **Blob:**      Azure Blob storage and container within a resource group
 * **Infra:**     Azure Infrastructure (Vnet, Subnets)
 * **AKS:**       Azure Kubernetes Service
-* **NIC/NAP:**   NGINX Ingress Controller for Kubernetes with NGINX App Protect (WAF and API Protection)
+* **NIC/NAP:**   NGINX Ingress Controller for Kubernetes with F5 WAF for NGINX (WAF and API Protection)
 * **Policy:**    NGINX WAF Compiler Docker and Policy
 * **Arcadia:**   Arcadia Finance test web application and API
 
@@ -152,7 +152,7 @@ Users can now access the application through the NGINX Ingress Controller Load B
 
   ![arcadia](assets/arcadia.jpg)
 
-* Verify that the cross-site scripting is detected and blocked by NGINX App Protect.  
+* Verify that the cross-site scripting is detected and blocked by F5 WAF for NGINX.  
 
   ![block](assets/mitigation.jpg)
   
