@@ -1,4 +1,4 @@
-# Deploy NGINX Ingress Controller with App ProtectV5 in AWS Cloud
+# DDeploy the F5 NGINX Ingress Controller with WAF for NGINX on AWS Cloud
 ==================================================================================================
 
 ## Table of Contents
@@ -24,18 +24,18 @@
     - [F5 Networks Contributor License Agreement](#f5-networks-contributor-license-agreement)
 
 ## Introduction
-This demo guide provides a comprehensive, step-by-step walkthrough for configuring the NGINX Ingress Controller alongside NGINX App Protect v5 on the AWS Cloud platform. It utilizes Terraform scripts to automate the deployment process, making it more efficient and streamlined. For further details, please consult the official [documentation](https://docs.nginx.com/nginx-ingress-controller/installation/integrations/). Also, you can find more insights in the DevCentral article [F5 NGINX Automation Examples [Part 1-Deploy F5 NGINX Ingress Controller with App ProtectV5]](https://community.f5.com/kb/technicalarticles/f5-nginx-automation-examples-part-1-deploy-f5-nginx-ingress-controller-with-app-/340500).
+This demo guide provides a comprehensive, step-by-step walkthrough for configuring the NGINX Ingress Controller alongside F5 WAF for NGINX on the AWS Cloud platform. It utilizes Terraform scripts to automate the deployment process, making it more efficient and streamlined. For further details, please consult the official [documentation](https://docs.nginx.com/nginx-ingress-controller/installation/integrations/). Also, you can find more insights in the DevCentral article [F5 NGINX Automation Examples [Part 1-Deploy F5 NGINX Ingress Controller with F5 WAF for NGINX]](https://community.f5.com/kb/technicalarticles/f5-nginx-automation-examples-part-1-deploy-f5-nginx-ingress-controller-with-app-/340500).
 
 ## Architecture Diagram
 ![System Architecture](assets/AWS.jpeg)
 
 ## Prerequisites
-* [NGINX Plus with App Protect and NGINX Ingress Controller license](https://www.nginx.com/free-trial-request/)
+* [NGINX Plus with F5 WAF for NGINX and NGINX Ingress Controller license](https://www.nginx.com/free-trial-request/)
 * [AWS Account](https://aws.amazon.com) - Due to the assets being created, the free tier will not work.
 * [GitHub Account](https://github.com)
 
 ## Assets
-* **nap:**       NGINX Ingress Controller for Kubernetes with NGINX App Protect (WAF and API Protection)
+* **nap:**       NGINX Ingress Controller for Kubernetes with F5 WAF for NGINX (WAF and API Protection)
 * **infra:**     AWS Infrastructure (VPC, IGW, etc.)
 * **eks:**       AWS Elastic Kubernetes Service
 * **arcadia:**   Arcadia Finance test web application and API
@@ -160,7 +160,7 @@ Users can now access the application through the NGINX Ingress Controller Load B
 
   ![arcadia](assets/arcadia.png)
 
-* Verify that the cross-site scripting is detected and blocked by NGINX App Protect.  
+* Verify that the cross-site scripting is detected and blocked by  F5 WAF for NGINX.  
 
   ![block](assets/mitigation.png)
   
